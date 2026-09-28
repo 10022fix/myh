@@ -1,0 +1,52 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">GESTÃO ESCOLAR</span>
+      <h1>Relatório de alunos</h1>
+      <p>Alunos cadastrados no sistema</p>
+    </div>
+    <div class="student-badge" aria-label="Identificação do aluno">
+      <span class="student-initials">PF</span>
+      <span><strong>Pedro Henrique Ferreira Gonçalves</strong><small>N24 · 3 INFOD</small></span>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Resumo do relatório">
+    <span class="summary-icon" aria-hidden="true">▤</span>
+    <span><strong>{{ carregando ? '…' : erro ? '—' : alunos.length }}</strong><small>{{ erro ? 'dados indisponíveis' : 'alunos cadastrados' }}</small></span>
+    <span class="live-status" [class.offline]="erro"><i></i>{{ carregando ? 'Consultando o serviço' : erro ? 'Serviço indisponível' : 'Dados carregados do serviço' }}</span>
+  </section>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>RA</th><th>Nome</th><th>Turma</th><th>Sala</th><th>Período</th><th class="action-heading">Ações</th></tr>
+      </thead>
+      <tbody>
+        @if (carregando) {
+          <tr><td colspan="7" class="message">Carregando alunos…</td></tr>
+        } @else if (erro) {
+          <tr><td colspan="7" class="message error">Não foi possível carregar os alunos. Verifique sua conexão e tente novamente.</td></tr>
+        } @else if (alunos.length === 0) {
+          <tr><td colspan="7" class="message">Nenhum aluno cadastrado.</td></tr>
+        } @else {
+        @for (aluno of alunos; track aluno.id) {
+          <tr>
+            <td class="id-cell">{{ aluno.id }}</td>
+            <td class="ra-cell">{{ aluno.ra }}</td>
+            <td>{{ aluno.nome }}</td>
+            <td>{{ aluno.turma }}</td>
+            <td>{{ aluno.sala }}</td>
+            <td>{{ aluno.periodo }}</td>
+            <td class="actions">
+              <button class="button button-edit" type="button" aria-label="Editar {{ aluno.nome }}">Editar</button>
+              <button class="button button-delete" type="button" aria-label="Excluir {{ aluno.nome }}">Excluir</button>
+            </td>
+          </tr>
+        }
+        }
+      </tbody>
+    </table>
+  </div>
+  <footer>Relatório de alunos <span>·</span> MyH</footer>
+</div>

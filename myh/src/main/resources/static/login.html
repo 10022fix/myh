@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/stylelogin.css">
+    <link rel="stylesheet" href="/tema.css">
+    <title>Login - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body>
+    <header class="cabecalho">
+        <nav class="navbar">
+            <a class="logo" href="/" aria-label="Make Your Health - início">
+                <img src="logo-myh-m-removebg-preview.png" alt="MYH">
+            </a>
+
+            <ul class="menu">
+                <li><a href="/">INÍCIO</a></li>
+                <li><a href="#">PLANOS</a></li>
+                <li><a href="#">BLOG</a></li>
+            </ul>
+
+            <a href="/comeceagora.html" class="btn-aluno">
+                ÁREA DO ALUNO
+            </a>
+        </nav>
+    </header>
+
+    <main class="cadastro">
+        <img
+            src="logo-myh-completa-removebg-preview.png"
+            alt="Make Your Health"
+            class="logo-cadastro"
+        >
+
+        <h1 class="titulo-cadastro">Entre na Make Your Health</h1>
+
+        <form class="form-cadastro" id="formLogin">
+            <div class="campo">
+                <label for="email">E-mail:</label>
+                <input id="email" name="email" type="email" required>
+            </div>
+
+            <div class="campo">
+                <label for="senha">Senha:</label>
+                <input id="senha" name="senha" type="password" required>
+            </div>
+
+            <div class="area-botao">
+                <button type="submit" class="btn-criar">Entrar</button>
+            </div>
+        </form>
+
+        <p id="mensagem" aria-live="polite"></p>
+    </main>
+
+    <script>
+        document
+            .getElementById("formLogin")
+            .addEventListener("submit", async e => {
+                e.preventDefault();
+
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    body: new URLSearchParams(new FormData(e.target))
+                });
+
+                const dados = await resposta.json();
+
+                document.getElementById("mensagem").textContent =
+                    dados.mensagem;
+
+                if (dados.sucesso) {
+                    setTimeout(() => {
+                        location.href = "/areadoaluno.html";
+                    }, 600);
+                }
+            });
+    </script>
+</body>
+</html>

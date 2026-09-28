@@ -1,0 +1,208 @@
+RELATÓRIO DE ALUNOS — CÓDIGOS DA ATIVIDADE
+Aluno: Pedro Henrique Ferreira Gonçalves | N24 | 3 INFOD
+
+========================================================================
+ARQUIVO: src\app\aluno.ts
+========================================================================
+export interface Aluno {
+  id: number;
+  ra: string;
+  nome: string;
+  turma: string;
+  sala: string;
+  periodo: string;
+}
+
+
+========================================================================
+ARQUIVO: src\app\aluno.service.ts
+========================================================================
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Aluno } from './aluno';
+
+export interface NovoAluno {
+  ra: string;
+  nome: string;
+  turma: string;
+  sala: string;
+  periodo: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AlunoService {
+  private readonly urlRelatorio = 'https://professorbarth.com.br/api-alunos/alunos/listarAlunos.php';
+  private readonly urlCadastro = 'https://professorbarth.com.br/api-alunos/alunos/criarAluno.php';
+
+  constructor(private readonly http: HttpClient) {}
+
+  listar(): Observable<Aluno[]> {
+    return this.http.get<Aluno[]>(this.urlRelatorio);
+  }
+
+  cadastrar(aluno: NovoAluno): Observable<unknown> {
+    return this.http.post(this.urlCadastro, aluno);
+  }
+}
+
+
+========================================================================
+ARQUIVO: src\app\app.config.ts
+========================================================================
+import { ApplicationConfig } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideRouter(routes), provideHttpClient()]
+};
+
+
+========================================================================
+ARQUIVO: src\app\relatorio\relatorio.component.ts
+========================================================================
+import { Component, OnInit } from '@angular/core';
+import { Aluno } from '../aluno';
+import { AlunoService } from '../aluno.service';
+
+@Component({
+  selector: 'app-relatorio',
+  standalone: true,
+  templateUrl: './relatorio.component.html',
+  styleUrl: './relatorio.component.css'
+})
+export class RelatorioComponent implements OnInit {
+  alunos: Aluno[] = [];
+  carregando = true;
+  erro = false;
+
+  constructor(private readonly alunoService: AlunoService) {}
+
+  ngOnInit(): void {
+    this.alunoService.listar().subscribe({
+      next: (alunos) => {
+        this.alunos = alunos;
+        this.carregando = false;
+      },
+      error: () => {
+        this.erro = true;
+        this.carregando = false;
+      }
+    });
+  }
+}
+
+
+========================================================================
+ARQUIVO: src\app\relatorio\relatorio.component.html
+========================================================================
+<div class="page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">GESTÃO ESCOLAR</span>
+      <h1>Relatório de alunos</h1>
+      <p>Alunos cadastrados no sistema</p>
+    </div>
+    <div class="student-badge" aria-label="Identificação do aluno">
+      <span class="student-initials">PF</span>
+      <span><strong>Pedro Henrique Ferreira Gonçalves</strong><small>N24 · 3 INFOD</small></span>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Resumo do relatório">
+    <span class="summary-icon" aria-hidden="true">▤</span>
+    <span><strong>{{ alunos.length }}</strong><small>alunos cadastrados</small></span>
+    <span class="live-status"><i></i> Dados atualizados pelo serviço</span>
+  </section>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>RA</th><th>Nome</th><th>Turma</th><th>Sala</th><th>Período</th><th class="action-heading">Ações</th></tr>
+      </thead>
+      <tbody>
+        @if (carregando) {
+          <tr><td colspan="7" class="message">Carregando alunos…</td></tr>
+        } @else if (erro) {
+          <tr><td colspan="7" class="message error">Não foi possível carregar os alunos. Verifique sua conexão e tente novamente.</td></tr>
+        } @else if (alunos.length === 0) {
+          <tr><td colspan="7" class="message">Nenhum aluno cadastrado.</td></tr>
+        } @else {
+        @for (aluno of alunos; track aluno.id) {
+          <tr>
+            <td class="id-cell">{{ aluno.id }}</td>
+            <td class="ra-cell">{{ aluno.ra }}</td>
+            <td>{{ aluno.nome }}</td>
+            <td>{{ aluno.turma }}</td>
+            <td>{{ aluno.sala }}</td>
+            <td>{{ aluno.periodo }}</td>
+            <td class="actions">
+              <button class="button button-edit" type="button" aria-label="Editar {{ aluno.nome }}">Editar</button>
+              <button class="button button-delete" type="button" aria-label="Excluir {{ aluno.nome }}">Excluir</button>
+            </td>
+          </tr>
+        }
+        }
+      </tbody>
+    </table>
+  </div>
+  <footer>Relatório de alunos <span>·</span> MyH</footer>
+</div>
+
+
+========================================================================
+ARQUIVO: src\app\relatorio\relatorio.component.css
+========================================================================
+.page { max-width:1180px; margin:0 auto; padding:54px 28px 32px; }
+.page-header { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:30px; }
+.eyebrow { color:#397a69; font-size:11px; font-weight:800; letter-spacing:1.7px; }
+h1 { margin:9px 0 7px; color:#173b35; font-size:clamp(28px, 4vw, 38px); letter-spacing:-1.2px; }
+.page-header p { margin:0; color:#71817d; font-size:15px; }
+.student-badge { display:flex; align-items:center; gap:12px; padding:11px 16px 11px 11px; border:1px solid #e1eae6; border-radius:14px; background:#fff; box-shadow:0 6px 18px #183b3510; }
+.student-initials { display:grid; width:42px; height:42px; place-items:center; border-radius:12px; background:#e4f2ed; color:#276752; font-weight:800; }
+.student-badge strong,.student-badge small { display:block; }
+.student-badge strong { color:#23463f; font-size:13px; }
+.student-badge small { margin-top:4px; color:#84928e; font-size:12px; }
+.summary { display:flex; align-items:center; gap:14px; margin-bottom:16px; padding:17px 20px; border:1px solid #e2ebe7; border-radius:14px; background:#fff; }
+.summary-icon { display:grid; width:42px; height:42px; place-items:center; border-radius:12px; background:#eaf5f0; color:#397a69; font-size:23px; }
+.summary strong,.summary small { display:block; }
+.summary strong { color:#1d473e; font-size:19px; }
+.summary small { margin-top:2px; color:#80908b; font-size:12px; }
+.live-status { display:flex; align-items:center; gap:8px; margin-left:auto; color:#71817d; font-size:12px; }
+.live-status i { width:8px; height:8px; border-radius:50%; background:#54ae83; box-shadow:0 0 0 3px #e6f5ed; }
+.table-wrap { overflow-x:auto; border:1px solid #e4ebe8; border-radius:14px; background:#fff; box-shadow:0 8px 24px #183b350c; }
+table { width:100%; border-collapse:collapse; text-align:left; }
+th,td { padding:15px 14px; border-bottom:1px solid #edf1ef; white-space:nowrap; }
+th { background:#f6f9f7; color:#788983; font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+td { color:#405650; font-size:13px; }
+tbody tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#fbfdfc; }
+.id-cell { color:#84938e; }
+.ra-cell { color:#286b58; font-weight:700; }
+.action-heading { text-align:right; }
+.actions { text-align:right; }
+.button { padding:7px 11px; border:1px solid transparent; border-radius:8px; background:#fff; font-size:11px; font-weight:700; cursor:pointer; }
+.button-edit { margin-right:6px; border-color:#dcebe5; color:#33765e; }
+.button-edit:hover { background:#eef7f2; }
+.button-delete { border-color:#f0dddd; color:#b65959; }
+.button-delete:hover { background:#fff3f2; }
+.message { padding:38px 16px; color:#71817d; text-align:center; }
+.message.error { color:#b65959; }
+footer { padding:20px 4px; color:#8c9995; font-size:12px; }
+footer span { padding:0 4px; color:#bbc5c1; }
+@media (max-width:680px) { .page { padding:32px 16px; } .page-header { align-items:flex-start; flex-direction:column; } .student-badge { width:100%; } .live-status { font-size:0; } }
+
+
+========================================================================
+ARQUIVO: src\styles.css
+========================================================================
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; font-family: Inter, Arial, Helvetica, sans-serif; }
+body { min-height: 100vh; background: #f1f5f3; color: #243b35; }
+button, input, select { font: inherit; }
+
+

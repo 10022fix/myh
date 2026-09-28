@@ -1,0 +1,17 @@
+target/
+.settings/
+.classpath
+.project
+.vscode/
+*.log
+.env
+application-local.properties
+node_modules/
+*.class
+bin/
+.angular/
+dist/
+*.tsbuildinfo
+angular-compiler.db*
+04_relatorio_servico/chrome-capture-profile/
+sql/inserts_usuario_treino.sql

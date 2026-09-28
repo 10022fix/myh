@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="/logo-myh-m.png">
+    <link rel="stylesheet" href="/stylealuno.css">
+    <link rel="stylesheet" href="/tema.css">
+
+    <title>Área do Aluno - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar">
+
+            <a class="logo" href="/">
+                <img src="/logo-myh-m.png" alt="MYH">
+            </a>
+
+            <span class="marca">MAKE YOUR HEALTH</span>
+
+            <button id="sair" class="btn-sair">
+                Sair
+            </button>
+
+        </nav>
+    </header>
+
+    <main class="painel">
+
+        <section class="boas-vindas">
+            <p>ÁREA DO ALUNO</p>
+
+            <h1 id="titulo">
+                Carregando...
+            </h1>
+
+            <span>
+                Seu espaço para acompanhar sua saúde.
+            </span>
+        </section>
+
+        <section id="evolucao" class="evolucao oculto" aria-live="polite">
+            <div>
+                <p class="evolucao-etiqueta">SUA EVOLUÇÃO</p>
+                <h2 id="evolucaoTitulo">Carregando sua jornada...</h2>
+                <p id="evolucaoTexto"></p>
+            </div>
+            <div class="evolucao-numeros">
+                <div><span>Início</span><strong id="pesoInicial">—</strong></div>
+                <div><span>Agora</span><strong id="pesoAtual">—</strong></div>
+                <div><span>Meta</span><strong id="pesoMeta">—</strong></div>
+            </div>
+        </section>
+
+        <section class="cards">
+
+            <article class="card">
+                <span>01</span>
+
+                <h2>Meu treino</h2>
+
+                <p>
+                    Consulte seus treinos e exercícios ativos.
+                </p>
+
+                <a class="btn-card" href="/meu-treino.html">Ver meu treino</a>
+            </article>
+
+            <article class="card">
+                <span>02</span>
+
+                <h2>Meus objetivos</h2>
+
+                <p>
+                    Defina sua meta de peso e acompanhe sua evolução.
+                </p>
+
+                <a class="btn-card" href="/meus-objetivos.html">Ver objetivos</a>
+            </article>
+
+            <article class="card">
+                <span>03</span>
+
+                <h2>Meu progresso</h2>
+
+                <p>
+                    Registre medidas, peso e IMC.
+                </p>
+
+                <a class="btn-card" href="/meu-progresso.html">Acompanhar progresso</a>
+            </article>
+
+        </section>
+
+    </main>
+
+    <script>
+        (async () => {
+            const resposta = await fetch("/api/sessao");
+
+            if (!resposta.ok) {
+                location.href = "/login.html";
+                return;
+            }
+
+            const dados = await resposta.json();
+
+            document.getElementById("titulo").textContent =
+                "Olá, " + dados.nome + "!";
+
+            const resumoResposta = await fetch("/api/painel/resumo");
+            if (resumoResposta.ok) {
+                const resumo = await resumoResposta.json();
+                if (Object.keys(resumo).length) {
+                    const formatarPeso = valor => valor == null ? "—" : Number(valor).toLocaleString("pt-BR") + " kg";
+                    document.getElementById("pesoInicial").textContent = formatarPeso(resumo.pesoInicial);
+                    document.getElementById("pesoAtual").textContent = formatarPeso(resumo.pesoAtual);
+                    document.getElementById("pesoMeta").textContent = formatarPeso(resumo.pesoMeta);
+                    document.getElementById("evolucaoTitulo").textContent = resumo.objetivo
+                        ? "Objetivo: " + resumo.objetivo : "Registre sua primeira meta";
+                    document.getElementById("evolucaoTexto").textContent = resumo.pesoMeta == null
+                        ? "Defina um objetivo para visualizar seu caminho daqui até a meta."
+                        : "Você começou com " + formatarPeso(resumo.pesoInicial) + " e sua meta é " + formatarPeso(resumo.pesoMeta) + ".";
+                    document.getElementById("evolucao").classList.remove("oculto");
+                }
+            }
+        })();
+
+        document.getElementById("sair").addEventListener("click", async () => {
+            await fetch("/api/logout", {
+                method: "POST"
+            });
+
+            location.href = "/";
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,947 @@
+/* Tema claro compartilhado com a paleta da Make Your Health. */
+:root {
+    color-scheme: light;
+    --tema-fundo: #f5f7f5;
+    --cor-verde-logo: #5A8A5A;
+    --cor-azul-nevoa: #AFC6D8;
+    --cor-menta-suave: #BCE3C5;
+    --cor-lilas: #D8C4E8;
+    --tema-superficie: #fbfcfa;
+    --tema-superficie-2: #eef4f2;
+    --tema-texto: #25382e;
+    --tema-texto-suave: #5c6e63;
+    --tema-borda: #AFC6D8;
+    --tema-acento: #5A8A5A;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --tema-fundo: #07110e;
+    --tema-superficie: #101d18;
+    --tema-superficie-2: #0d1a13;
+    --tema-texto: #edf6ef;
+    --tema-texto-suave: #c8d8cb;
+    --tema-borda: rgba(171, 255, 143, .2);
+    --tema-acento: #c8ff69;
+}
+
+html, body {
+    transition: background-color .25s ease, color .25s ease;
+}
+
+/* Botão sol/lua */
+.theme-toggle {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    margin-left: 20px;
+    margin-right: 18px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--tema-borda);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .06);
+    color: var(--tema-acento);
+    cursor: pointer;
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    background: rgba(200, 255, 105, .12);
+    box-shadow: 0 0 18px rgba(114, 230, 165, .16);
+}
+
+.theme-toggle:active {
+    transform: translateY(2px) scale(.94);
+}
+
+.theme-toggle svg {
+    width: 21px;
+    height: 21px;
+    display: block;
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid var(--tema-acento);
+    outline-offset: 3px;
+}
+
+/* Cores do modo claro aplicadas às páginas */
+:root[data-theme="light"] body {
+    color: var(--tema-texto) !important;
+    background: #f5f7f2 !important;
+}
+
+:root[data-theme="light"] nav.navbar {
+    background: rgba(255, 255, 255, .96) !important;
+    border-color: #d8e2d6 !important;
+    box-shadow: 0 12px 36px rgba(37, 65, 45, .09) !important;
+}
+
+:root[data-theme="light"] nav.navbar ul.menu a,
+:root[data-theme="light"] nav.navbar ul.menu a:visited,
+:root[data-theme="light"] nav.navbar .marca,
+:root[data-theme="light"] nav.navbar .nav-voltar {
+    color: #24392d !important;
+}
+
+:root[data-theme="light"] nav.navbar ul.menu a:hover,
+:root[data-theme="light"] nav.navbar ul.menu a.active,
+:root[data-theme="light"] nav.navbar .nav-voltar:hover {
+    color: #527d5c !important;
+}
+
+:root[data-theme="light"] nav.navbar .theme-toggle {
+    background: #f5f7f2;
+    color: #527d5c;
+}
+
+:root[data-theme="light"] .centropagina,
+:root[data-theme="light"] .primeira-vez,
+:root[data-theme="light"] .quiz {
+    color: #24392d !important;
+    background:
+        radial-gradient(ellipse at 50% 42%, rgba(168, 213, 186, .3), transparent 45%),
+        linear-gradient(145deg, #fbfcf9, #eef3ec 58%, #fbfcf9) !important;
+}
+
+:root[data-theme="light"] .centropagina::before,
+:root[data-theme="light"] .primeira-vez::before,
+:root[data-theme="light"] .quiz::before {
+    opacity: .35;
+    background-image:
+        linear-gradient(rgba(71, 118, 92, .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(71, 118, 92, .08) 1px, transparent 1px) !important;
+}
+
+:root[data-theme="light"] .centropagina::after {
+    border-color: rgba(71, 118, 92, .18) !important;
+    box-shadow:
+        0 0 0 48px rgba(71, 118, 92, .035),
+        0 0 0 100px rgba(71, 118, 92, .025),
+        inset 0 0 90px rgba(71, 118, 92, .04) !important;
+}
+
+:root[data-theme="light"] main.cadastro,
+:root[data-theme="light"] .cadastro,
+:root[data-theme="light"] .boas-vindas,
+:root[data-theme="light"] section.cabecalho,
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .treino,
+:root[data-theme="light"] .registro,
+:root[data-theme="light"] .formulario,
+:root[data-theme="light"] .vazio,
+:root[data-theme="light"] .objetivo-card,
+:root[data-theme="light"] .opcao,
+:root[data-theme="light"] .opcao-card,
+:root[data-theme="light"] .opcao-img,
+:root[data-theme="light"] .evolucao,
+:root[data-theme="light"] .formulario,
+:root[data-theme="light"] .resumo,
+:root[data-theme="light"] .progresso-resumo {
+    color: #24392d !important;
+    border-color: #d8e2d6 !important;
+    background: rgba(255, 255, 255, .94) !important;
+    box-shadow: 0 18px 48px rgba(37, 65, 45, .09) !important;
+    backdrop-filter: blur(12px);
+}
+
+:root[data-theme="light"] .titulo-principal,
+:root[data-theme="light"] .titulo-cadastro,
+:root[data-theme="light"] .pergunta-titulo,
+:root[data-theme="light"] .final h2,
+:root[data-theme="light"] .boas-vindas h1,
+:root[data-theme="light"] .cabecalho h1,
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3 {
+    color: #24392d !important;
+}
+
+:root[data-theme="light"] p,
+:root[data-theme="light"] label,
+:root[data-theme="light"] .campo label,
+:root[data-theme="light"] .dados-pessoais label,
+:root[data-theme="light"] .boas-vindas p,
+:root[data-theme="light"] .pergunta-subtitulo,
+:root[data-theme="light"] .registro-info,
+:root[data-theme="light"] .opcao-desc,
+:root[data-theme="light"] .opcao-card-texto p,
+:root[data-theme="light"] .final p,
+:root[data-theme="light"] .exercicios small {
+    color: #637467 !important;
+}
+
+:root[data-theme="light"] .sobretitulo,
+:root[data-theme="light"] .marca,
+:root[data-theme="light"] .destaque,
+:root[data-theme="light"] .meta,
+:root[data-theme="light"] .evolucao-etiqueta,
+:root[data-theme="light"] .card span {
+    color: #527d5c !important;
+}
+
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] .busca,
+:root[data-theme="light"] .campo input,
+:root[data-theme="light"] .campo select,
+:root[data-theme="light"] .dados-pessoais input,
+:root[data-theme="light"] .dados-pessoais select {
+    color: #24392d !important;
+    border-color: #d0ddd0 !important;
+    background: #fff !important;
+}
+
+:root[data-theme="light"] .exercicios,
+:root[data-theme="light"] .exercicios li {
+    border-color: #d8e2d6 !important;
+}
+
+:root[data-theme="light"] .selo,
+:root[data-theme="light"] .resumo,
+:root[data-theme="light"] .evolucao-numeros div {
+    color: #38543f !important;
+    border-color: #d5e5d0 !important;
+    background: #edf4e8 !important;
+}
+
+:root[data-theme="light"] .progresso {
+    background: #e5ede2 !important;
+}
+
+:root[data-theme="light"] #mensagem {
+    color: #24392d !important;
+}
+
+@media (max-width: 650px) {
+    .theme-toggle {
+        width: 40px;
+        height: 40px;
+        margin-left: 16px;
+        margin-right: 14px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+    }
+}
+/* Refinamento da paleta clara com as cores da referência e o verde da logo */
+:root[data-theme="light"] body {
+    color: #25382e !important;
+    background:
+        radial-gradient(ellipse at 50% 4%, rgba(188, 227, 197, .24), transparent 42%),
+        linear-gradient(135deg, #f5f7f5, #eef4f6 58%, #f8f7fa) !important;
+}
+
+:root[data-theme="light"] nav.navbar {
+    background: rgba(251, 252, 250, .97) !important;
+    border-color: #AFC6D8 !important;
+}
+
+:root[data-theme="light"] nav.navbar .theme-toggle {
+    background: #BCE3C5 !important;
+    border-color: #A0EFAD !important;
+    color: #31513a !important;
+}
+
+:root[data-theme="light"] nav.navbar .theme-toggle:hover {
+    background: #A0EFAD !important;
+}
+
+:root[data-theme="light"] .centropagina,
+:root[data-theme="light"] .primeira-vez,
+:root[data-theme="light"] .quiz {
+    color: #25382e !important;
+    background:
+        radial-gradient(ellipse at 50% 42%, rgba(160, 239, 173, .3), transparent 44%),
+        linear-gradient(145deg, #f8faf8, #edf4f2 58%, #f8f7fa) !important;
+}
+
+:root[data-theme="light"] .centropagina::before,
+:root[data-theme="light"] .primeira-vez::before,
+:root[data-theme="light"] .quiz::before {
+    background-image:
+        linear-gradient(rgba(175, 198, 216, .17) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(175, 198, 216, .17) 1px, transparent 1px) !important;
+}
+
+:root[data-theme="light"] .centropagina::after {
+    border-color: rgba(160, 239, 173, .55) !important;
+    box-shadow:
+        0 0 0 48px rgba(188, 227, 197, .16),
+        0 0 0 100px rgba(175, 198, 216, .1),
+        inset 0 0 90px rgba(160, 239, 173, .12) !important;
+}
+
+:root[data-theme="light"] main.cadastro,
+:root[data-theme="light"] .cadastro,
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .treino,
+:root[data-theme="light"] .registro,
+:root[data-theme="light"] .formulario,
+:root[data-theme="light"] .vazio,
+:root[data-theme="light"] .objetivo-card,
+:root[data-theme="light"] .opcao,
+:root[data-theme="light"] .opcao-card,
+:root[data-theme="light"] .opcao-img,
+:root[data-theme="light"] .evolucao,
+:root[data-theme="light"] .progresso-resumo {
+    background: rgba(255, 255, 255, .96) !important;
+    border-color: #AFC6D8 !important;
+    color: #25382e !important;
+}
+
+:root[data-theme="light"] .boas-vindas,
+:root[data-theme="light"] section.cabecalho {
+    background: linear-gradient(135deg, rgba(188, 227, 197, .72), rgba(255, 255, 255, .98) 72%) !important;
+    border-color: #AFC6D8 !important;
+}
+
+:root[data-theme="light"] .titulo-principal,
+:root[data-theme="light"] .titulo-cadastro,
+:root[data-theme="light"] .pergunta-titulo,
+:root[data-theme="light"] .final h2,
+:root[data-theme="light"] .boas-vindas h1,
+:root[data-theme="light"] .cabecalho h1,
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3 {
+    color: #25382e !important;
+}
+
+:root[data-theme="light"] .sobretitulo,
+:root[data-theme="light"] .destaque,
+:root[data-theme="light"] .meta,
+:root[data-theme="light"] .evolucao-etiqueta,
+:root[data-theme="light"] .card span {
+    color: #53745b !important;
+}
+
+:root[data-theme="light"] .btn-aluno,
+:root[data-theme="light"] .btncomeceagora,
+:root[data-theme="light"] .btncct,
+:root[data-theme="light"] .btnet,
+:root[data-theme="light"] .btn-criar,
+:root[data-theme="light"] .btn-continuar,
+:root[data-theme="light"] .btn-card,
+:root[data-theme="light"] .acao,
+:root[data-theme="light"] .conteudo button,
+:root[data-theme="light"] .btn-sair,
+:root[data-theme="light"] button {
+    border-color: rgba(83, 116, 91, .28) !important;
+    background: linear-gradient(135deg, #A0EFAD, #BCE3C5) !important;
+    color: #25382e !important;
+}
+
+:root[data-theme="light"] .btn-aluno:hover,
+:root[data-theme="light"] .btncomeceagora:hover,
+:root[data-theme="light"] .btncct:hover,
+:root[data-theme="light"] .btnet:hover,
+:root[data-theme="light"] .btn-criar:hover,
+:root[data-theme="light"] .btn-continuar:hover,
+:root[data-theme="light"] .btn-card:hover,
+:root[data-theme="light"] .acao:hover,
+:root[data-theme="light"] button:hover {
+    background: #A0EFAD !important;
+    box-shadow: 0 8px 22px rgba(83, 116, 91, .16) !important;
+}
+
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] .busca,
+:root[data-theme="light"] .campo input,
+:root[data-theme="light"] .campo select,
+:root[data-theme="light"] .dados-pessoais input,
+:root[data-theme="light"] .dados-pessoais select {
+    border-color: #AFC6D8 !important;
+    background: #fff !important;
+    color: #25382e !important;
+}
+
+:root[data-theme="light"] .selo,
+:root[data-theme="light"] .resumo,
+:root[data-theme="light"] .evolucao-numeros div {
+    border-color: rgba(216, 196, 232, .9) !important;
+    background: #D8C4E8 !important;
+    color: #44354d !important;
+}
+
+:root[data-theme="light"] .progresso {
+    background: #AFC6D8 !important;
+}
+
+:root[data-theme="light"] .progresso-barra {
+    background: linear-gradient(90deg, #A0EFAD, #BCE3C5) !important;
+    box-shadow: 0 0 14px rgba(160, 239, 173, .4) !important;
+}
+/* Paleta clara inspirada na referência visual do MYH */
+:root {
+    --cor-verde-logo: #5A8A5A;
+    --cor-verde-texto: #3F7855;
+    --cor-azul-nevoa: #A1C6D8;
+    --cor-menta-suave: #BCE3C5;
+    --cor-lilas-silvestre: #D8C4E8;
+    --cor-azul-celeste: #CFE8FF;
+    --cor-roxo-lavanda: #B794F4;
+    --cor-amarelo-suave: #FFD86B;
+    --cor-cinza-neutro: #F4F7FA;
+}
+
+:root[data-theme="light"] body {
+    color: #29483a !important;
+    background:
+        radial-gradient(circle at 2% 8%, rgba(188, 227, 197, .52), transparent 24%),
+        radial-gradient(circle at 96% 12%, rgba(207, 232, 255, .58), transparent 27%),
+        linear-gradient(125deg, #F4F7FA, #F8FBF8 54%, #EEF7F3) !important;
+}
+
+:root[data-theme="light"] nav.navbar {
+    background: rgba(255, 255, 255, .91) !important;
+    border-color: rgba(161, 198, 216, .44) !important;
+    box-shadow: 0 10px 34px rgba(44, 88, 69, .08) !important;
+}
+
+:root[data-theme="light"] nav.navbar ul.menu a,
+:root[data-theme="light"] nav.navbar ul.menu a:visited,
+:root[data-theme="light"] nav.navbar .marca,
+:root[data-theme="light"] nav.navbar .nav-voltar {
+    color: #365d4a !important;
+}
+
+:root[data-theme="light"] nav.navbar ul.menu a:hover,
+:root[data-theme="light"] nav.navbar ul.menu a.active,
+:root[data-theme="light"] nav.navbar .nav-voltar:hover {
+    color: var(--cor-verde-texto) !important;
+}
+
+:root[data-theme="light"] nav.navbar .theme-toggle {
+    border-color: rgba(63, 120, 85, .16) !important;
+    background: var(--cor-menta-suave) !important;
+    color: #356c50 !important;
+}
+
+:root[data-theme="light"] .centropagina,
+:root[data-theme="light"] .primeira-vez,
+:root[data-theme="light"] .quiz {
+    color: #29483a !important;
+    background:
+        radial-gradient(ellipse at 4% 8%, rgba(188, 227, 197, .54), transparent 31%),
+        radial-gradient(ellipse at 88% 18%, rgba(207, 232, 255, .52), transparent 34%),
+        linear-gradient(135deg, #F4F7FA, #F9FBF8 55%, #EEF7F4) !important;
+}
+
+:root[data-theme="light"] .centropagina::before,
+:root[data-theme="light"] .primeira-vez::before,
+:root[data-theme="light"] .quiz::before {
+    opacity: .42;
+    background-image:
+        linear-gradient(rgba(161, 198, 216, .18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(161, 198, 216, .18) 1px, transparent 1px) !important;
+}
+
+:root[data-theme="light"] .centropagina::after {
+    border-color: rgba(160, 239, 173, .65) !important;
+    box-shadow:
+        0 0 0 48px rgba(188, 227, 197, .2),
+        0 0 0 100px rgba(207, 232, 255, .16),
+        inset 0 0 90px rgba(160, 239, 173, .16) !important;
+}
+
+:root[data-theme="light"] main.cadastro,
+:root[data-theme="light"] .cadastro,
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .treino,
+:root[data-theme="light"] .registro,
+:root[data-theme="light"] .formulario,
+:root[data-theme="light"] .vazio,
+:root[data-theme="light"] .objetivo-card,
+:root[data-theme="light"] .opcao,
+:root[data-theme="light"] .opcao-card,
+:root[data-theme="light"] .opcao-img,
+:root[data-theme="light"] .evolucao,
+:root[data-theme="light"] .progresso-resumo {
+    color: #29483a !important;
+    border-color: rgba(161, 198, 216, .62) !important;
+    background: rgba(255, 255, 255, .92) !important;
+    box-shadow: 0 18px 48px rgba(46, 91, 71, .08) !important;
+}
+
+:root[data-theme="light"] .boas-vindas,
+:root[data-theme="light"] section.cabecalho {
+    border-color: rgba(160, 239, 173, .76) !important;
+    background: linear-gradient(135deg, rgba(188, 227, 197, .72), rgba(255, 255, 255, .96) 72%) !important;
+}
+
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3,
+:root[data-theme="light"] .titulo-principal,
+:root[data-theme="light"] .titulo-cadastro,
+:root[data-theme="light"] .pergunta-titulo,
+:root[data-theme="light"] .final h2,
+:root[data-theme="light"] .boas-vindas h1,
+:root[data-theme="light"] .cabecalho h1 {
+    color: #315d43 !important;
+}
+
+:root[data-theme="light"] p,
+:root[data-theme="light"] label,
+:root[data-theme="light"] .campo label,
+:root[data-theme="light"] .dados-pessoais label,
+:root[data-theme="light"] .pergunta-subtitulo,
+:root[data-theme="light"] .registro-info,
+:root[data-theme="light"] .opcao-desc,
+:root[data-theme="light"] .opcao-card-texto p,
+:root[data-theme="light"] .final p,
+:root[data-theme="light"] .exercicios small {
+    color: #63766d !important;
+}
+
+:root[data-theme="light"] .sobretitulo,
+:root[data-theme="light"] .destaque,
+:root[data-theme="light"] .meta,
+:root[data-theme="light"] .evolucao-etiqueta,
+:root[data-theme="light"] .card span {
+    color: var(--cor-verde-texto) !important;
+}
+
+:root[data-theme="light"] .btn-aluno,
+:root[data-theme="light"] .btncomeceagora,
+:root[data-theme="light"] .btncct,
+:root[data-theme="light"] .btnet,
+:root[data-theme="light"] .btn-criar,
+:root[data-theme="light"] .btn-continuar,
+:root[data-theme="light"] .btn-card,
+:root[data-theme="light"] .acao,
+:root[data-theme="light"] .conteudo button,
+:root[data-theme="light"] .btn-sair,
+:root[data-theme="light"] button {
+    border-color: rgba(63, 120, 85, .2) !important;
+    background: linear-gradient(135deg, #A0EFAD, #BCE3C5) !important;
+    color: #244634 !important;
+}
+
+:root[data-theme="light"] .btn-aluno:hover,
+:root[data-theme="light"] .btncomeceagora:hover,
+:root[data-theme="light"] .btncct:hover,
+:root[data-theme="light"] .btnet:hover,
+:root[data-theme="light"] .btn-criar:hover,
+:root[data-theme="light"] .btn-continuar:hover,
+:root[data-theme="light"] .btn-card:hover,
+:root[data-theme="light"] .acao:hover,
+:root[data-theme="light"] button:hover {
+    background: #A0EFAD !important;
+    box-shadow: 0 8px 22px rgba(63, 120, 85, .17) !important;
+}
+
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] .busca,
+:root[data-theme="light"] .campo input,
+:root[data-theme="light"] .campo select,
+:root[data-theme="light"] .dados-pessoais input,
+:root[data-theme="light"] .dados-pessoais select {
+    border-color: rgba(161, 198, 216, .86) !important;
+    background: #fff !important;
+    color: #29483a !important;
+}
+
+:root[data-theme="light"] .selo,
+:root[data-theme="light"] .evolucao-numeros div {
+    border-color: rgba(188, 227, 197, .95) !important;
+    background: #BCE3C5 !important;
+    color: #355944 !important;
+}
+
+:root[data-theme="light"] .resumo {
+    border-color: rgba(216, 196, 232, .95) !important;
+    background: #D8C4E8 !important;
+    color: #493b55 !important;
+}
+
+:root[data-theme="light"] .progresso {
+    background: #CFE8FF !important;
+}
+
+:root[data-theme="light"] .progresso-barra {
+    background: linear-gradient(90deg, #A0EFAD, #BCE3C5) !important;
+    box-shadow: 0 0 14px rgba(160, 239, 173, .42) !important;
+}
+
+:root[data-theme="light"] #mensagem {
+    color: #29483a !important;
+}
+/* Ajuste final inspirado diretamente na referência visual do tema claro */
+:root[data-theme="light"] {
+    --cor-verde-logo: #5A8A5A;
+    --cor-verde-texto: #477B58;
+    --cor-azul-nevoa: #A1C6D8;
+    --cor-menta-suave: #BCE3C5;
+    --cor-lilas-silvestre: #D8C4E8;
+    --cor-azul-celeste: #CFE8FF;
+    --cor-roxo-lavanda: #B794F4;
+    --cor-amarelo-suave: #FFD86B;
+    --cor-cinza-neutro: #F4F7FA;
+    --tema-acento: #5A8A5A;
+}
+
+:root[data-theme="light"] body {
+    background:
+        radial-gradient(circle at 0 8%, rgba(188, 227, 197, .62), transparent 24%),
+        radial-gradient(circle at 100% 18%, rgba(207, 232, 255, .55), transparent 28%),
+        linear-gradient(130deg, #F4F7FA, #F8FBF8 52%, #EEF7F4) !important;
+}
+
+:root[data-theme="light"] nav.navbar {
+    background: rgba(255, 255, 255, .93) !important;
+    border-color: rgba(161, 198, 216, .45) !important;
+}
+
+:root[data-theme="light"] nav.navbar .logo img,
+:root[data-theme="light"] .logo-central,
+:root[data-theme="light"] .logo-cadastro {
+    mix-blend-mode: normal !important;
+    filter: brightness(0) saturate(100%) invert(48%) sepia(12%) saturate(1100%) hue-rotate(71deg) brightness(91%) contrast(88%) !important;
+}
+
+:root[data-theme="light"] nav.navbar ul.menu a:hover,
+:root[data-theme="light"] nav.navbar ul.menu a.active,
+:root[data-theme="light"] nav.navbar .nav-voltar:hover {
+    color: #5A8A5A !important;
+}
+
+:root[data-theme="light"] .theme-toggle {
+    color: #477B58 !important;
+    border-color: rgba(90, 138, 90, .2) !important;
+    background: #BCE3C5 !important;
+}
+
+:root[data-theme="light"] .btn-aluno,
+:root[data-theme="light"] .btncomeceagora,
+:root[data-theme="light"] .btncct,
+:root[data-theme="light"] .btnet,
+:root[data-theme="light"] .btn-criar,
+:root[data-theme="light"] .btn-continuar,
+:root[data-theme="light"] .btn-card,
+:root[data-theme="light"] .acao,
+:root[data-theme="light"] .conteudo button,
+:root[data-theme="light"] .btn-sair,
+:root[data-theme="light"] button {
+    border-color: rgba(63, 120, 85, .28) !important;
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+}
+
+:root[data-theme="light"] .btn-aluno:hover,
+:root[data-theme="light"] .btncomeceagora:hover,
+:root[data-theme="light"] .btncct:hover,
+:root[data-theme="light"] .btnet:hover,
+:root[data-theme="light"] .btn-criar:hover,
+:root[data-theme="light"] .btn-continuar:hover,
+:root[data-theme="light"] .btn-card:hover,
+:root[data-theme="light"] .acao:hover,
+:root[data-theme="light"] button:hover {
+    background: #477B58 !important;
+    color: #ffffff !important;
+}
+
+:root[data-theme="light"] .titulo-principal,
+:root[data-theme="light"] .titulo-cadastro,
+:root[data-theme="light"] .pergunta-titulo,
+:root[data-theme="light"] .final h2,
+:root[data-theme="light"] .boas-vindas h1,
+:root[data-theme="light"] .cabecalho h1,
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3 {
+    color: #386B4D !important;
+}
+
+:root[data-theme="light"] .boas-vindas,
+:root[data-theme="light"] section.cabecalho {
+    border-color: rgba(188, 227, 197, .9) !important;
+    background: linear-gradient(135deg, rgba(188, 227, 197, .58), rgba(255, 255, 255, .96) 72%) !important;
+}
+
+:root[data-theme="light"] .selo,
+:root[data-theme="light"] .evolucao-numeros div {
+    border-color: #BCE3C5 !important;
+    background: #BCE3C5 !important;
+    color: #355944 !important;
+}
+
+:root[data-theme="light"] .resumo {
+    border-color: #D8C4E8 !important;
+    background: #D8C4E8 !important;
+    color: #493b55 !important;
+}
+
+:root[data-theme="light"] .progresso {
+    background: #CFE8FF !important;
+}
+
+:root[data-theme="light"] .progresso-barra {
+    background: linear-gradient(90deg, #5A8A5A, #BCE3C5) !important;
+}
+
+:root[data-theme="light"] .destaque {
+    border-radius: 8px;
+    background: rgba(255, 216, 107, .28);
+}
+/* Sombra verde ao pressionar controles no tema claro */
+:root[data-theme="light"] button:active,
+:root[data-theme="light"] input[type="button"]:active,
+:root[data-theme="light"] input[type="submit"]:active,
+:root[data-theme="light"] a.btn-aluno:active,
+:root[data-theme="light"] .btncomeceagora:active,
+:root[data-theme="light"] .btncct:active,
+:root[data-theme="light"] .btnet:active,
+:root[data-theme="light"] .btn-criar:active,
+:root[data-theme="light"] .btn-continuar:active,
+:root[data-theme="light"] .btn-card:active,
+:root[data-theme="light"] .acao:active,
+:root[data-theme="light"] .btn-sair:active,
+:root[data-theme="light"] .theme-toggle:active {
+    transform: translateY(2px) scale(.97) !important;
+    box-shadow:
+        inset 0 3px 7px rgba(45, 92, 58, .36),
+        0 1px 3px rgba(65, 111, 71, .2) !important;
+    filter: brightness(.9) !important;
+}
+/* Hover do botão Criar em cadastro e login: brilho verde, sem halo branco */
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] .area-botao .btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible {
+    background: #5A8A5A !important;
+    color: #ffffff !important;
+    border-color: #477B58 !important;
+    box-shadow:
+        0 0 18px rgba(90, 138, 90, .42),
+        0 6px 14px rgba(71, 123, 88, .22) !important;
+    filter: none !important;
+}
+/* Botão Criar com relevo verde constante e efeito de afundar */
+:root[data-theme="light"] button.btn-criar {
+    position: relative;
+    top: 0;
+    transform: translateY(0);
+    border: 0 !important;
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 5px 0 #3E744D,
+        0 8px 14px rgba(63, 120, 85, .2) !important;
+    filter: none !important;
+    transition:
+        transform .12s ease,
+        box-shadow .12s ease !important;
+}
+
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible {
+    top: 0;
+    transform: translateY(0);
+    border: 0 !important;
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 5px 0 #3E744D,
+        0 8px 14px rgba(63, 120, 85, .2) !important;
+    filter: none !important;
+}
+
+:root[data-theme="light"] button.btn-criar:active {
+    top: 0;
+    transform: translateY(4px) !important;
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 1px 0 #3E744D,
+        0 2px 4px rgba(63, 120, 85, .16) !important;
+    filter: none !important;
+}
+/* Mesmo relevo e movimento do tema escuro, com as cores do tema claro */
+:root[data-theme="light"] button.btn-criar,
+:root[data-theme="light"] .area-botao .btn-criar {
+    position: relative;
+    top: 0;
+    transform: scale(1);
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 5px 0 #3E744D,
+        0 8px 16px rgba(0, 0, 0, .25) !important;
+    filter: none !important;
+    transition:
+        top .1s ease,
+        transform .1s ease,
+        box-shadow .1s ease !important;
+}
+
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible,
+:root[data-theme="light"] .area-botao .btn-criar:hover {
+    top: 0;
+    transform: scale(1);
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 5px 0 #3E744D,
+        0 8px 16px rgba(0, 0, 0, .25) !important;
+    filter: none !important;
+}
+
+:root[data-theme="light"] button.btn-criar:active,
+:root[data-theme="light"] .area-botao .btn-criar:active {
+    top: 4px;
+    transform: scale(.97);
+    background: linear-gradient(135deg, #5A8A5A, #438A70) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 1px 0 #3E744D,
+        0 2px 5px rgba(0, 0, 0, .2) !important;
+    filter: none !important;
+}
+/* Frente mais clara no botão Criar; a sombra permanece no mesmo verde */
+:root[data-theme="light"] button.btn-criar,
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible,
+:root[data-theme="light"] button.btn-criar:active {
+    background: linear-gradient(135deg, #A0EFAD, #BCE3C5) !important;
+    color: #244634 !important;
+    box-shadow:
+        0 5px 0 #3E744D,
+        0 8px 16px rgba(0, 0, 0, .25) !important;
+}
+
+:root[data-theme="light"] button.btn-criar:active {
+    top: 4px;
+    transform: scale(.97);
+    box-shadow:
+        0 1px 0 #3E744D,
+        0 2px 5px rgba(0, 0, 0, .2) !important;
+}
+
+/* Botao Criar no tema claro: face clara e base escura visivel */
+:root[data-theme="light"] button.btn-criar {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    overflow: visible;
+    top: 0;
+    transform: translateY(0);
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #A0EFAD !important;
+    color: #244634 !important;
+    box-shadow: 0 8px 16px rgba(49, 95, 64, .16) !important;
+    filter: none !important;
+    transition: transform .12s ease, background-color .12s ease !important;
+}
+
+:root[data-theme="light"] button.btn-criar::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    content: "";
+    border-radius: inherit;
+    background: #315F40;
+    transform: translateY(6px);
+    transition: transform .12s ease;
+}
+
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible {
+    background: #A0EFAD !important;
+    color: #244634 !important;
+    box-shadow: 0 8px 16px rgba(49, 95, 64, .16) !important;
+}
+
+:root[data-theme="light"] button.btn-criar:active {
+    top: 0;
+    transform: translateY(4px);
+}
+
+:root[data-theme="light"] button.btn-criar:active::before {
+    transform: translateY(2px);
+}
+
+/* Corrige a base do botao: faixa escura somente abaixo da face */
+:root[data-theme="light"] button.btn-criar {
+    z-index: 1;
+    isolation: auto;
+    background: #A0EFAD !important;
+    color: #244634 !important;
+    box-shadow: 0 6px 0 #315F40, 0 9px 14px rgba(49, 95, 64, .16) !important;
+}
+
+:root[data-theme="light"] button.btn-criar::before {
+    content: none !important;
+    display: none !important;
+}
+
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible {
+    background: #A0EFAD !important;
+    color: #244634 !important;
+    box-shadow: 0 6px 0 #315F40, 0 9px 14px rgba(49, 95, 64, .16) !important;
+}
+
+:root[data-theme="light"] button.btn-criar:active {
+    transform: translateY(4px) !important;
+    box-shadow: 0 2px 0 #315F40, 0 4px 7px rgba(49, 95, 64, .12) !important;
+}
+
+/* Acabamento da sombra do botao Criar no tema claro */
+:root[data-theme="light"] button.btn-criar,
+:root[data-theme="light"] button.btn-criar:hover,
+:root[data-theme="light"] button.btn-criar:focus-visible {
+    background: #A0EFAD !important;
+    color: #244634 !important;
+    box-shadow: 0 4px 0 #315F40, 0 6px 10px rgba(49, 95, 64, .2) !important;
+}
+
+:root[data-theme="light"] button.btn-criar:active {
+    transform: translateY(3px) !important;
+    box-shadow: 0 1px 0 #315F40, 0 3px 5px rgba(49, 95, 64, .16) !important;
+}
+
+/* Azul claro um pouco mais presente no tema claro, sem perder a suavidade */
+:root[data-theme="light"] body {
+    background:
+        radial-gradient(circle at 100% 18%, rgba(161, 198, 216, .68), transparent 31%),
+        radial-gradient(circle at 0 8%, rgba(188, 227, 197, .52), transparent 25%),
+        linear-gradient(130deg, #F1F6F8, #F7FAFB 52%, #EDF5F7) !important;
+}
+
+:root[data-theme="light"] .centropagina {
+    background:
+        radial-gradient(ellipse at 66% 42%, rgba(161, 198, 216, .25), transparent 43%),
+        radial-gradient(ellipse at 50% 42%, rgba(188, 227, 197, .2), transparent 48%),
+        linear-gradient(145deg, #F3F8F6, #F2F7FA 55%, #EEF6F7) !important;
+}
+
+:root[data-theme="light"] .centropagina::before {
+    opacity: .25;
+    background-image:
+        linear-gradient(rgba(161, 198, 216, .16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(161, 198, 216, .16) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] .centropagina::after {
+    border-color: rgba(161, 198, 216, .36);
+    box-shadow:
+        0 0 0 48px rgba(161, 198, 216, .075),
+        0 0 0 100px rgba(161, 198, 216, .045),
+        inset 0 0 90px rgba(161, 198, 216, .07);
+}

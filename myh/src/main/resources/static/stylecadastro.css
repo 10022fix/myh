@@ -1,0 +1,283 @@
+:root {
+    --fundo: #07110e;
+    --painel: rgba(13, 26, 19, .92);
+    --verde: #c8ff69;
+    --verde-claro: #d7ff83;
+    --verde-escuro: #a9f45d;
+    --texto: #edf6ef;
+    --texto-suave: #c8d8cb;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: block;
+    color: var(--texto);
+    background:
+        radial-gradient(
+            ellipse at 50% 8%,
+            rgba(91, 205, 133, .12),
+            transparent 42%
+        ),
+        var(--fundo);
+}
+
+/* Navbar */
+header.cabecalho {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+header.cabecalho .navbar {
+    width: 96%;
+    height: 82px;
+    min-height: 82px;
+    margin: 12px auto 0;
+    padding: 0 7%;
+    display: flex;
+    align-items: center;
+    background: rgba(7, 15, 12, .96);
+    border: 1px solid rgba(171, 255, 143, .2);
+    border-radius: 18px;
+}
+
+header.cabecalho .logo img {
+    display: block;
+    width: 58px;
+    height: auto;
+}
+
+header.cabecalho .menu {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+    list-style: none;
+    margin: 0 35px 0 auto;
+}
+
+header.cabecalho .menu li {
+    list-style: none;
+}
+
+header.cabecalho .menu a {
+    color: #edf6ef;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: .06em;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+
+header.cabecalho .menu a:hover {
+    color: var(--verde);
+}
+
+header.cabecalho .btn-aluno {
+    display: inline-block;
+    padding: 13px 22px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(
+        135deg,
+        var(--verde-claro),
+        var(--verde-escuro)
+    );
+    color: #0b160f;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: .2s ease;
+}
+
+header.cabecalho .btn-aluno:hover {
+    background: #efffc6;
+    box-shadow: 0 0 25px rgba(177, 255, 105, .2);
+}
+
+/* Cartão de cadastro ou login */
+main.cadastro {
+    width: min(690px, 92vw);
+    min-height: 430px;
+    margin: 28px auto 0;
+    padding: 42px 30px 55px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid rgba(111, 164, 91, .22);
+    border-radius: 24px;
+    background: var(--painel);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+}
+
+.logo-cadastro {
+    width: min(330px, 76vw);
+    height: 135px;
+    margin-bottom: 5px;
+    object-fit: contain;
+}
+
+.titulo-cadastro {
+    margin-bottom: 32px;
+    color: var(--texto);
+    font-size: 27px;
+    letter-spacing: -.025em;
+    text-align: center;
+}
+
+.form-cadastro {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.campo {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+}
+
+.campo label {
+    color: var(--texto-suave);
+    font-size: 15px;
+    font-weight: bold;
+    text-align: right;
+}
+
+.campo input {
+    width: 100%;
+    height: 43px;
+    padding: 10px 15px;
+    border: 1px solid rgba(171, 255, 143, .2);
+    border-radius: 999px;
+    background: #09150f;
+    color: var(--texto);
+    font-size: 15px;
+    outline: none;
+}
+
+.campo input:focus {
+    border-color: var(--verde);
+    box-shadow: 0 0 0 3px rgba(200, 255, 105, .13);
+}
+
+.area-botao {
+    margin-top: 18px;
+    text-align: center;
+}
+
+.btn-criar {
+    min-width: 124px;
+    padding: 14px 42px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(
+        135deg,
+        var(--verde-claro),
+        var(--verde-escuro)
+    );
+    color: #0b160f;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Mensagem do formulário */
+#mensagem {
+    margin-top: 12px;
+    color: var(--texto);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 650px) {
+    header.cabecalho .navbar {
+        width: 96%;
+        height: auto;
+        min-height: 70px;
+        margin-top: 10px;
+        padding: 12px 18px;
+        border-radius: 16px;
+    }
+
+    header.cabecalho .logo img {
+        width: 48px;
+    }
+
+    header.cabecalho .menu {
+        display: none;
+    }
+
+    header.cabecalho .btn-aluno {
+        margin-left: auto;
+    }
+
+    main.cadastro {
+        width: 92%;
+        min-height: auto;
+        margin-top: 22px;
+        padding: 30px 20px 40px;
+    }
+}
+
+@media (max-width: 420px) {
+    .campo {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .campo label {
+        text-align: left;
+    }
+
+    .titulo-cadastro {
+        font-size: 22px;
+    }
+}
+
+/* Efeito de afundar no botão Criar */
+button.btn-criar {
+    position: relative;
+    top: 0;
+    transform: scale(1);
+    box-shadow:
+        0 5px 0 #72b33e,
+        0 8px 16px rgba(0, 0, 0, .25);
+    transition:
+        top .1s ease,
+        transform .1s ease,
+        box-shadow .1s ease,
+        filter .1s ease;
+}
+
+button.btn-criar:hover {
+    filter: brightness(1.06);
+}
+
+button.btn-criar:active {
+    top: 4px;
+    transform: scale(.97);
+    box-shadow:
+        0 1px 0 #72b33e,
+        0 2px 5px rgba(0, 0, 0, .2);
+    filter: brightness(.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button.btn-criar {
+        transition: none;
+    }
+}
