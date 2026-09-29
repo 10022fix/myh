@@ -602,14 +602,23 @@ function renderDados(pergunta) {
         <button type="button" class="btn-continuar" id="btnContinuarDados">Continuar</button>`;
     wrap.querySelector("#sexo").value = atual.sexo || "";
     wrap.querySelector("#btnContinuarDados").addEventListener("click", () => {
+        const nascimento = wrap.querySelector("#nascimento").value;
+        const sexo = wrap.querySelector("#sexo").value;
+        const alturaTexto = wrap.querySelector("#altura").value.trim();
+        const pesoTexto = wrap.querySelector("#pesoInicial").value.trim();
+        if (!nascimento || !sexo || !alturaTexto || !pesoTexto) {
+            alert("Preencha data de nascimento, sexo, altura e peso atual para continuar.");
+            return;
+        }
         const dados = {
-            dataNascimento: wrap.querySelector("#nascimento").value,
-            sexo: wrap.querySelector("#sexo").value,
-            altura: Number(wrap.querySelector("#altura").value),
-            pesoInicial: Number(wrap.querySelector("#pesoInicial").value)
+            dataNascimento: nascimento,
+            sexo,
+            altura: Number(alturaTexto),
+            pesoInicial: Number(pesoTexto)
         };
-        if (!dados.dataNascimento || !dados.sexo || !Number.isFinite(dados.altura) || !Number.isFinite(dados.pesoInicial)) {
-            alert("Preencha todos os seus dados para continuar.");
+        if (!Number.isFinite(dados.altura) || dados.altura < 1 || dados.altura > 2.5
+                || !Number.isFinite(dados.pesoInicial) || dados.pesoInicial < 25 || dados.pesoInicial > 400) {
+            alert("Confira a altura (de 1 a 2,5 m) e o peso atual (de 25 a 400 kg).");
             return;
         }
         respostas[pergunta.id] = dados;

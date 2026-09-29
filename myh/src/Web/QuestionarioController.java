@@ -4,6 +4,7 @@ import Control.DAOAreaAluno;
 import jakarta.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -29,13 +30,18 @@ public class QuestionarioController {
             validar(opcao(objetivo, "ganhar_musculo", "perder_peso"), "objetivo");
             validar(opcao(formaAtual, "magro", "media", "pesado", "muito_pesado"), "forma atual");
             validar(opcao(formaDesejada, "esbelto", "em_forma", "musculoso", "fisiculturismo"), "forma desejada");
-            int vezes = inteiro(frequencia, 1, 6); int minutos = inteiro(duracao, 30, 120); float peso = decimal(pesoAlvo, 30, 200);
-            LocalDate nascimento = LocalDate.parse(dataNascimento);
-            if (nascimento.isAfter(LocalDate.now()) || nascimento.isBefore(LocalDate.now().minusYears(120))) throw new IllegalArgumentException();
+            int vezes = inteiro(frequencia, 1, 6, "frequência de treino");
+            int minutos = inteiro(duracao, 30, 120, "duração do treino");
+            float peso = decimal(pesoAlvo, 30, 200, "peso-meta");
+            LocalDate nascimento;
+            try { nascimento = LocalDate.parse(dataNascimento); }
+            catch (DateTimeParseException e) { throw new IllegalArgumentException("data de nascimento"); }
+            if (nascimento.isAfter(LocalDate.now()) || nascimento.isBefore(LocalDate.now().minusYears(120))) throw new IllegalArgumentException("data de nascimento");
             validar(opcao(sexo, "Masculino", "Feminino", "Prefiro não Informar"), "sexo");
-            float alturaInformada = decimal(altura, 1.0f, 2.5f); float pesoInformado = decimal(pesoInicial, 25.0f, 400.0f);
+            float alturaInformada = decimal(altura, 1.0f, 2.5f, "altura");
+            float pesoInformado = decimal(pesoInicial, 25.0f, 400.0f, "peso atual");
             validar(opcao(local, "casa", "academia", "hibrido"), "local de treino");
-            if (respostas.length() > 8000 || !respostas.startsWith("{") || !respostas.endsWith("}")) throw new IllegalArgumentException();
+            if (respostas.length() > 8000 || !respostas.startsWith("{") || !respostas.endsWith("}")) throw new IllegalArgumentException("respostas do questionário");
             String meta = objetivo.equals("ganhar_musculo") ? "Ganhar Massa" : "Emagrecer";
             boolean treino = areaAluno.finalizarQuestionario((Integer) usuario, meta, peso, minutos, formaAtual, formaDesejada,
                     String.valueOf(vezes), local, respostas, nascimento, sexo, alturaInformada, pesoInformado);
@@ -43,7 +49,11 @@ public class QuestionarioController {
             return ResponseEntity.ok(Map.of("sucesso", true, "treinoAtribuido", treino,
                     "mensagem", treino ? "Perfil salvo e treino liberado!" : "Perfil salvo. Um treino será liberado em breve."));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("sucesso", false, "mensagem", "Existem respostas inválidas ou incompletas."));
+            String campo = e.getMessage();
+            String mensagem = campo == null || campo.isBlank()
+                    ? "Existem respostas inválidas ou incompletas."
+                    : "Confira o campo: " + campo + ".";
+            return ResponseEntity.badRequest().body(Map.of("sucesso", false, "mensagem", mensagem));
         } catch (SQLException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("sucesso", false, "mensagem", "Não foi possível salvar o questionário."));
         }
@@ -51,6 +61,18 @@ public class QuestionarioController {
 
     private boolean opcao(String valor, String... permitidos) { return valor != null && List.of(permitidos).contains(valor); }
     private void validar(boolean valido, String campo) { if (!valido) throw new IllegalArgumentException(campo); }
-    private int inteiro(String valor, int min, int max) { int numero = Integer.parseInt(valor); if (numero < min || numero > max) throw new IllegalArgumentException(); return numero; }
-    private float decimal(String valor, float min, float max) { float numero = Float.parseFloat(valor); if (!Float.isFinite(numero) || numero < min || numero > max) throw new IllegalArgumentException(); return numero; }
+    private int inteiro(String valor, int min, int max, String campo) {
+        try {
+            int numero = Integer.parseInt(valor);
+            if (numero < min || numero > max) throw new IllegalArgumentException(campo);
+            return numero;
+        } catch (NumberFormatException e) { throw new IllegalArgumentException(campo); }
+    }
+    private float decimal(String valor, float min, float max, String campo) {
+        try {
+            float numero = Float.parseFloat(valor);
+            if (!Float.isFinite(numero) || numero < min || numero > max) throw new IllegalArgumentException(campo);
+            return numero;
+        } catch (NumberFormatException e) { throw new IllegalArgumentException(campo); }
+    }
 }
