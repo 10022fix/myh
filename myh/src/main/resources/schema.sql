@@ -49,6 +49,54 @@ CREATE TABLE IF NOT EXISTS treinos (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS medidasC (
+    id INT NOT NULL AUTO_INCREMENT,
+    braco DECIMAL(6,2) NULL,
+    antebraco DECIMAL(6,2) NULL,
+    cintura DECIMAL(6,2) NULL,
+    peito DECIMAL(6,2) NULL,
+    quadril DECIMAL(6,2) NULL,
+    coxa DECIMAL(6,2) NULL,
+    panturrilha DECIMAL(6,2) NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS progressao (
+    id INT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    peso_atual DECIMAL(6,2) NOT NULL,
+    percentual_gordura DECIMAL(5,2) NULL,
+    medidasC_id INT NOT NULL,
+    data_registro DATE NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_progressao_usuario_data (usuario_id, data_registro),
+    CONSTRAINT fk_progressao_usuario FOREIGN KEY (usuario_id)
+        REFERENCES usuario(id) ON DELETE CASCADE,
+    CONSTRAINT fk_progressao_medidas FOREIGN KEY (medidasC_id)
+        REFERENCES medidasC(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS exercicios (
+    id INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(150) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS treino_exercicios (
+    id INT NOT NULL AUTO_INCREMENT,
+    treino_id INT NOT NULL,
+    exercicio_id INT NOT NULL,
+    series TINYINT NOT NULL,
+    repeticoes SMALLINT NOT NULL,
+    tempo_descanso SMALLINT NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_treino_exercicios_treino (treino_id),
+    CONSTRAINT fk_treino_exercicios_treino FOREIGN KEY (treino_id)
+        REFERENCES treinos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_treino_exercicios_exercicio FOREIGN KEY (exercicio_id)
+        REFERENCES exercicios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS usuario_treinos (
     id INT NOT NULL AUTO_INCREMENT,
     usuario_id INT NOT NULL,
