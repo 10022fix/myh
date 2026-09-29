@@ -55,7 +55,11 @@ public class AreaAlunoController {
         Object usuario = sessao.getAttribute("usuarioId");
         if (!(usuario instanceof Integer)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Faca login para continuar."));
         try { return ResponseEntity.ok(consulta.executar((Integer) usuario)); }
-        catch (SQLException e) { return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("mensagem", "Nao foi possivel acessar os dados.")); }
+        catch (SQLException e) {
+            System.err.println("Erro SQL ao acessar os dados da area do aluno: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("mensagem", "Nao foi possivel acessar os dados."));
+        }
         catch (RuntimeException e) { return ResponseEntity.badRequest().body(Map.of("mensagem", "Confira os dados informados.")); }
     }
     @FunctionalInterface private interface Consulta { Object executar(int usuarioId) throws SQLException; }
