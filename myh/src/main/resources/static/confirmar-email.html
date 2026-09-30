@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/stylelogin.css">
+    <link rel="stylesheet" href="/tema.css">
+    <title>Confirmar e-mail - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body>
+    <main class="cadastro">
+        <a href="/" aria-label="Voltar ao início">
+            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health" class="logo-cadastro">
+        </a>
+        <h1 class="titulo-cadastro">Confirme seu e-mail</h1>
+        <p id="mensagem" aria-live="polite">Estamos verificando seu link...</p>
+        <p class="link-recuperacao"><a href="/login.html">Voltar ao login</a></p>
+    </main>
+    <script>
+        (async () => {
+            const mensagem = document.getElementById("mensagem");
+            const token = new URLSearchParams(location.hash.slice(1)).get("token");
+            if (!token) {
+                mensagem.textContent = "Abra o link de confirmação que enviamos para seu e-mail. Se não encontrar, confira também o Spam.";
+                return;
+            }
+            try {
+                const resposta = await fetch("/api/cadastro/confirmar-email", {
+                    method: "POST",
+                    body: new URLSearchParams({ token })
+                });
+                const dados = await resposta.json();
+                mensagem.textContent = dados.mensagem || "Não foi possível confirmar seu e-mail.";
+                if (resposta.ok && dados.sucesso) {
+                    history.replaceState(null, "", location.pathname);
+                    setTimeout(() => location.href = dados.redirecionar || "/questionario.html", 1500);
+                }
+            } catch {
+                mensagem.textContent = "Falha de conexão. Abra o link novamente ou tente mais tarde.";
+            }
+        })();
+    </script>
+</body>
+</html>

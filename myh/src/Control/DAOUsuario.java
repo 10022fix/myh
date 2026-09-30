@@ -52,9 +52,18 @@ public class DAOUsuario {
 
     /** Cria o usuario e devolve o id gerado para iniciar a sessao com seguranca. */
     public int cadastrarUsuarioERetornarId(Usuario usuario) {
+        return inserirUsuario(usuario, true);
+    }
+
+    /** Cria a conta bloqueada até a confirmação do endereço de e-mail. */
+    public int cadastrarUsuarioPendenteERetornarId(Usuario usuario) {
+        return inserirUsuario(usuario, false);
+    }
+
+    private int inserirUsuario(Usuario usuario, boolean emailVerificado) {
         String sql = "INSERT INTO usuario "
-                + "(nome, email, senha, data_nascimento, sexo, altura, peso_inicial) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+                + "(nome, email, senha, data_nascimento, sexo, altura, peso_inicial, email_verificado) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conexao = consultas.abreConexao();
              PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             comando.setString(1, usuario.getNome());
@@ -68,6 +77,7 @@ public class DAOUsuario {
             comando.setString(5, usuario.getSexo());
             comando.setFloat(6, usuario.getAltura());
             comando.setFloat(7, usuario.getPeso_inicial());
+            comando.setBoolean(8, emailVerificado);
             if (comando.executeUpdate() != 1) return 0;
             try (ResultSet chaves = comando.getGeneratedKeys()) {
                 return chaves.next() ? chaves.getInt(1) : 0;
@@ -79,13 +89,110 @@ public class DAOUsuario {
         }
     }
 
-    public boolean validarLogin(String email, String senha) {
-        String sql = "SELECT senha FROM usuario WHERE email = ?";
+    public boolean criarTokenVerificacaoEmail(int usuarioId, String tokenHash, Instant expiraEm) throws SQLException {
+        try (Connection conexao = consultas.abreConexao()) {
+            boolean autoCommitAnterior = conexao.getAutoCommit();
+            conexao.setAutoCommit(false);
+            try {
+                try (PreparedStatement apagar = conexao.prepareStatement(
+                        "DELETE FROM usuario_email_verificacao WHERE usuario_id = ?")) {
+                    apagar.setInt(1, usuarioId);
+                    apagar.executeUpdate();
+                }
+                try (PreparedStatement inserir = conexao.prepareStatement(
+                        "INSERT INTO usuario_email_verificacao (usuario_id, token_hash, expira_em) VALUES (?, ?, ?)")) {
+                    inserir.setInt(1, usuarioId);
+                    inserir.setString(2, tokenHash);
+                    inserir.setTimestamp(3, Timestamp.from(expiraEm));
+                    inserir.executeUpdate();
+                }
+                conexao.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conexao.rollback();
+                throw e;
+            } finally {
+                conexao.setAutoCommit(autoCommitAnterior);
+            }
+        }
+    }
+
+    /** Confirma o e-mail e consome o token uma única vez. Retorna o ID da conta ou zero. */
+    public int verificarEmail(String tokenHash) throws SQLException {
+        try (Connection conexao = consultas.abreConexao()) {
+            boolean autoCommitAnterior = conexao.getAutoCommit();
+            conexao.setAutoCommit(false);
+            try {
+                int usuarioId;
+                try (PreparedStatement buscar = conexao.prepareStatement(
+                        "SELECT usuario_id FROM usuario_email_verificacao "
+                                + "WHERE token_hash = ? AND expira_em > CURRENT_TIMESTAMP FOR UPDATE")) {
+                    buscar.setString(1, tokenHash);
+                    try (ResultSet resultado = buscar.executeQuery()) {
+                        if (!resultado.next()) {
+                            conexao.rollback();
+                            return 0;
+                        }
+                        usuarioId = resultado.getInt(1);
+                    }
+                }
+                try (PreparedStatement atualizar = conexao.prepareStatement(
+                        "UPDATE usuario SET email_verificado = TRUE WHERE id = ?")) {
+                    atualizar.setInt(1, usuarioId);
+                    if (atualizar.executeUpdate() != 1) {
+                        conexao.rollback();
+                        return 0;
+                    }
+                }
+                try (PreparedStatement consumir = conexao.prepareStatement(
+                        "DELETE FROM usuario_email_verificacao WHERE usuario_id = ?")) {
+                    consumir.setInt(1, usuarioId);
+                    consumir.executeUpdate();
+                }
+                conexao.commit();
+                return usuarioId;
+            } catch (SQLException | RuntimeException e) {
+                conexao.rollback();
+                throw e;
+            } finally {
+                conexao.setAutoCommit(autoCommitAnterior);
+            }
+        }
+    }
+
+    public boolean emailVerificado(String email) {
+        String sql = "SELECT email_verificado FROM usuario WHERE email = ?";
         try (Connection conexao = consultas.abreConexao();
              PreparedStatement comando = conexao.prepareStatement(sql)) {
             comando.setString(1, email);
             try (ResultSet resultado = comando.executeQuery()) {
-                return resultado.next() && verificarSenha(senha, resultado.getString("senha"));
+                return resultado.next() && resultado.getBoolean(1);
+            }
+        } catch (SQLException ex) {
+            System.err.println("Erro ao verificar status do e-mail: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    public void excluirUsuarioNaoVerificado(int usuarioId) {
+        try (Connection conexao = consultas.abreConexao();
+             PreparedStatement comando = conexao.prepareStatement(
+                     "DELETE FROM usuario WHERE id = ? AND email_verificado = FALSE")) {
+            comando.setInt(1, usuarioId);
+            comando.executeUpdate();
+        } catch (SQLException ex) {
+            System.err.println("Erro ao limpar cadastro pendente: " + ex.getMessage());
+        }
+    }
+
+    public boolean validarLogin(String email, String senha) {
+        String sql = "SELECT senha, email_verificado FROM usuario WHERE email = ?";
+        try (Connection conexao = consultas.abreConexao();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setString(1, email);
+            try (ResultSet resultado = comando.executeQuery()) {
+                return resultado.next() && resultado.getBoolean("email_verificado")
+                        && verificarSenha(senha, resultado.getString("senha"));
             }
         } catch (SQLException | GeneralSecurityException | IllegalArgumentException ex) {
             System.err.println("Erro ao validar login: " + ex.getMessage());
@@ -98,6 +205,25 @@ public class DAOUsuario {
         try (Connection conexao = consultas.abreConexao();
              PreparedStatement comando = conexao.prepareStatement(sql)) {
             comando.setString(1, email);
+            try (ResultSet resultado = comando.executeQuery()) {
+                if (!resultado.next()) return null;
+                Usuario usuario = new Usuario();
+                usuario.setId(resultado.getInt("id"));
+                usuario.setNome(resultado.getString("nome"));
+                usuario.setEmail(resultado.getString("email"));
+                return usuario;
+            }
+        } catch (SQLException ex) {
+            System.err.println("Erro ao buscar usuario: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    public Usuario buscarPorId(int id) {
+        String sql = "SELECT id, nome, email FROM usuario WHERE id = ?";
+        try (Connection conexao = consultas.abreConexao();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, id);
             try (ResultSet resultado = comando.executeQuery()) {
                 if (!resultado.next()) return null;
                 Usuario usuario = new Usuario();

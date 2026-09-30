@@ -84,7 +84,9 @@
                 document.getElementById("mensagem").textContent =
                     dados.mensagem;
 
-                if (dados.sucesso) {
+                if (dados.sucesso && dados.aguardandoConfirmacao) {
+                    e.target.reset();
+                } else if (dados.sucesso) {
                     setTimeout(() => {
                         location.href =
                             dados.redirecionar || "/questionario.html";

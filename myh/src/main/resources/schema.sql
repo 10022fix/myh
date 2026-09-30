@@ -7,8 +7,21 @@ CREATE TABLE IF NOT EXISTS usuario (
     sexo VARCHAR(40) NULL,
     altura DECIMAL(4,2) NOT NULL,
     peso_inicial DECIMAL(6,2) NOT NULL,
+    email_verificado BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id),
     UNIQUE KEY uk_usuario_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS usuario_email_verificacao (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expira_em DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_usuario_email_verificacao_token (token_hash),
+    KEY ix_usuario_email_verificacao_usuario (usuario_id),
+    CONSTRAINT fk_usuario_email_verificacao_usuario FOREIGN KEY (usuario_id)
+        REFERENCES usuario(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS senha_redefinicao (
