@@ -597,23 +597,26 @@ function renderDados(pergunta) {
     wrap.innerHTML = `
         <label>Data de nascimento<input id="nascimento" type="date" value="${atual.dataNascimento || ""}" required></label>
         <label>Sexo<select id="sexo" required><option value="">Selecione</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="Prefiro não Informar">Prefiro não informar</option></select></label>
-        <label>Altura (m)<input id="altura" type="number" min="1" max="2.5" step="0.01" value="${atual.altura || ""}" required></label>
+        <label>Altura (m)<input id="altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 170 ou 1,70" value="${atual.altura || ""}" required></label>
         <label>Peso atual (kg)<input id="pesoInicial" type="number" min="25" max="400" step="0.1" value="${atual.pesoInicial || ""}" required></label>
         <button type="button" class="btn-continuar" id="btnContinuarDados">Continuar</button>`;
     wrap.querySelector("#sexo").value = atual.sexo || "";
     wrap.querySelector("#btnContinuarDados").addEventListener("click", () => {
         const nascimento = wrap.querySelector("#nascimento").value;
         const sexo = wrap.querySelector("#sexo").value;
-        const alturaTexto = wrap.querySelector("#altura").value.trim();
+        const alturaTexto = wrap.querySelector("#altura").value.trim().replace(",", ".");
         const pesoTexto = wrap.querySelector("#pesoInicial").value.trim();
         if (!nascimento || !sexo || !alturaTexto || !pesoTexto) {
             alert("Preencha data de nascimento, sexo, altura e peso atual para continuar.");
             return;
         }
+        let altura = Number(alturaTexto);
+        // Aceita centímetros (170) ou metros (1,70 / 1.70), convertendo para metros.
+        if (Number.isFinite(altura) && altura >= 100 && altura <= 250) altura /= 100;
         const dados = {
             dataNascimento: nascimento,
             sexo,
-            altura: Number(alturaTexto),
+            altura,
             pesoInicial: Number(pesoTexto)
         };
         if (!Number.isFinite(dados.altura) || dados.altura < 1 || dados.altura > 2.5
