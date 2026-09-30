@@ -1,21 +1,22 @@
 package Web;
 
 import Control.DAOUsuario;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,25 +25,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecuperacaoSenhaController {
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final SecureRandom ALEATORIO = new SecureRandom();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(10)).build();
     private static final String RESPOSTA_GENERICA =
             "Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.";
 
     private final DAOUsuario usuarios = new DAOUsuario();
-    private final ObjectProvider<JavaMailSender> remetentes;
     private final String urlBase;
     private final String remetente;
-    private final boolean smtpConfigurado;
+    private final String chaveBrevo;
 
-    public RecuperacaoSenhaController(ObjectProvider<JavaMailSender> remetentes,
-            @Value("${app.base-url:http://localhost:8080}") String urlBase,
+    public RecuperacaoSenhaController(@Value("${app.base-url:http://localhost:8080}") String urlBase,
             @Value("${app.mail.from:}") String remetente,
-            @Value("${spring.mail.host:}") String host,
-            @Value("${spring.mail.username:}") String usuarioSmtp,
-            @Value("${spring.mail.password:}") String senhaSmtp) {
-        this.remetentes = remetentes;
+            @Value("${app.mail.brevo-api-key:}") String chaveBrevo) {
         this.urlBase = urlBase;
         this.remetente = remetente;
-        this.smtpConfigurado = !host.isBlank() && !usuarioSmtp.isBlank() && !senhaSmtp.isBlank();
+        this.chaveBrevo = chaveBrevo;
     }
 
     @PostMapping("/api/senha/esqueci")
@@ -52,8 +50,7 @@ public class RecuperacaoSenhaController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe um e-mail válido."));
         }
 
-        JavaMailSender sender = remetentes.getIfAvailable();
-        if (sender == null || remetente.isBlank() || !smtpConfigurado) {
+        if (chaveBrevo.isBlank() || remetente.isBlank()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Map.of("mensagem", "A recuperação por e-mail ainda não está configurada."));
         }
@@ -66,18 +63,16 @@ public class RecuperacaoSenhaController {
             if (criado) {
                 String link = urlBase.replaceAll("/+$", "") + "/redefinir-senha.html#token="
                         + URLEncoder.encode(token, StandardCharsets.UTF_8);
-                SimpleMailMessage mensagem = new SimpleMailMessage();
-                mensagem.setFrom(remetente);
-                mensagem.setTo(emailNormalizado);
-                mensagem.setSubject("Redefinição de senha - Make Your Health");
-                mensagem.setText("Recebemos um pedido para redefinir a senha da sua conta.\n\n"
+                String texto = "Recebemos um pedido para redefinir a senha da sua conta.\n\n"
                         + "Use o link abaixo em até 30 minutos:\n" + link + "\n\n"
-                        + "Se você não solicitou essa alteração, ignore este e-mail.");
-                sender.send(mensagem);
+                        + "Se você não solicitou essa alteração, ignore este e-mail.";
+                enviarPeloBrevo(emailNormalizado, texto);
             }
             return ResponseEntity.ok(Map.of("mensagem", RESPOSTA_GENERICA));
         } catch (Exception e) {
-            System.err.println("Falha ao processar pedido de redefinição de senha: " + e.getClass().getSimpleName());
+            if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+            System.err.println("Falha ao processar pedido de redefinição de senha: " + e.getClass().getSimpleName()
+                    + (e.getMessage() == null ? "" : " - " + e.getMessage()));
             return ResponseEntity.ok(Map.of("mensagem", RESPOSTA_GENERICA));
         }
     }
@@ -109,5 +104,43 @@ public class RecuperacaoSenhaController {
     private String hashToken(String token) throws Exception {
         byte[] hash = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hash);
+    }
+
+    private void enviarPeloBrevo(String destinatario, String texto) throws IOException, InterruptedException {
+        String corpo = "{\"sender\":{\"name\":\"Make Your Health\",\"email\":" + json(remetente)
+                + "},\"to\":[{\"email\":" + json(destinatario)
+                + "}],\"subject\":\"Redefinição de senha - Make Your Health\",\"textContent\":"
+                + json(texto) + "}";
+        HttpRequest pedido = HttpRequest.newBuilder(URI.create("https://api.brevo.com/v3/smtp/email"))
+                .timeout(java.time.Duration.ofSeconds(15))
+                .header("accept", "application/json")
+                .header("api-key", chaveBrevo)
+                .header("content-type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(corpo, StandardCharsets.UTF_8))
+                .build();
+        HttpResponse<String> resposta = HTTP_CLIENT.send(pedido,
+                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        if (resposta.statusCode() < 200 || resposta.statusCode() >= 300) {
+            throw new IllegalStateException("Brevo respondeu HTTP " + resposta.statusCode());
+        }
+    }
+
+    private static String json(String valor) {
+        StringBuilder resultado = new StringBuilder("\"");
+        for (int i = 0; i < valor.length(); i++) {
+            char c = valor.charAt(i);
+            switch (c) {
+                case '"' -> resultado.append("\\\"");
+                case '\\' -> resultado.append("\\\\");
+                case '\n' -> resultado.append("\\n");
+                case '\r' -> resultado.append("\\r");
+                case '\t' -> resultado.append("\\t");
+                default -> {
+                    if (c < 0x20) resultado.append(String.format("\\u%04x", (int) c));
+                    else resultado.append(c);
+                }
+            }
+        }
+        return resultado.append('"').toString();
     }
 }
