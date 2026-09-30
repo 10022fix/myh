@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/stylelogin.css">
+    <link rel="stylesheet" href="/tema.css">
+    <title>Nova senha - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body>
+    <main class="cadastro">
+        <a href="/login.html" aria-label="Voltar ao login">
+            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health" class="logo-cadastro">
+        </a>
+        <h1 class="titulo-cadastro">Crie uma nova senha</h1>
+        <p class="texto-recuperacao">Use pelo menos 8 caracteres. O link expira em 30 minutos e só pode ser usado uma vez.</p>
+        <form class="form-cadastro" id="formNovaSenha">
+            <div class="campo">
+                <label for="novaSenha">Nova senha:</label>
+                <input id="novaSenha" name="novaSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+            </div>
+            <div class="campo">
+                <label for="confirmarSenha">Confirmar senha:</label>
+                <input id="confirmarSenha" name="confirmarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+            </div>
+            <div class="area-botao">
+                <button type="submit" class="btn-criar">Alterar senha</button>
+            </div>
+        </form>
+        <p id="mensagem" aria-live="polite"></p>
+        <p class="link-recuperacao"><a href="/login.html">Voltar ao login</a></p>
+    </main>
+    <script>
+        document.getElementById("formNovaSenha").addEventListener("submit", async e => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const mensagem = document.getElementById("mensagem");
+            const novaSenha = form.elements.novaSenha.value;
+            const confirmarSenha = form.elements.confirmarSenha.value;
+            if (novaSenha !== confirmarSenha) {
+                mensagem.textContent = "As senhas não são iguais.";
+                return;
+            }
+            const botao = form.querySelector("button");
+            botao.disabled = true;
+            try {
+                const resposta = await fetch("/api/senha/redefinir", {
+                    method: "POST",
+                    body: new URLSearchParams({
+                        token: new URLSearchParams(location.hash.slice(1)).get("token") || "",
+                        novaSenha,
+                        confirmarSenha
+                    })
+                });
+                const dados = await resposta.json();
+                mensagem.textContent = dados.mensagem || "Não foi possível alterar a senha.";
+                if (resposta.ok) {
+                    form.reset();
+                    setTimeout(() => location.href = "/login.html", 1800);
+                }
+            } catch {
+                mensagem.textContent = "Falha de conexão. Tente novamente.";
+            } finally {
+                botao.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

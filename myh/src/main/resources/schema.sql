@@ -11,6 +11,19 @@ CREATE TABLE IF NOT EXISTS usuario (
     UNIQUE KEY uk_usuario_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS senha_redefinicao (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expira_em DATETIME NOT NULL,
+    criada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_senha_redefinicao_token (token_hash),
+    KEY ix_senha_redefinicao_usuario (usuario_id),
+    CONSTRAINT fk_senha_redefinicao_usuario FOREIGN KEY (usuario_id)
+        REFERENCES usuario (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS objetivos (
     id INT NOT NULL AUTO_INCREMENT,
     usuario_id INT NOT NULL,

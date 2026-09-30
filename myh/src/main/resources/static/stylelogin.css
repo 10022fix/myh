@@ -281,3 +281,25 @@ button.btn-criar:active {
         transition: none;
     }
 }
+
+.link-recuperacao {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.link-recuperacao a {
+    color: var(--verde);
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.link-recuperacao a:hover {
+    text-decoration: underline;
+}
+.texto-recuperacao {
+    max-width: 500px;
+    margin: -16px 0 24px;
+    color: var(--texto-suave);
+    line-height: 1.5;
+    text-align: center;
+}

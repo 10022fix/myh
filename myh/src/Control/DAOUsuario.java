@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Base64;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -107,6 +109,83 @@ public class DAOUsuario {
         } catch (SQLException ex) {
             System.err.println("Erro ao buscar usuario: " + ex.getMessage());
             return null;
+        }
+    }
+
+    /** Guarda somente o hash do token, nunca o token enviado no link. */
+    public boolean criarTokenRedefinicao(String email, String tokenHash, Instant expiraEm) throws SQLException {
+        try (Connection conexao = consultas.abreConexao();
+             PreparedStatement buscar = conexao.prepareStatement("SELECT id FROM usuario WHERE email = ?")) {
+            buscar.setString(1, email);
+            try (ResultSet resultado = buscar.executeQuery()) {
+                if (!resultado.next()) return false;
+                int usuarioId = resultado.getInt("id");
+                try (PreparedStatement limite = conexao.prepareStatement(
+                        "SELECT COUNT(*) FROM senha_redefinicao WHERE usuario_id = ? "
+                                + "AND criada_em > CURRENT_TIMESTAMP - INTERVAL 1 MINUTE")) {
+                    limite.setInt(1, usuarioId);
+                    try (ResultSet recentes = limite.executeQuery()) {
+                        if (recentes.next() && recentes.getInt(1) > 0) return false;
+                    }
+                }
+                try (PreparedStatement apagar = conexao.prepareStatement(
+                        "DELETE FROM senha_redefinicao WHERE usuario_id = ?")) {
+                    apagar.setInt(1, usuarioId);
+                    apagar.executeUpdate();
+                }
+                try (PreparedStatement inserir = conexao.prepareStatement(
+                        "INSERT INTO senha_redefinicao (usuario_id, token_hash, expira_em) VALUES (?, ?, ?)")) {
+                    inserir.setInt(1, usuarioId);
+                    inserir.setString(2, tokenHash);
+                    inserir.setTimestamp(3, Timestamp.from(expiraEm));
+                    return inserir.executeUpdate() == 1;
+                }
+            }
+        }
+    }
+
+    /** Valida e consome o link em uma transação; cada token só pode ser usado uma vez. */
+    public boolean redefinirSenha(String tokenHash, String novaSenha) throws SQLException, GeneralSecurityException {
+        try (Connection conexao = consultas.abreConexao()) {
+            boolean autoCommitAnterior = conexao.getAutoCommit();
+            conexao.setAutoCommit(false);
+            try {
+                int usuarioId;
+                try (PreparedStatement buscar = conexao.prepareStatement(
+                        "SELECT usuario_id FROM senha_redefinicao "
+                                + "WHERE token_hash = ? AND expira_em > CURRENT_TIMESTAMP FOR UPDATE")) {
+                    buscar.setString(1, tokenHash);
+                    try (ResultSet resultado = buscar.executeQuery()) {
+                        if (!resultado.next()) {
+                            conexao.rollback();
+                            return false;
+                        }
+                        usuarioId = resultado.getInt("usuario_id");
+                    }
+                }
+                String senhaHash = gerarHashSenha(novaSenha);
+                try (PreparedStatement atualizar = conexao.prepareStatement(
+                        "UPDATE usuario SET senha = ? WHERE id = ?")) {
+                    atualizar.setString(1, senhaHash);
+                    atualizar.setInt(2, usuarioId);
+                    if (atualizar.executeUpdate() != 1) {
+                        conexao.rollback();
+                        return false;
+                    }
+                }
+                try (PreparedStatement consumir = conexao.prepareStatement(
+                        "DELETE FROM senha_redefinicao WHERE usuario_id = ?")) {
+                    consumir.setInt(1, usuarioId);
+                    consumir.executeUpdate();
+                }
+                conexao.commit();
+                return true;
+            } catch (SQLException | GeneralSecurityException | RuntimeException e) {
+                conexao.rollback();
+                throw e;
+            } finally {
+                conexao.setAutoCommit(autoCommitAnterior);
+            }
         }
     }
 

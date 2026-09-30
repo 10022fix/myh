@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/stylelogin.css">
+    <link rel="stylesheet" href="/tema.css">
+    <title>Recuperar senha - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body>
+    <main class="cadastro">
+        <a href="/login.html" aria-label="Voltar ao login">
+            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health" class="logo-cadastro">
+        </a>
+        <h1 class="titulo-cadastro">Esqueci minha senha</h1>
+        <p class="texto-recuperacao">Informe o e-mail da sua conta. Enviaremos um link temporário para criar uma nova senha.</p>
+        <form class="form-cadastro" id="formRecuperacao">
+            <div class="campo">
+                <label for="email">E-mail:</label>
+                <input id="email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div class="area-botao">
+                <button type="submit" class="btn-criar">Enviar link</button>
+            </div>
+        </form>
+        <p id="mensagem" aria-live="polite"></p>
+        <p class="link-recuperacao"><a href="/login.html">Voltar ao login</a></p>
+    </main>
+    <script>
+        document.getElementById("formRecuperacao").addEventListener("submit", async e => {
+            e.preventDefault();
+            const botao = e.currentTarget.querySelector("button");
+            const mensagem = document.getElementById("mensagem");
+            botao.disabled = true;
+            mensagem.textContent = "Enviando...";
+            try {
+                const resposta = await fetch("/api/senha/esqueci", {
+                    method: "POST",
+                    body: new URLSearchParams(new FormData(e.currentTarget))
+                });
+                const dados = await resposta.json();
+                mensagem.textContent = dados.mensagem || "Não foi possível solicitar o link.";
+            } catch {
+                mensagem.textContent = "Falha de conexão. Tente novamente.";
+            } finally {
+                botao.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
