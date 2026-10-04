@@ -85,24 +85,38 @@
             .getElementById("formCadastro")
             .addEventListener("submit", async e => {
                 e.preventDefault();
+                const formulario = e.target;
+                const botao = formulario.querySelector('[type="submit"]');
+                const mensagem = document.getElementById("mensagem");
 
-                const resposta = await fetch("/api/cadastro", {
-                    method: "POST",
-                    body: new URLSearchParams(new FormData(e.target))
-                });
+                botao.disabled = true;
+                formulario.setAttribute("aria-busy", "true");
+                mensagem.classList.add("mensagem-processando");
+                mensagem.textContent = "Salvando respostas ao banco...";
 
-                const dados = await resposta.json();
+                try {
+                    const resposta = await fetch("/api/cadastro", {
+                        method: "POST",
+                        body: new URLSearchParams(new FormData(formulario))
+                    });
+                    const dados = await resposta.json();
 
-                document.getElementById("mensagem").textContent =
-                    dados.mensagem;
+                    mensagem.classList.remove("mensagem-processando");
+                    mensagem.textContent = dados.mensagem;
 
-                if (dados.sucesso && dados.aguardandoConfirmacao) {
-                    e.target.reset();
-                } else if (dados.sucesso) {
-                    setTimeout(() => {
-                        location.href =
-                            dados.redirecionar || "/questionario.html";
-                    }, 700);
+                    if (dados.sucesso && dados.aguardandoConfirmacao) {
+                        formulario.reset();
+                    } else if (dados.sucesso) {
+                        setTimeout(() => {
+                            location.href = dados.redirecionar || "/questionario.html";
+                        }, 700);
+                    }
+                } catch (_) {
+                    mensagem.classList.remove("mensagem-processando");
+                    mensagem.textContent = "Não foi possível concluir o cadastro. Tente novamente.";
+                } finally {
+                    botao.disabled = false;
+                    formulario.removeAttribute("aria-busy");
                 }
             });
     </script>

@@ -73,21 +73,36 @@
             .getElementById("formLogin")
             .addEventListener("submit", async e => {
                 e.preventDefault();
+                const formulario = e.target;
+                const botao = formulario.querySelector('[type="submit"]');
+                const mensagem = document.getElementById("mensagem");
 
-                const resposta = await fetch("/api/login", {
-                    method: "POST",
-                    body: new URLSearchParams(new FormData(e.target))
-                });
+                botao.disabled = true;
+                formulario.setAttribute("aria-busy", "true");
+                mensagem.classList.add("mensagem-processando");
+                mensagem.textContent = "Salvando respostas ao banco...";
 
-                const dados = await resposta.json();
+                try {
+                    const resposta = await fetch("/api/login", {
+                        method: "POST",
+                        body: new URLSearchParams(new FormData(formulario))
+                    });
+                    const dados = await resposta.json();
 
-                document.getElementById("mensagem").textContent =
-                    dados.mensagem;
+                    mensagem.classList.remove("mensagem-processando");
+                    mensagem.textContent = dados.mensagem;
 
-                if (dados.sucesso) {
-                    setTimeout(() => {
-                        location.href = "/areadoaluno.html";
-                    }, 600);
+                    if (dados.sucesso) {
+                        setTimeout(() => {
+                            location.href = "/areadoaluno.html";
+                        }, 600);
+                    }
+                } catch (_) {
+                    mensagem.classList.remove("mensagem-processando");
+                    mensagem.textContent = "Não foi possível entrar. Verifique sua conexão e tente novamente.";
+                } finally {
+                    botao.disabled = false;
+                    formulario.removeAttribute("aria-busy");
                 }
             });
     </script>

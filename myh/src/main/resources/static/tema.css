@@ -29,6 +29,41 @@ html, body {
     transition: background-color .25s ease, color .25s ease;
 }
 
+.mensagem-processando {
+    display: flex;
+    width: max-content;
+    max-width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-right: auto !important;
+    margin-left: auto !important;
+    font-weight: 600;
+}
+
+.mensagem-processando::before {
+    width: 15px;
+    height: 15px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    content: "";
+    animation: myh-carregando .75s linear infinite;
+}
+
+@keyframes myh-carregando {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mensagem-processando::before { animation-duration: 1.8s; }
+}
+
+.form-cadastro button[type="submit"]:disabled {
+    cursor: wait;
+    opacity: .78;
+}
+
 /* Botão sol/lua */
 .theme-toggle {
     flex: 0 0 auto;
