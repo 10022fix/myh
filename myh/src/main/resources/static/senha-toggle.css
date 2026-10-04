@@ -1,0 +1,61 @@
+.campo-senha {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.campo-senha input {
+    padding-right: 50px;
+}
+
+.alternar-senha {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    padding: 7px;
+    place-items: center;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #c8d8cb;
+    cursor: pointer;
+}
+
+.alternar-senha:hover {
+    background: rgba(200, 255, 105, .12);
+    color: #c8ff69;
+}
+
+.alternar-senha:focus-visible {
+    outline: 2px solid #c8ff69;
+    outline-offset: 2px;
+}
+
+.alternar-senha svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.alternar-senha .risco-olho {
+    opacity: 1;
+    transition: opacity .15s ease;
+}
+
+.alternar-senha.senha-visivel .risco-olho {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .alternar-senha .risco-olho {
+        transition: none;
+    }
+}
