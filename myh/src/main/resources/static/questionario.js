@@ -2,6 +2,14 @@
 // Cada objeto dentro do array representa uma pergunta.
 const PERGUNTAS = [
     {
+        id: "dados_pessoais",
+        tipo: "dados",
+        titulo: "Conte um pouco sobre você",
+        subtitulo: "Esses dados ajudam a registrar seu ponto de partida.",
+        layout: "dados",
+    },
+
+    {
         // Identificador único da pergunta.
         // É usado pelo JavaScript para guardar e recuperar a resposta.
         id: "objetivo",
@@ -246,14 +254,6 @@ const PERGUNTAS = [
             { valor: "2_3", label: "2-3 litros", desc: "8-12 copos", icone: "💧💧💧" },
             { valor: "mais_3", label: "Mais de 3 litros", desc: "Mais de 12 copos", icone: "🐳" },
         ],
-    },
-
-    {
-        id: "dados_pessoais",
-        tipo: "dados",
-        titulo: "Conte um pouco sobre você",
-        subtitulo: "Esses dados ajudam a registrar seu ponto de partida.",
-        layout: "dados",
     },
 
     {

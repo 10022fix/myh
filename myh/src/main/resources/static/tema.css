@@ -966,3 +966,76 @@ html, body {
     outline: 2px solid #5A8A5A !important;
     outline-offset: 2px;
 }
+
+/* Mais contraste nas perguntas e opções do questionário, em todos os estados. */
+:root[data-theme="dark"] .quiz .pergunta-titulo {
+    color: #f4faf5 !important;
+}
+
+:root[data-theme="dark"] .quiz .pergunta-subtitulo,
+:root[data-theme="dark"] .quiz .dados-pessoais label,
+:root[data-theme="dark"] .quiz .opcao-desc,
+:root[data-theme="dark"] .quiz .opcao-card-texto p {
+    color: #d2e2d7 !important;
+    font-weight: 500;
+}
+
+:root[data-theme="dark"] .quiz .opcao,
+:root[data-theme="dark"] .quiz .opcao-card,
+:root[data-theme="dark"] .quiz .opcao-img {
+    color: #f4faf5 !important;
+}
+
+:root[data-theme="dark"] .quiz .opcao:hover,
+:root[data-theme="dark"] .quiz .opcao.selecionada,
+:root[data-theme="dark"] .quiz .opcao-card:hover,
+:root[data-theme="dark"] .quiz .opcao-card.selecionada {
+    background: #c8ff69 !important;
+    border-color: #9bd23f !important;
+    color: #173321 !important;
+}
+
+:root[data-theme="dark"] .quiz .opcao:hover .opcao-desc,
+:root[data-theme="dark"] .quiz .opcao.selecionada .opcao-desc,
+:root[data-theme="dark"] .quiz .opcao-card:hover .opcao-card-texto h3,
+:root[data-theme="dark"] .quiz .opcao-card.selecionada .opcao-card-texto h3,
+:root[data-theme="dark"] .quiz .opcao-card:hover .opcao-card-texto p,
+:root[data-theme="dark"] .quiz .opcao-card.selecionada .opcao-card-texto p {
+    color: #173321 !important;
+}
+
+:root[data-theme="light"] .quiz .pergunta-titulo {
+    color: #244a32 !important;
+}
+
+:root[data-theme="light"] .quiz .pergunta-subtitulo,
+:root[data-theme="light"] .quiz .dados-pessoais label,
+:root[data-theme="light"] .quiz .opcao-desc,
+:root[data-theme="light"] .quiz .opcao-card-texto p {
+    color: #405c48 !important;
+    font-weight: 500;
+}
+
+:root[data-theme="light"] .quiz .opcao,
+:root[data-theme="light"] .quiz .opcao-card,
+:root[data-theme="light"] .quiz .opcao-img {
+    color: #24392d !important;
+}
+
+:root[data-theme="light"] .quiz button.opcao:hover,
+:root[data-theme="light"] .quiz button.opcao.selecionada,
+:root[data-theme="light"] .quiz .opcao-card:hover,
+:root[data-theme="light"] .quiz .opcao-card.selecionada {
+    background: #d5efcf !important;
+    border-color: #5a8a5a !important;
+    color: #1e3b29 !important;
+}
+
+:root[data-theme="light"] .quiz .opcao:hover .opcao-desc,
+:root[data-theme="light"] .quiz .opcao.selecionada .opcao-desc,
+:root[data-theme="light"] .quiz .opcao-card:hover .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card.selecionada .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card:hover .opcao-card-texto p,
+:root[data-theme="light"] .quiz .opcao-card.selecionada .opcao-card-texto p {
+    color: #1e3b29 !important;
+}
