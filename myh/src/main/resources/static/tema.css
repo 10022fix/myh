@@ -945,3 +945,24 @@ html, body {
         0 0 0 100px rgba(161, 198, 216, .045),
         inset 0 0 90px rgba(161, 198, 216, .07);
 }
+
+/* O tema claro estiliza todos os botões globalmente; preserve o botão de olho. */
+:root[data-theme="light"] .alternar-senha,
+:root[data-theme="light"] .alternar-senha:hover,
+:root[data-theme="light"] .alternar-senha:active {
+    border: 0 !important;
+    background: transparent !important;
+    color: #31513a !important;
+    box-shadow: none !important;
+    filter: none !important;
+    transform: translateY(-50%) !important;
+}
+
+:root[data-theme="light"] .alternar-senha:hover {
+    background: rgba(90, 138, 90, .12) !important;
+}
+
+:root[data-theme="light"] .alternar-senha:focus-visible {
+    outline: 2px solid #5A8A5A !important;
+    outline-offset: 2px;
+}
