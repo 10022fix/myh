@@ -288,13 +288,30 @@ button.btn-criar:active {
 }
 
 .link-recuperacao a {
-    color: var(--verde);
-    font-size: 14px;
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    color: #315f40;
+    background: rgba(90, 138, 90, .12);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
-.link-recuperacao a:hover {
-    text-decoration: underline;
+.link-recuperacao a:hover,
+.link-recuperacao a:focus-visible {
+    color: #20482e;
+    background: rgba(90, 138, 90, .22);
+    box-shadow: 0 0 0 2px rgba(49, 95, 64, .2);
+}
+
+.link-recuperacao a:focus-visible {
+    outline: 2px solid #315f40;
+    outline-offset: 2px;
 }
 .texto-recuperacao {
     max-width: 500px;

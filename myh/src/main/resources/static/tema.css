@@ -997,6 +997,8 @@ html, body {
 
 :root[data-theme="dark"] .quiz .opcao:hover .opcao-desc,
 :root[data-theme="dark"] .quiz .opcao.selecionada .opcao-desc,
+:root[data-theme="dark"] .quiz .opcao:hover .opcao-label,
+:root[data-theme="dark"] .quiz .opcao.selecionada .opcao-label,
 :root[data-theme="dark"] .quiz .opcao-card:hover .opcao-card-texto h3,
 :root[data-theme="dark"] .quiz .opcao-card.selecionada .opcao-card-texto h3,
 :root[data-theme="dark"] .quiz .opcao-card:hover .opcao-card-texto p,
@@ -1033,9 +1035,34 @@ html, body {
 
 :root[data-theme="light"] .quiz .opcao:hover .opcao-desc,
 :root[data-theme="light"] .quiz .opcao.selecionada .opcao-desc,
+:root[data-theme="light"] .quiz .opcao:hover .opcao-label,
+:root[data-theme="light"] .quiz .opcao.selecionada .opcao-label,
 :root[data-theme="light"] .quiz .opcao-card:hover .opcao-card-texto h3,
 :root[data-theme="light"] .quiz .opcao-card.selecionada .opcao-card-texto h3,
 :root[data-theme="light"] .quiz .opcao-card:hover .opcao-card-texto p,
 :root[data-theme="light"] .quiz .opcao-card.selecionada .opcao-card-texto p {
     color: #1e3b29 !important;
+}
+
+/* Link de recuperação de senha com destaque nos dois temas. */
+:root[data-theme="light"] .link-recuperacao a,
+:root[data-theme="light"] .link-recuperacao a:visited {
+    color: #315f40 !important;
+}
+
+:root[data-theme="dark"] .link-recuperacao a,
+:root[data-theme="dark"] .link-recuperacao a:visited {
+    color: #c8ff69 !important;
+    background: rgba(200, 255, 105, .12);
+}
+
+:root[data-theme="dark"] .link-recuperacao a:hover,
+:root[data-theme="dark"] .link-recuperacao a:focus-visible {
+    color: #e1ffae !important;
+    background: rgba(200, 255, 105, .2);
+    box-shadow: 0 0 0 2px rgba(200, 255, 105, .22);
+}
+
+:root[data-theme="dark"] .link-recuperacao a:focus-visible {
+    outline-color: #c8ff69;
 }
