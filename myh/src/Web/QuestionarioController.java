@@ -47,7 +47,7 @@ public class QuestionarioController {
                     String.valueOf(vezes), local, respostas, nascimento, sexo, alturaInformada, pesoInformado);
             sessao.setAttribute("questionarioConcluido", true);
             return ResponseEntity.ok(Map.of("sucesso", true, "treinoAtribuido", treino,
-                    "mensagem", treino ? "Perfil salvo e treino liberado!" : "Perfil salvo. Um treino será liberado em breve."));
+                    "mensagem", treino ? "Questionário salvo e treinos personalizados prontos!" : "Perfil salvo. Não foi possível liberar os treinos agora."));
         } catch (IllegalArgumentException e) {
             String campo = e.getMessage();
             String mensagem = campo == null || campo.isBlank()

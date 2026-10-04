@@ -122,8 +122,7 @@ public class DAOAreaAluno {
         return progresso;
     }
 
-    /** Salva a conclusao do questionario, cria a meta e associa um treino pronto uma unica vez. */
-    
+    /** Salva o questionario, cria a meta e persiste as sessões geradas para o usuário. */
     public boolean finalizarQuestionario(int usuarioId, String objetivo, float pesoMeta, int duracao,
             String formaAtual, String formaDesejada, String frequencia, String local, String respostasJson,
             LocalDate nascimento, String sexo, float altura, float pesoInicial) throws SQLException {
@@ -132,76 +131,128 @@ public class DAOAreaAluno {
         String objetivoSql = "INSERT INTO objetivos (usuario_id, objetivo, peso_meta) SELECT ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM objetivos WHERE usuario_id = ?)";
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
-            try (PreparedStatement perfil = conexao.prepareStatement(perfilSql); PreparedStatement meta = conexao.prepareStatement(objetivoSql);
-                 PreparedStatement dados = conexao.prepareStatement("UPDATE usuario SET data_nascimento=?, sexo=?, altura=?, peso_inicial=? WHERE id=?")) {
-                dados.setDate(1, Date.valueOf(nascimento)); dados.setString(2, sexo); dados.setFloat(3, altura); dados.setFloat(4, pesoInicial); dados.setInt(5, usuarioId);
-                if (dados.executeUpdate() != 1) throw new SQLException("Usuario nao encontrado.");
-                perfil.setInt(1, usuarioId); perfil.setString(2, formaAtual); perfil.setString(3, formaDesejada);
-                perfil.setInt(4, Integer.parseInt(frequencia)); perfil.setString(5, local); perfil.setInt(6, duracao); perfil.setString(7, respostasJson); perfil.executeUpdate();
-                meta.setInt(1, usuarioId); meta.setString(2, objetivo); meta.setFloat(3, pesoMeta); meta.setInt(4, usuarioId); meta.executeUpdate();
-                boolean treinoAtribuido = atribuirTreinoPronto(
-                        conexao,
-                        usuarioId,
-                        objetivo,
-                        local,
-                        Integer.parseInt(frequencia),
-                        duracao
-                );
+            try {
+                try (PreparedStatement perfil = conexao.prepareStatement(perfilSql);
+                     PreparedStatement meta = conexao.prepareStatement(objetivoSql);
+                     PreparedStatement dados = conexao.prepareStatement(
+                             "UPDATE usuario SET data_nascimento=?, sexo=?, altura=?, peso_inicial=? WHERE id=?")) {
+                    dados.setDate(1, Date.valueOf(nascimento));
+                    dados.setString(2, sexo);
+                    dados.setFloat(3, altura);
+                    dados.setFloat(4, pesoInicial);
+                    dados.setInt(5, usuarioId);
+                    if (dados.executeUpdate() != 1) throw new SQLException("Usuario nao encontrado.");
+
+                    perfil.setInt(1, usuarioId);
+                    perfil.setString(2, formaAtual);
+                    perfil.setString(3, formaDesejada);
+                    perfil.setInt(4, Integer.parseInt(frequencia));
+                    perfil.setString(5, local);
+                    perfil.setInt(6, duracao);
+                    perfil.setString(7, respostasJson);
+                    perfil.executeUpdate();
+
+                    meta.setInt(1, usuarioId);
+                    meta.setString(2, objetivo);
+                    meta.setFloat(3, pesoMeta);
+                    meta.setInt(4, usuarioId);
+                    meta.executeUpdate();
+                }
+
+                boolean treinoAtribuido = gerarEAtribuirTreinos(
+                        conexao, usuarioId, objetivo, local, Integer.parseInt(frequencia), duracao, respostasJson);
                 conexao.commit();
                 return treinoAtribuido;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
             }
         }
     }
-    private boolean atribuirTreinoPronto(
-            Connection conexao,
-            int usuarioId,
-            String objetivo,
-            String local,
-            int frequencia,
-            int duracao
-    ) throws SQLException {
 
-        try (PreparedStatement existe = conexao.prepareStatement(
-                "SELECT 1 FROM usuario_treinos "
-                + "WHERE usuario_id = ? AND ativo = TRUE LIMIT 1")) {
-
-            existe.setInt(1, usuarioId);
-
-            try (ResultSet rs = existe.executeQuery()) {
-                if (rs.next()) return true;
+    private boolean gerarEAtribuirTreinos(Connection conexao, int usuarioId, String objetivo,
+            String local, int frequencia, int duracao, String respostasJson) throws SQLException {
+        try (PreparedStatement ativos = conexao.prepareStatement(
+                "SELECT 1 FROM usuario_treinos ut JOIN treinos t ON t.id = ut.treino_id "
+                        + "WHERE ut.usuario_id = ? AND ut.ativo = TRUE AND t.nivel = 'Personalizado' LIMIT 1")) {
+            ativos.setInt(1, usuarioId);
+            try (ResultSet resultado = ativos.executeQuery()) {
+                // Uma repetição do envio não deve criar outra cópia das sessões geradas.
+                if (resultado.next()) return true;
             }
         }
 
-        String treinoSql =
-                "SELECT id FROM treinos "
-                + "WHERE nivel = 'Iniciante' "
-                + "AND objetivo = ? "
-                + "ORDER BY "
-                + "CASE WHEN local_treino = ? THEN 0 ELSE 1 END, "
-                + "ABS(frequencia_semanal - ?), "
-                + "ABS(duracao_treino - ?), "
-                + "id "
-                + "LIMIT 1";
+        // Na primeira conclusão, troca um treino genérico eventualmente associado por sessões personalizadas.
+        try (PreparedStatement desativar = conexao.prepareStatement(
+                "UPDATE usuario_treinos SET ativo = FALSE WHERE usuario_id = ? AND ativo = TRUE")) {
+            desativar.setInt(1, usuarioId);
+            desativar.executeUpdate();
+        }
 
-        try (PreparedStatement buscar = conexao.prepareStatement(treinoSql)) {
-            buscar.setString(1, objetivo);
-            buscar.setString(2, local);
-            buscar.setInt(3, frequencia);
-            buscar.setInt(4, duracao);
+        List<GeradorTreinoQuestionario.TreinoGerado> treinos =
+                GeradorTreinoQuestionario.gerar(respostasJson, objetivo, local, duracao);
+        if (treinos.isEmpty()) throw new SQLException("O gerador não produziu sessões de treino.");
 
-            try (ResultSet rs = buscar.executeQuery()) {
-                if (!rs.next()) return false;
-
-                try (PreparedStatement inserir = conexao.prepareStatement(
-                        "INSERT INTO usuario_treinos "
-                        + "(usuario_id, treino_id, data_inicio, ativo) "
-                        + "VALUES (?, ?, CURDATE(), TRUE)")) {
-
-                    inserir.setInt(1, usuarioId);
-                    inserir.setInt(2, rs.getInt("id"));
-                    inserir.executeUpdate();
-                    return true;
+        for (GeradorTreinoQuestionario.TreinoGerado treino : treinos) {
+            int treinoId = inserirTreino(conexao, treino, objetivo, local, frequencia);
+            for (GeradorTreinoQuestionario.ExercicioGerado exercicio : treino.exercicios()) {
+                int exercicioId = obterOuCriarExercicio(conexao, exercicio.nome());
+                try (PreparedStatement associar = conexao.prepareStatement(
+                        "INSERT INTO treino_exercicios (treino_id, exercicio_id, series, repeticoes, tempo_descanso) "
+                                + "VALUES (?, ?, ?, ?, ?)")) {
+                    associar.setInt(1, treinoId);
+                    associar.setInt(2, exercicioId);
+                    associar.setInt(3, exercicio.series());
+                    associar.setInt(4, exercicio.repeticoes());
+                    associar.setInt(5, exercicio.descanso());
+                    associar.executeUpdate();
                 }
+            }
+            try (PreparedStatement vincular = conexao.prepareStatement(
+                    "INSERT INTO usuario_treinos (usuario_id, treino_id, data_inicio, ativo) "
+                            + "VALUES (?, ?, CURDATE(), TRUE)")) {
+                vincular.setInt(1, usuarioId);
+                vincular.setInt(2, treinoId);
+                vincular.executeUpdate();
+            }
+        }
+        return true;
+    }
+
+    private int inserirTreino(Connection conexao, GeradorTreinoQuestionario.TreinoGerado treino,
+            String objetivo, String local, int frequencia) throws SQLException {
+        String sql = "INSERT INTO treinos (nome_treino, descricao, nivel, duracao_treino, objetivo, local_treino, frequencia_semanal) "
+                + "VALUES (?, ?, 'Personalizado', ?, ?, ?, ?)";
+        try (PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            comando.setString(1, treino.nome());
+            comando.setString(2, treino.descricao());
+            comando.setInt(3, treino.duracao());
+            comando.setString(4, objetivo);
+            comando.setString(5, local);
+            comando.setInt(6, frequencia);
+            comando.executeUpdate();
+            try (ResultSet chaves = comando.getGeneratedKeys()) {
+                if (!chaves.next()) throw new SQLException("Não foi possível criar a sessão de treino.");
+                return chaves.getInt(1);
+            }
+        }
+    }
+
+    private int obterOuCriarExercicio(Connection conexao, String nome) throws SQLException {
+        try (PreparedStatement buscar = conexao.prepareStatement(
+                "SELECT id FROM exercicios WHERE nome = ? ORDER BY id LIMIT 1")) {
+            buscar.setString(1, nome);
+            try (ResultSet resultado = buscar.executeQuery()) {
+                if (resultado.next()) return resultado.getInt("id");
+            }
+        }
+        try (PreparedStatement inserir = conexao.prepareStatement(
+                "INSERT INTO exercicios (nome) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
+            inserir.setString(1, nome);
+            inserir.executeUpdate();
+            try (ResultSet chaves = inserir.getGeneratedKeys()) {
+                if (!chaves.next()) throw new SQLException("Não foi possível cadastrar o exercício.");
+                return chaves.getInt(1);
             }
         }
     }

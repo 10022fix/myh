@@ -841,7 +841,7 @@ async function finalizarQuestionario() {
         const resposta = await fetch("/api/questionario/finalizar", { method: "POST", body: formulario });
         const dados = await resposta.json();
         if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível concluir.");
-        window.location.href = "/areadoaluno.html";
+        window.location.href = "/meu-treino.html";
     } catch (erro) {
         botao.disabled = false;
         botao.textContent = "Tentar novamente";
