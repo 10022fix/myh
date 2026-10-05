@@ -92,8 +92,15 @@ public class LoginController {
             nome = nome == null ? "" : nome.trim();
             apelidoAcesso = apelidoAcesso == null ? "" : apelidoAcesso.trim().toLowerCase(java.util.Locale.ROOT);
             email = email == null ? "" : email.trim().toLowerCase();
+            if (!EMAIL.matcher(email).matches()) {
+                return ResponseEntity.badRequest().body(Map.of("sucesso", false,
+                        "mensagem", "Informe um endereço de e-mail válido."));
+            }
+            if (!email.endsWith("@gmail.com")) {
+                return ResponseEntity.badRequest().body(Map.of("sucesso", false,
+                        "mensagem", "Somente endereços @gmail.com podem criar uma conta."));
+            }
             if (nome.length() < 3 || nome.length() > 150 || !APELIDO_ACESSO.matcher(apelidoAcesso).matches()
-                    || !EMAIL.matcher(email).matches()
                     || senha == null || senha.length() < 8 || senha.length() > 128) {
                 return ResponseEntity.badRequest().body(Map.of("sucesso", false,
                         "mensagem", "Confira nome, apelido (3 a 30 caracteres: letras, números, ponto, hífen ou sublinhado), e-mail e senha (mínimo 8 caracteres)."));
