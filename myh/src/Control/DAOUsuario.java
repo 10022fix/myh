@@ -62,22 +62,23 @@ public class DAOUsuario {
 
     private int inserirUsuario(Usuario usuario, boolean emailVerificado) {
         String sql = "INSERT INTO usuario "
-                + "(nome, email, senha, data_nascimento, sexo, altura, peso_inicial, email_verificado) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(nome, apelido_acesso, email, senha, data_nascimento, sexo, altura, peso_inicial, email_verificado) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conexao = consultas.abreConexao();
              PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             comando.setString(1, usuario.getNome());
-            comando.setString(2, usuario.getEmail());
-            comando.setString(3, gerarHashSenha(usuario.getSenha()));
+            comando.setString(2, usuario.getApelidoAcesso());
+            comando.setString(3, usuario.getEmail());
+            comando.setString(4, gerarHashSenha(usuario.getSenha()));
             if (usuario.getDataNascimento() == null) {
-                comando.setNull(4, java.sql.Types.DATE);
+                comando.setNull(5, java.sql.Types.DATE);
             } else {
-                comando.setDate(4, Date.valueOf(usuario.getDataNascimento()));
+                comando.setDate(5, Date.valueOf(usuario.getDataNascimento()));
             }
-            comando.setString(5, usuario.getSexo());
-            comando.setFloat(6, usuario.getAltura());
-            comando.setFloat(7, usuario.getPeso_inicial());
-            comando.setBoolean(8, emailVerificado);
+            comando.setString(6, usuario.getSexo());
+            comando.setFloat(7, usuario.getAltura());
+            comando.setFloat(8, usuario.getPeso_inicial());
+            comando.setBoolean(9, emailVerificado);
             if (comando.executeUpdate() != 1) return 0;
             try (ResultSet chaves = comando.getGeneratedKeys()) {
                 return chaves.next() ? chaves.getInt(1) : 0;
@@ -185,18 +186,34 @@ public class DAOUsuario {
         }
     }
 
-    public boolean validarLogin(String email, String senha) {
-        String sql = "SELECT senha, email_verificado FROM usuario WHERE email = ?";
+    public boolean validarLogin(String login, String senha) {
+        return autenticarPorLogin(login, senha) != null;
+    }
+
+    /** Autentica pelo apelido de acesso ou pelo e-mail, sem diferenciar maiusculas. */
+    public Usuario autenticarPorLogin(String login, String senha) {
+        if (login == null || login.isBlank() || senha == null) return null;
+
+        String sql = "SELECT id, nome, apelido_acesso, email, senha, email_verificado FROM usuario "
+                + "WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) "
+                + "OR LOWER(TRIM(apelido_acesso)) = LOWER(TRIM(?))";
         try (Connection conexao = consultas.abreConexao();
              PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setString(1, email);
+            comando.setString(1, login.trim());
+            comando.setString(2, login.trim());
             try (ResultSet resultado = comando.executeQuery()) {
-                return resultado.next() && resultado.getBoolean("email_verificado")
-                        && verificarSenha(senha, resultado.getString("senha"));
+                if (!resultado.next() || !resultado.getBoolean("email_verificado")
+                        || !verificarSenha(senha, resultado.getString("senha"))) return null;
+                Usuario usuario = new Usuario();
+                usuario.setId(resultado.getInt("id"));
+                usuario.setNome(resultado.getString("nome"));
+                usuario.setEmail(resultado.getString("email"));
+                usuario.setApelidoAcesso(resultado.getString("apelido_acesso"));
+                return usuario;
             }
         } catch (SQLException | GeneralSecurityException | IllegalArgumentException ex) {
             System.err.println("Erro ao validar login: " + ex.getMessage());
-            return false;
+            return null;
         }
     }
 

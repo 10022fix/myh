@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS usuario (
     id INT NOT NULL AUTO_INCREMENT,
     nome VARCHAR(150) NOT NULL,
+    apelido_acesso VARCHAR(30) NULL,
     email VARCHAR(254) NOT NULL,
     senha VARCHAR(512) NOT NULL,
     data_nascimento DATE NULL,
@@ -9,6 +10,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     peso_inicial DECIMAL(6,2) NOT NULL,
     email_verificado BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id),
+    UNIQUE KEY uk_usuario_apelido_acesso (apelido_acesso),
     UNIQUE KEY uk_usuario_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

@@ -29,6 +29,7 @@ public class LoginController {
     private final ServicoEmailBrevo emailBrevo;
     private final String urlBase;
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    private static final Pattern APELIDO_ACESSO = Pattern.compile("^[A-Za-z0-9._-]{3,30}$");
 
     public LoginController(ServicoEmailBrevo emailBrevo,
             @Value("${app.base-url:https://myh-j47a.onrender.com}") String urlBase) {
@@ -38,21 +39,17 @@ public class LoginController {
 
     @PostMapping("/api/login")
     public ResponseEntity<Map<String, Object>> login(
-            @RequestParam String email,
+            @RequestParam(required = false) String login,
+            @RequestParam(required = false) String email,
             @RequestParam String senha,
             HttpSession sessao, HttpServletRequest requisicao) {
 
-        email = email == null ? "" : email.trim().toLowerCase();
-        if (!usuarios.validarLogin(email, senha)) {
+        String identificador = login == null || login.isBlank() ? email : login;
+        Usuario usuario = usuarios.autenticarPorLogin(identificador, senha);
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("sucesso", false,
-                            "mensagem", "E-mail ou senha inválidos. Se acabou de se cadastrar, confirme o e-mail pelo link enviado."));
-        }
-
-        Usuario usuario = usuarios.buscarPorEmail(email);
-        if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("sucesso", false, "mensagem", "Nao foi possivel carregar o usuario."));
+                            "mensagem", "Login ou senha incorretos. Se acabou de se cadastrar, confirme o e-mail pelo link enviado."));
         }
 
         iniciarSessao(requisicao, usuario);
@@ -86,20 +83,24 @@ public class LoginController {
     @PostMapping("/api/cadastro")
     public ResponseEntity<Map<String, Object>> cadastrar(
             @RequestParam String nome,
+            @RequestParam String apelidoAcesso,
             @RequestParam String email,
             @RequestParam String senha,
             HttpServletRequest requisicao) {
         int usuarioPendenteId = 0;
         try {
             nome = nome == null ? "" : nome.trim();
+            apelidoAcesso = apelidoAcesso == null ? "" : apelidoAcesso.trim().toLowerCase(java.util.Locale.ROOT);
             email = email == null ? "" : email.trim().toLowerCase();
-            if (nome.length() < 3 || nome.length() > 150 || !EMAIL.matcher(email).matches()
+            if (nome.length() < 3 || nome.length() > 150 || !APELIDO_ACESSO.matcher(apelidoAcesso).matches()
+                    || !EMAIL.matcher(email).matches()
                     || senha == null || senha.length() < 8 || senha.length() > 128) {
                 return ResponseEntity.badRequest().body(Map.of("sucesso", false,
-                        "mensagem", "Confira nome, e-mail e senha (mínimo 8 caracteres)."));
+                        "mensagem", "Confira nome, apelido (3 a 30 caracteres: letras, números, ponto, hífen ou sublinhado), e-mail e senha (mínimo 8 caracteres)."));
             }
             Usuario usuario = new Usuario();
             usuario.setNome(nome);
+            usuario.setApelidoAcesso(apelidoAcesso);
             usuario.setEmail(email);
             usuario.setSenha(senha);
             // A tabela atual exige altura e peso. Valores provisórios são substituídos
@@ -111,7 +112,7 @@ public class LoginController {
             if (usuarioPendenteId <= 0) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "sucesso", false,
-                        "mensagem", "Não foi possível cadastrar. Confira os dados; esse e-mail talvez já esteja cadastrado."));
+                        "mensagem", "Não foi possível cadastrar. Confira os dados; o e-mail ou apelido talvez já esteja cadastrado."));
             }
 
             String token = novoToken();

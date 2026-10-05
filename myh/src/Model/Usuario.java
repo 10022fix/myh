@@ -5,6 +5,7 @@ public class Usuario {
 	// Tabela Usuário
     private int id;
     private String nome;
+    private String apelidoAcesso;
     private String email;
     private String senha;
     private LocalDate dataNascimento;
@@ -38,6 +39,12 @@ public class Usuario {
     }
     public void setNome(String nome){
         this.nome=nome;
+    }
+    public String getApelidoAcesso(){
+        return apelidoAcesso;
+    }
+    public void setApelidoAcesso(String apelidoAcesso){
+        this.apelidoAcesso=apelidoAcesso;
     }
     public String getSenha(){
         return senha;
