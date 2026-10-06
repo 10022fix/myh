@@ -20,7 +20,7 @@ const PERGUNTAS = [
 
         // Texto que será mostrado como título da pergunta.
         titulo: "Qual é seu principal objetivo?",
-        subtitulo: "Vamos montar um plano focado em emagrecimento.",
+        subtitulo: "Escolha entre ganhar músculo ou perder peso e gordura.",
 
         // Define como as opções serão organizadas visualmente.
         layout: "lista",
@@ -30,6 +30,7 @@ const PERGUNTAS = [
             // "valor" é o valor que será salvo no objeto respostas.
             // "label" é o texto mostrado para o usuário.
             // "icone" é o emoji mostrado ao lado da opção.
+            { valor: "ganhar_musculo", label: "Ganhar músculo", icone: "💪" },
             { valor: "perder_peso", label: "Perder peso & gordura", icone: "🔥" },
         ],
     },
@@ -529,11 +530,16 @@ function renderNumero(pergunta) {
     const paraUnidade = (kg, unidade) => unidade === "lbs" ? kg * 2.2046226218 : kg;
     const paraKg = (valor, unidade) => unidade === "lbs" ? valor / 2.2046226218 : valor;
     const arredondarDecimo = (valor) => Math.round(valor * 10) / 10;
-    const minimo = arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
-    const maximo = Math.max(minimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
+    const ganharMusculo = respostas.objetivo === "ganhar_musculo";
+    const minimo = ganharMusculo
+        ? Math.ceil(paraUnidade(pesoAtualKg, unidadePeso) * 10) / 10
+        : arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
+    const maximo = ganharMusculo
+        ? arredondarDecimo(paraUnidade(400, unidadePeso))
+        : Math.max(minimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
     const valorSalvo = respostaAnterior
         ? arredondarDecimo(paraUnidade(paraKg(Number(respostaAnterior.valor), respostaAnterior.unidade), unidadePeso))
-        : Math.min(pergunta.padrao, maximo);
+        : Math.min(ganharMusculo ? paraUnidade(pesoAtualKg + 5, unidadePeso) : pergunta.padrao, maximo);
     const valorAtual = Math.min(maximo, Math.max(minimo, valorSalvo));
 
     // Cria os botões de unidade, valor, slider e botão continuar.
@@ -545,8 +551,10 @@ function renderNumero(pergunta) {
         <div class="valor-peso"><span id="valorPesoNum">${valorAtual}</span><span>${unidadePeso}</span></div>
         <input type="range" class="slider-peso" id="sliderPeso"
             min="${minimo}" max="${maximo}" step="0.1" value="${valorAtual}"
-            aria-label="Peso desejado, abaixo do peso atual">
-        <p class="aviso-peso">A meta precisa ser menor que seu peso atual (${pesoAtualKg} kg).</p>
+            aria-label="Peso desejado, de acordo com seu objetivo">
+        <p class="aviso-peso">${ganharMusculo
+            ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${pesoAtualKg} kg).`
+            : `Para emagrecer, a meta precisa ser menor que seu peso atual (${pesoAtualKg} kg).`}</p>
         <button type="button" class="btn-continuar" id="btnContinuarNumero">Continuar</button>
     `;
 
@@ -580,8 +588,12 @@ function renderNumero(pergunta) {
             const pesoAtualKgNaTroca = paraKg(Number(inputRange.value), unidadePeso);
             unidadePeso = b.dataset.unidade;
 
-            const novoMinimo = arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
-            const novoMaximo = Math.max(novoMinimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
+            const novoMinimo = ganharMusculo
+                ? Math.ceil(paraUnidade(pesoAtualKg, unidadePeso) * 10) / 10
+                : arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
+            const novoMaximo = ganharMusculo
+                ? arredondarDecimo(paraUnidade(400, unidadePeso))
+                : Math.max(novoMinimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
             inputRange.min = String(novoMinimo);
             inputRange.max = String(novoMaximo);
             inputRange.value = String(Math.min(novoMaximo, Math.max(novoMinimo, arredondarDecimo(paraUnidade(pesoAtualKgNaTroca, unidadePeso)))));
@@ -597,8 +609,11 @@ function renderNumero(pergunta) {
 
         // Salva o peso como número e também salva a unidade utilizada.
         const pesoAlvoKg = paraKg(Number(inputRange.value), unidadePeso);
-        if (!Number.isFinite(pesoAtualKg) || pesoAlvoKg >= pesoAtualKg) {
-            alert("O peso-meta precisa ser menor que seu peso atual para criar um plano de emagrecimento.");
+        if (!Number.isFinite(pesoAtualKg) || (!ganharMusculo && pesoAlvoKg >= pesoAtualKg)
+                || (ganharMusculo && pesoAlvoKg < pesoAtualKg)) {
+            alert(ganharMusculo
+                ? "O peso-meta precisa ser igual ou maior que seu peso atual para esse objetivo."
+                : "O peso-meta precisa ser menor que seu peso atual para criar um plano de emagrecimento.");
             return;
         }
         respostas[pergunta.id] = {
@@ -849,7 +864,7 @@ async function finalizarQuestionario() {
     const dadosPessoais = respostas.dados_pessoais || {};
     const pesoAlvoKg = peso?.unidade === "lbs" ? Number(peso.valor) / 2.2046226218 : Number(peso?.valor);
     const formulario = new URLSearchParams({
-        objetivo: "perder_peso",
+        objetivo: respostas.objetivo,
         formaAtual: respostas.forma_atual,
         formaDesejada: respostas.forma_desejada,
         frequencia: respostas.frequencia_desejada,

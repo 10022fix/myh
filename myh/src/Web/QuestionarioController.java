@@ -27,7 +27,7 @@ public class QuestionarioController {
         Object usuario = sessao.getAttribute("usuarioId");
         if (!(usuario instanceof Integer)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Sua sessao expirou. Faca login novamente."));
         try {
-            validar("perder_peso".equals(objetivo), "objetivo de emagrecimento");
+            validar(opcao(objetivo, "ganhar_musculo", "perder_peso"), "objetivo");
             validar(opcao(formaAtual, "magro", "media", "pesado", "muito_pesado"), "forma atual");
             validar(opcao(formaDesejada, "esbelto", "em_forma", "musculoso", "fisiculturismo"), "forma desejada");
             int vezes = inteiro(frequencia, 1, 6, "frequência de treino");
@@ -40,10 +40,14 @@ public class QuestionarioController {
             validar(opcao(sexo, "Masculino", "Feminino", "Prefiro não Informar"), "sexo");
             float alturaInformada = decimal(altura, 1.0f, 2.5f, "altura");
             float pesoInformado = decimal(pesoInicial, 25.0f, 400.0f, "peso atual");
-            validar(peso < pesoInformado, "peso-meta (precisa ser menor que o peso atual)");
+            if ("perder_peso".equals(objetivo)) {
+                validar(peso < pesoInformado, "peso-meta (precisa ser menor que o peso atual)");
+            } else {
+                validar(peso >= pesoInformado, "peso-meta (precisa ser igual ou maior que o peso atual para ganhar músculo)");
+            }
             validar(opcao(local, "casa", "academia", "hibrido"), "local de treino");
             if (respostas.length() > 8000 || !respostas.startsWith("{") || !respostas.endsWith("}")) throw new IllegalArgumentException("respostas do questionário");
-            String meta = "Emagrecer";
+            String meta = objetivo.equals("ganhar_musculo") ? "Ganhar Massa" : "Emagrecer";
             boolean treino = areaAluno.finalizarQuestionario((Integer) usuario, meta, peso, minutos, formaAtual, formaDesejada,
                     String.valueOf(vezes), local, respostas, nascimento, sexo, alturaInformada, pesoInformado);
             sessao.setAttribute("questionarioConcluido", true);

@@ -22,9 +22,8 @@ public final class GeradorTreinoQuestionario {
         }
 
         int idade = idade(respostas.path("dados_pessoais").path("dataNascimento").asText());
-        // O MYH oferece atualmente apenas planos de emagrecimento; não confie
-        // no valor de objetivo enviado dentro do JSON pelo navegador.
-        String objetivoQuiz = "perder_peso";
+        // Deriva o foco do treino do objetivo validado pelo servidor.
+        String objetivoQuiz = "Ganhar Massa".equalsIgnoreCase(objetivo) ? "ganhar_musculo" : "perder_peso";
         String frequenciaAtual = respostas.path("frequencia_atual").asText();
         boolean iniciante = List.of("nunca", "no_passado", "varias_mes").contains(frequenciaAtual);
         boolean senior = idade >= 60;
