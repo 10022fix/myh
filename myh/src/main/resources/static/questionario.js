@@ -20,6 +20,7 @@ const PERGUNTAS = [
 
         // Texto que será mostrado como título da pergunta.
         titulo: "Qual é seu principal objetivo?",
+        subtitulo: "Vamos montar um plano focado em emagrecimento.",
 
         // Define como as opções serão organizadas visualmente.
         layout: "lista",
@@ -29,7 +30,6 @@ const PERGUNTAS = [
             // "valor" é o valor que será salvo no objeto respostas.
             // "label" é o texto mostrado para o usuário.
             // "icone" é o emoji mostrado ao lado da opção.
-            { valor: "ganhar_musculo", label: "Ganhar músculo", icone: "💪" },
             { valor: "perder_peso", label: "Perder peso & gordura", icone: "🔥" },
         ],
     },
@@ -259,17 +259,17 @@ const PERGUNTAS = [
     {
         id: "peso_alvo",
         tipo: "numero",
-        titulo: "Qual é o seu seu peso alvo?",
+        titulo: "Qual é o seu peso alvo?",
 
         // Layout especial para perguntas numéricas.
         layout: "numero",
 
         // Valores mínimo e máximo permitidos pelo slider.
-        min: 30,
-        max: 200,
+        min: 1,
+        max: 400,
 
         // Valor utilizado inicialmente pelo slider.
-        padrao: 70,
+        padrao: 60,
     },
 ];
 
@@ -279,7 +279,7 @@ const PERGUNTAS = [
 // ==========================================================================
 
 // Objeto que armazena todas as respostas dadas pelo usuário.
-// Exemplo: respostas.objetivo = "ganhar_musculo"
+// Exemplo: respostas.objetivo = "perder_peso"
 const respostas = {};
 
 // Unidade de peso utilizada atualmente.
@@ -522,10 +522,19 @@ function renderNumero(pergunta) {
 
     // Recupera a resposta anterior, caso exista.
     // Se não existir, utiliza o valor padrão da pergunta.
-    const valorAtual = respostas[pergunta.id]?.valor || pergunta.padrao;
-
-    // Recupera a unidade anterior ou usa kg como padrão.
-    unidadePeso = respostas[pergunta.id]?.unidade || "kg";
+    // O peso atual foi informado em kg; o slider acompanha a unidade selecionada.
+    const pesoAtualKg = Number(respostas.dados_pessoais?.pesoInicial);
+    const respostaAnterior = respostas[pergunta.id];
+    unidadePeso = respostaAnterior?.unidade || "kg";
+    const paraUnidade = (kg, unidade) => unidade === "lbs" ? kg * 2.2046226218 : kg;
+    const paraKg = (valor, unidade) => unidade === "lbs" ? valor / 2.2046226218 : valor;
+    const arredondarDecimo = (valor) => Math.round(valor * 10) / 10;
+    const minimo = arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
+    const maximo = Math.max(minimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
+    const valorSalvo = respostaAnterior
+        ? arredondarDecimo(paraUnidade(paraKg(Number(respostaAnterior.valor), respostaAnterior.unidade), unidadePeso))
+        : Math.min(pergunta.padrao, maximo);
+    const valorAtual = Math.min(maximo, Math.max(minimo, valorSalvo));
 
     // Cria os botões de unidade, valor, slider e botão continuar.
     wrap.innerHTML = `
@@ -535,7 +544,9 @@ function renderNumero(pergunta) {
         </div>
         <div class="valor-peso"><span id="valorPesoNum">${valorAtual}</span><span>${unidadePeso}</span></div>
         <input type="range" class="slider-peso" id="sliderPeso"
-            min="${pergunta.min}" max="${pergunta.max}" value="${valorAtual}">
+            min="${minimo}" max="${maximo}" step="0.1" value="${valorAtual}"
+            aria-label="Peso desejado, abaixo do peso atual">
+        <p class="aviso-peso">A meta precisa ser menor que seu peso atual (${pesoAtualKg} kg).</p>
         <button type="button" class="btn-continuar" id="btnContinuarNumero">Continuar</button>
     `;
 
@@ -565,8 +576,16 @@ function renderNumero(pergunta) {
             // Marca o botão clicado como ativo.
             b.classList.add("ativa");
 
-            // Salva a unidade escolhida.
+            // Preserva o mesmo peso real ao alternar entre kg e lbs.
+            const pesoAtualKgNaTroca = paraKg(Number(inputRange.value), unidadePeso);
             unidadePeso = b.dataset.unidade;
+
+            const novoMinimo = arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
+            const novoMaximo = Math.max(novoMinimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
+            inputRange.min = String(novoMinimo);
+            inputRange.max = String(novoMaximo);
+            inputRange.value = String(Math.min(novoMaximo, Math.max(novoMinimo, arredondarDecimo(paraUnidade(pesoAtualKgNaTroca, unidadePeso)))));
+            valorTexto.textContent = inputRange.value;
 
             // Atualiza a unidade mostrada ao lado do peso.
             wrap.querySelector(".valor-peso span:last-child").textContent = unidadePeso;
@@ -577,6 +596,11 @@ function renderNumero(pergunta) {
     wrap.querySelector("#btnContinuarNumero").addEventListener("click", () => {
 
         // Salva o peso como número e também salva a unidade utilizada.
+        const pesoAlvoKg = paraKg(Number(inputRange.value), unidadePeso);
+        if (!Number.isFinite(pesoAtualKg) || pesoAlvoKg >= pesoAtualKg) {
+            alert("O peso-meta precisa ser menor que seu peso atual para criar um plano de emagrecimento.");
+            return;
+        }
         respostas[pergunta.id] = {
             valor: Number(inputRange.value),
             unidade: unidadePeso
@@ -823,14 +847,15 @@ async function finalizarQuestionario() {
     botao.textContent = "Preparando seu treino...";
     const peso = respostas.peso_alvo;
     const dadosPessoais = respostas.dados_pessoais || {};
+    const pesoAlvoKg = peso?.unidade === "lbs" ? Number(peso.valor) / 2.2046226218 : Number(peso?.valor);
     const formulario = new URLSearchParams({
-        objetivo: respostas.objetivo,
+        objetivo: "perder_peso",
         formaAtual: respostas.forma_atual,
         formaDesejada: respostas.forma_desejada,
         frequencia: respostas.frequencia_desejada,
         duracao: respostas.duracao_treino,
         local: respostas.local_treino,
-        pesoAlvo: String(peso?.valor || ""),
+        pesoAlvo: String(pesoAlvoKg || ""),
         dataNascimento: dadosPessoais.dataNascimento || "",
         sexo: dadosPessoais.sexo || "",
         altura: String(dadosPessoais.altura || ""),

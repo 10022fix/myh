@@ -27,12 +27,12 @@ public class QuestionarioController {
         Object usuario = sessao.getAttribute("usuarioId");
         if (!(usuario instanceof Integer)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Sua sessao expirou. Faca login novamente."));
         try {
-            validar(opcao(objetivo, "ganhar_musculo", "perder_peso"), "objetivo");
+            validar("perder_peso".equals(objetivo), "objetivo de emagrecimento");
             validar(opcao(formaAtual, "magro", "media", "pesado", "muito_pesado"), "forma atual");
             validar(opcao(formaDesejada, "esbelto", "em_forma", "musculoso", "fisiculturismo"), "forma desejada");
             int vezes = inteiro(frequencia, 1, 6, "frequência de treino");
             int minutos = inteiro(duracao, 30, 120, "duração do treino");
-            float peso = decimal(pesoAlvo, 30, 200, "peso-meta");
+            float peso = decimal(pesoAlvo, 1, 400, "peso-meta");
             LocalDate nascimento;
             try { nascimento = LocalDate.parse(dataNascimento); }
             catch (DateTimeParseException e) { throw new IllegalArgumentException("data de nascimento"); }
@@ -40,9 +40,10 @@ public class QuestionarioController {
             validar(opcao(sexo, "Masculino", "Feminino", "Prefiro não Informar"), "sexo");
             float alturaInformada = decimal(altura, 1.0f, 2.5f, "altura");
             float pesoInformado = decimal(pesoInicial, 25.0f, 400.0f, "peso atual");
+            validar(peso < pesoInformado, "peso-meta (precisa ser menor que o peso atual)");
             validar(opcao(local, "casa", "academia", "hibrido"), "local de treino");
             if (respostas.length() > 8000 || !respostas.startsWith("{") || !respostas.endsWith("}")) throw new IllegalArgumentException("respostas do questionário");
-            String meta = objetivo.equals("ganhar_musculo") ? "Ganhar Massa" : "Emagrecer";
+            String meta = "Emagrecer";
             boolean treino = areaAluno.finalizarQuestionario((Integer) usuario, meta, peso, minutos, formaAtual, formaDesejada,
                     String.valueOf(vezes), local, respostas, nascimento, sexo, alturaInformada, pesoInformado);
             sessao.setAttribute("questionarioConcluido", true);
