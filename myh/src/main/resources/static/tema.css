@@ -1161,6 +1161,50 @@ html, body {
     color: #1e3b29 !important;
 }
 
+/* Mantém contraste forte no hover e na seleção das respostas do questionário claro. */
+:root[data-theme="light"] .quiz .opcao:hover,
+:root[data-theme="light"] .quiz .opcao:active,
+:root[data-theme="light"] .quiz .opcao:focus-visible,
+:root[data-theme="light"] .quiz .opcao.selecionada,
+:root[data-theme="light"] .quiz .opcao-card:hover,
+:root[data-theme="light"] .quiz .opcao-card:active,
+:root[data-theme="light"] .quiz .opcao-card:focus-visible,
+:root[data-theme="light"] .quiz .opcao-card.selecionada,
+:root[data-theme="light"] .quiz .opcao-img:hover,
+:root[data-theme="light"] .quiz .opcao-img:active,
+:root[data-theme="light"] .quiz .opcao-img:focus-visible,
+:root[data-theme="light"] .quiz .opcao-img.selecionada {
+    background: #e8f3e5 !important;
+    border-color: #47734a !important;
+    color: #14331f !important;
+    text-shadow: none !important;
+}
+
+:root[data-theme="light"] .quiz .opcao:hover .opcao-label,
+:root[data-theme="light"] .quiz .opcao:active .opcao-label,
+:root[data-theme="light"] .quiz .opcao:focus-visible .opcao-label,
+:root[data-theme="light"] .quiz .opcao.selecionada .opcao-label,
+:root[data-theme="light"] .quiz .opcao:hover .opcao-desc,
+:root[data-theme="light"] .quiz .opcao:active .opcao-desc,
+:root[data-theme="light"] .quiz .opcao:focus-visible .opcao-desc,
+:root[data-theme="light"] .quiz .opcao.selecionada .opcao-desc,
+:root[data-theme="light"] .quiz .opcao-card:hover .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card:active .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card:focus-visible .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card.selecionada .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card:hover .opcao-card-texto p,
+:root[data-theme="light"] .quiz .opcao-card:active .opcao-card-texto p,
+:root[data-theme="light"] .quiz .opcao-card:focus-visible .opcao-card-texto p,
+:root[data-theme="light"] .quiz .opcao-card.selecionada .opcao-card-texto p,
+:root[data-theme="light"] .quiz .opcao-img:hover .img-legenda,
+:root[data-theme="light"] .quiz .opcao-img:active .img-legenda,
+:root[data-theme="light"] .quiz .opcao-img:focus-visible .img-legenda,
+:root[data-theme="light"] .quiz .opcao-img.selecionada .img-legenda {
+    color: #14331f !important;
+    -webkit-text-fill-color: #14331f;
+    text-shadow: none !important;
+}
+
 :root[data-theme="dark"] .boas-vindas > span {
     color: #d2e2d7 !important;
 }
