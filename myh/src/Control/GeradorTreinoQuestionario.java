@@ -57,7 +57,7 @@ public final class GeradorTreinoQuestionario {
             throw new IllegalArgumentException("Não foi possível interpretar as respostas do questionário.", erro);
         }
 
-        int idade = idade(respostas.path("dados_pessoais").path("dataNascimento").asText());
+        int idade = idade(respostas.path("dados_pessoais").path("dataNascimento"));
         boolean iniciante = List.of("nunca", "no_passado", "varias_mes")
                 .contains(respostas.path("frequencia_atual").asText());
         boolean senior = idade >= 60;
