@@ -491,6 +491,7 @@ body {
 
 /* Campos da etapa de dados pessoais. */
 .dados-pessoais { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dados-pessoais .campo-nascimento { grid-column: 1 / -1; width: min(68%, 360px); justify-self: center; }
 .dados-pessoais label { display: grid; gap: 7px; font-weight: bold; color: var(--texto); }
 .dados-pessoais input, .dados-pessoais select { width: 100%; border: 1px solid var(--bege-contorno); border-radius: 12px; padding: 13px; color: var(--texto); background: #fffdf8; font-size: 16px; }
 .dados-pessoais .btn-continuar { grid-column: 1 / -1; }
@@ -505,6 +506,7 @@ body {
     .btn-voltar { left: 20px; }
     .opcoes-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .dados-pessoais { grid-template-columns: 1fr; }
+    .dados-pessoais .campo-nascimento { width: 100%; }
 }
 
 /* MYH — identidade visual futurista */

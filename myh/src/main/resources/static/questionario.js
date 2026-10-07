@@ -2,21 +2,21 @@
 // Cada objeto dentro do array representa uma pergunta.
 const PERGUNTAS = [
     {
-        id: "sexo",
-        tipo: "single",
-        titulo: "A que gênero biológico pertence?",
-        layout: "lista",
-        opcoes: [
-            { valor: "Masculino", label: "Masculino" },
-            { valor: "Feminino", label: "Feminino" },
-        ],
-    },
-    {
         id: "dados_pessoais",
         tipo: "dados",
         titulo: "Conte um pouco sobre você",
         subtitulo: "Esses dados ajudam a registrar seu ponto de partida.",
         layout: "dados",
+    },
+    {
+        id: "sexo",
+        tipo: "single",
+        titulo: "A que gênero biológico pertence?",
+        layout: "grid-imagem",
+        opcoes: [
+            { valor: "Masculino", label: "Masculino", imagem: "/images/genero-masculino.png" },
+            { valor: "Feminino", label: "Feminino", imagem: "/images/genero-feminino.png" },
+        ],
     },
 
     {
@@ -644,9 +644,9 @@ function renderDados(pergunta) {
     const wrap = document.createElement("div");
     wrap.className = "dados-pessoais";
     wrap.innerHTML = `
-        <label>Data de nascimento<input id="nascimento" type="date" value="${atual.dataNascimento || ""}" required></label>
-        <label>Altura (m)<input id="altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 170 ou 1,70" value="${atual.altura || ""}" required></label>
-        <label>Peso atual (kg)<input id="pesoInicial" type="number" min="25" max="400" step="0.1" value="${atual.pesoInicial || ""}" required></label>
+        <label class="campo-nascimento">Data de nascimento<input id="nascimento" type="date" value="${atual.dataNascimento || ""}" required></label>
+        <label class="campo-altura">Altura (m)<input id="altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 170 ou 1,70" value="${atual.altura || ""}" required></label>
+        <label class="campo-peso">Peso atual (kg)<input id="pesoInicial" type="number" min="25" max="400" step="0.1" value="${atual.pesoInicial || ""}" required></label>
         <button type="button" class="btn-continuar" id="btnContinuarDados">Continuar</button>`;
     wrap.querySelector("#btnContinuarDados").addEventListener("click", () => {
         const nascimento = wrap.querySelector("#nascimento").value;
