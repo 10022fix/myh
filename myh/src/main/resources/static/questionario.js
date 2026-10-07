@@ -471,6 +471,16 @@ function renderGridImagem(pergunta) {
 
     // Percorre todas as opções.
     pergunta.opcoes.forEach((op) => {
+        const indice = pergunta.opcoes.indexOf(op) + 1;
+        const usaImagemFeminina = respostas.sexo === "Feminino"
+            && (pergunta.id === "forma_atual" || pergunta.id === "forma_desejada");
+        const prefixoImagem = pergunta.id === "forma_desejada"
+            ? "corpo-desejado-feminino"
+            : "corpo-feminino";
+        const imagem = usaImagemFeminina
+            ? `/images/${prefixoImagem}-${indice}.png`
+            : op.imagem;
+
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "opcao-img";
@@ -481,7 +491,7 @@ function renderGridImagem(pergunta) {
         // Cria a imagem e a legenda da opção.
         btn.innerHTML = `
             <span class="img-wrap">
-                <img src="${op.imagem}" alt="${op.label}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🧍', style:'font-size:40px'}))">
+                <img src="${imagem}" alt="${op.label}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🧍', style:'font-size:40px'}))">
             </span>
             <span class="img-legenda">${op.label}</span>
         `;
