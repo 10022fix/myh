@@ -58,6 +58,7 @@ public final class GeradorTreinoQuestionario {
         }
 
         int idade = idade(respostas.path("dados_pessoais").path("dataNascimento"));
+        String identificacaoGenero = identificacaoGenero(respostas.path("sexo").asText());
         boolean iniciante = List.of("nunca", "no_passado", "varias_mes")
                 .contains(respostas.path("frequencia_atual").asText());
         boolean senior = idade >= 60;
@@ -81,9 +82,16 @@ public final class GeradorTreinoQuestionario {
         String descricao = descricao(contexto, idade);
 
         return List.of(
-                new TreinoGerado("Treino A", descricao, duracao, treinoA),
-                new TreinoGerado("Treino B", descricao, duracao, treinoB)
+                new TreinoGerado("Treino A" + identificacaoGenero, descricao, duracao, treinoA),
+                new TreinoGerado("Treino B" + identificacaoGenero, descricao, duracao, treinoB)
         );
+    }
+
+    /** Identifica o plano pelo gênero informado sem mudar a seleção de exercícios. */
+    private static String identificacaoGenero(String sexo) {
+        if ("Feminino".equalsIgnoreCase(sexo)) return " (Feminino)";
+        if ("Masculino".equalsIgnoreCase(sexo)) return " (Masculino)";
+        return "";
     }
 
     private static List<ExercicioGerado> montarSessao(Contexto contexto, Set<String> usados, boolean variacaoB) {
