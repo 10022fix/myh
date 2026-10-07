@@ -157,8 +157,8 @@ const PERGUNTAS = [
         layout: "card",
 
         // Função que determina se essa pergunta deve aparecer.
-        // A pergunta só aparece se local_treino for "academia" ou "hibrido".
-        mostrarSe: (r) => r.local_treino === "academia" || r.local_treino === "hibrido",
+        // Híbrido segue direto para a escolha de músculos importantes.
+        mostrarSe: (r) => r.local_treino === "academia",
 
         opcoes: [
             { valor: "grande", label: "Academia Grande", desc: "Clube de fitness totalmente equipado como Smart Fit, BlueFit, Fitness Hut, Bodytech, Bio Ritmo, etc.", icone: "🏢" },
@@ -222,20 +222,6 @@ const PERGUNTAS = [
             { valor: "sentado", label: "Passo a maior parte do dia sentado", icone: "💻" },
             { valor: "ativo_intervalos", label: "Sou ativo durante meus intervalos", icone: "🚶" },
             { valor: "em_pe", label: "Fico em pé o dia todo", icone: "🏃" },
-        ],
-    },
-
-    {
-        id: "nivel_energia",
-        tipo: "single",
-        titulo: "Como está seu nível de energia durante o dia?",
-        layout: "lista",
-
-        opcoes: [
-            { valor: "baixo", label: "Baixo, sinto-me cansado ao longo do dia", icone: "🔋" },
-            { valor: "queda_almoco", label: "Queda de energia após o almoço", icone: "🔋" },
-            { valor: "arrastando", label: "Arrastando-se antes das refeições", icone: "🔋" },
-            { valor: "alto_estavel", label: "Alto e estável", icone: "🔋" },
         ],
     },
 

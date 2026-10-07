@@ -1205,6 +1205,17 @@ html, body {
     text-shadow: none !important;
 }
 
+/* Legendas das opções com imagem também precisam de contraste no estado normal. */
+:root[data-theme="light"] .quiz .opcao-img .img-legenda,
+:root[data-theme="light"] .quiz .opcao-label,
+:root[data-theme="light"] .quiz .opcao-desc,
+:root[data-theme="light"] .quiz .opcao-card-texto h3,
+:root[data-theme="light"] .quiz .opcao-card-texto p {
+    color: #173321 !important;
+    -webkit-text-fill-color: #173321 !important;
+    text-shadow: none !important;
+}
+
 :root[data-theme="dark"] .boas-vindas > span {
     color: #d2e2d7 !important;
 }
