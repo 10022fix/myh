@@ -2,6 +2,16 @@
 // Cada objeto dentro do array representa uma pergunta.
 const PERGUNTAS = [
     {
+        id: "sexo",
+        tipo: "single",
+        titulo: "A que gênero biológico pertence?",
+        layout: "lista",
+        opcoes: [
+            { valor: "Masculino", label: "Masculino" },
+            { valor: "Feminino", label: "Feminino" },
+        ],
+    },
+    {
         id: "dados_pessoais",
         tipo: "dados",
         titulo: "Conte um pouco sobre você",
@@ -635,18 +645,15 @@ function renderDados(pergunta) {
     wrap.className = "dados-pessoais";
     wrap.innerHTML = `
         <label>Data de nascimento<input id="nascimento" type="date" value="${atual.dataNascimento || ""}" required></label>
-        <label>Sexo<select id="sexo" required><option value="">Selecione</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="Prefiro não Informar">Prefiro não informar</option></select></label>
         <label>Altura (m)<input id="altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 170 ou 1,70" value="${atual.altura || ""}" required></label>
         <label>Peso atual (kg)<input id="pesoInicial" type="number" min="25" max="400" step="0.1" value="${atual.pesoInicial || ""}" required></label>
         <button type="button" class="btn-continuar" id="btnContinuarDados">Continuar</button>`;
-    wrap.querySelector("#sexo").value = atual.sexo || "";
     wrap.querySelector("#btnContinuarDados").addEventListener("click", () => {
         const nascimento = wrap.querySelector("#nascimento").value;
-        const sexo = wrap.querySelector("#sexo").value;
         const alturaTexto = wrap.querySelector("#altura").value.trim().replace(",", ".");
         const pesoTexto = wrap.querySelector("#pesoInicial").value.trim();
-        if (!nascimento || !sexo || !alturaTexto || !pesoTexto) {
-            alert("Preencha data de nascimento, sexo, altura e peso atual para continuar.");
+        if (!nascimento || !alturaTexto || !pesoTexto) {
+            alert("Preencha data de nascimento, altura e peso atual para continuar.");
             return;
         }
         let altura = Number(alturaTexto);
@@ -654,7 +661,7 @@ function renderDados(pergunta) {
         if (Number.isFinite(altura) && altura >= 100 && altura <= 250) altura /= 100;
         const dados = {
             dataNascimento: nascimento,
-            sexo,
+            sexo: respostas.sexo || atual.sexo || "",
             altura,
             pesoInicial: Number(pesoTexto)
         };
@@ -663,7 +670,7 @@ function renderDados(pergunta) {
             alert("Confira a altura (de 1 a 2,5 m) e o peso atual (de 25 a 400 kg).");
             return;
         }
-        respostas[pergunta.id] = dados;
+        respostas[pergunta.id] = { ...atual, ...dados };
         irParaProxima();
     });
     return wrap;
@@ -679,6 +686,12 @@ function selecionarOpcao(pergunta, valor) {
 
         // Salva diretamente o valor escolhido.
         respostas[pergunta.id] = valor;
+        if (pergunta.id === "sexo") {
+            respostas.dados_pessoais = {
+                ...(respostas.dados_pessoais || {}),
+                sexo: valor,
+            };
+        }
 
         // Atualiza a tela para mostrar visualmente a seleção.
         render();
