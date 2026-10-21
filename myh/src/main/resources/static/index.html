@@ -2,29 +2,61 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
     <link rel="stylesheet" href="/stylehomepage.css">
     <link rel="stylesheet" href="/tema.css">
+    <link rel="stylesheet" href="/stylehome-refresh.css">
     <title>Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-<body>
-    <header>
-        <nav class="navbar">
-            <div class="logo"><img src="logo-myh-m-removebg-preview.png" alt="MYH"></div>
-            <ul class="menu"><li><a class="active" href="/">INÍCIO</a>
-            </li><li>
-            <a href="#">PLANOS</a></li><li><a href="#">BLOG</a>
-            </li></ul>
-            <a href="/comeceagora.html" class="btn-aluno">AREA DO ALUNO</a>
+<body class="home-page">
+    <header class="home-header">
+        <nav class="navbar home-nav">
+            <a class="home-brand" href="/" aria-label="Make Your Health - início">
+                <img src="/logo-myh-m-removebg-preview.png" alt="">
+                <span>Make Your Health</span>
+            </a>
+            <a class="home-login" href="/login.html">Entrar</a>
+            <a href="/cadastro.html" class="btn-aluno">Criar conta</a>
         </nav>
     </header>
-    <main><section class="centropagina">
-        <img src="logo-myh-completa-removebg-preview.png" class="logo-central" alt="Make Your Health">
-        <a href="/comeceagora.html">
-        <button class="btncomeceagora">Comece Agora</button>
-        </a>
-    </section></main>
+
+    <main class="home-refresh">
+        <section class="home-hero">
+            <div class="home-copy">
+                <span class="home-eyebrow">Plano de treino personalizado</span>
+                <h1>Treino que cabe na sua rotina.</h1>
+                <p class="home-lead">Responda ao questionário e receba um plano feito para o seu objetivo, seu tempo e o seu nível. Sem complicação.</p>
+                <div class="home-actions">
+                    <a class="home-button home-primary" href="/cadastro.html">Criar meu plano grátis</a>
+                    <a class="home-button home-secondary" href="/login.html">Já tenho conta</a>
+                </div>
+                <p class="home-hint">Seu plano começa com algumas respostas rápidas.</p>
+            </div>
+
+            <aside class="home-preview" aria-label="Exemplo de plano de treino">
+                <span class="home-tag">Exemplo de plano</span>
+                <h2>Treino B · Pernas e glúteos</h2>
+                <p class="home-muted">45 min · 4 exercícios</p>
+                <div class="home-progress" aria-hidden="true"><span></span></div>
+                <p class="home-hint">2 de 4 exercícios concluídos</p>
+                <ul class="home-exercises">
+                    <li><span class="home-check is-done" aria-hidden="true">✓</span><span>Agachamento livre<small>3 séries × 12 · 75s</small></span></li>
+                    <li><span class="home-check is-done" aria-hidden="true">✓</span><span>Leg press<small>3 séries × 12 · 60s</small></span></li>
+                    <li><span class="home-check" aria-hidden="true"></span><span>Cadeira extensora<small>3 séries × 15 · 45s</small></span></li>
+                </ul>
+            </aside>
+        </section>
+
+        <section class="home-steps" aria-label="Como funciona">
+            <article class="home-step"><span>1</span><h2>Conte sobre você</h2><p>Objetivo, rotina e limitações.</p></article>
+            <article class="home-step"><span>2</span><h2>Receba seu plano</h2><p>Treinos montados para o seu tempo.</p></article>
+            <article class="home-step"><span>3</span><h2>Acompanhe a evolução</h2><p>Registre peso e medidas e veja seu progresso.</p></article>
+        </section>
+    </main>
 </body>
 </html>

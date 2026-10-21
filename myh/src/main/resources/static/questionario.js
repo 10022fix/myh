@@ -195,8 +195,8 @@ const PERGUNTAS = [
     {
         id: "areas_sensiveis",
         tipo: "multi",
-        titulo: "Você tem problemas em alguma das áreas a seguir?",
-        subtitulo: "Escolha todas as que se aplicam",
+        titulo: "Alguma região precisa de cuidado?",
+        subtitulo: "Escolha todas que se aplicam.",
         layout: "lista",
 
         // "nenhum" também é uma opção exclusiva.
@@ -204,11 +204,10 @@ const PERGUNTAS = [
         exclusivo: "nenhum",
 
         opcoes: [
-            { valor: "nenhum", label: "Sem problemas", icone: "❌" },
-            { valor: "costas", label: "Costas sensíveis", icone: "🔴" },
-            { valor: "joelhos", label: "Joelhos sensíveis", icone: "🔴" },
-            { valor: "ombros", label: "Ombros sensíveis", icone: "🔴" },
-            { valor: "cotovelos", label: "Cotovelos sensíveis", icone: "🔴" },
+            { valor: "nenhum", label: "Nenhuma", icone: "✅" },
+            { valor: "costas", label: "Costas", icone: "🔴" },
+            { valor: "joelhos", label: "Joelhos", icone: "🔴" },
+            { valor: "ombros", label: "Ombros", icone: "🔴" },
         ],
     },
 
@@ -290,6 +289,7 @@ let historico = [PERGUNTAS[0].id];
 // Pega elementos HTML da página pelo ID.
 const elContainer = document.getElementById("perguntaContainer");
 const elBarra = document.getElementById("progressoBarra");
+const elProgressoTexto = document.getElementById("progressoTexto");
 const elVoltar = document.getElementById("btnVoltar");
 
 // Verifica se uma pergunta pode ser exibida.
@@ -336,10 +336,13 @@ function atualizarProgresso() {
     const posicaoAtual = historico.length - 1;
 
     // Calcula a porcentagem de progresso.
-    const pct = (posicaoAtual / total) * 100;
+    const pct = ((posicaoAtual + 1) / total) * 100;
 
     // Altera a largura da barra de progresso.
     elBarra.style.width = pct + "%";
+    elBarra.parentElement.setAttribute("aria-valuenow", String(posicaoAtual + 1));
+    elBarra.parentElement.setAttribute("aria-valuemax", String(total));
+    elProgressoTexto.textContent = `Passo ${posicaoAtual + 1} de ${total}`;
 
     // Desativa "Voltar" quando estamos na primeira pergunta.
     elVoltar.disabled = historico.length <= 1;
@@ -845,6 +848,8 @@ function renderFinal() {
 
     // Completa a barra de progresso.
     elBarra.style.width = "100%";
+    elBarra.parentElement.setAttribute("aria-valuenow", elBarra.parentElement.getAttribute("aria-valuemax") || "100");
+    elProgressoTexto.textContent = "Questionário concluído";
 
     // Desativa o botão voltar.
     elVoltar.disabled = true;
