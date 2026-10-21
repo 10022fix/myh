@@ -291,4 +291,10 @@
     .auth-page .titulo-cadastro {
         font-size: 27px;
     }
+
+    .auth-page.login-page main.cadastro.auth-card {
+        width: min(440px, calc(100% - 8px));
+        margin-top: 0;
+        padding: 22px;
+    }
 }
