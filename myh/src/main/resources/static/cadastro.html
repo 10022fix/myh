@@ -7,46 +7,38 @@
     <link rel="stylesheet" href="/stylecadastro.css">
     <link rel="stylesheet" href="/senha-toggle.css">
     <link rel="stylesheet" href="/tema.css">
+    <link rel="stylesheet" href="/styleauth-refresh.css">
     <title>Cadastro - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-<body>
+<body class="auth-page">
     
     <header class="cabecalho">
         <nav class="navbar">
             <a class="logo" href="/" aria-label="Make Your Health - início">
-                <img src="logo-myh-m-removebg-preview.png" alt="MYH">
+                <img src="logo-myh-completa-removebg-preview.png" alt="Make Your Health">
             </a>
-
-            <ul class="menu">
-                <li><a href="/">INÍCIO</a></li>
-                <li><a href="#">PLANOS</a></li>
-                <li><a href="#">BLOG</a></li>
-            </ul>
-
-            <a href="/comeceagora.html" class="btn-aluno">
-                ÁREA DO ALUNO
-            </a>
+            <a class="auth-nav-link" href="/login.html">Entrar</a>
+            <a class="btn-aluno" href="/cadastro.html" aria-current="page">Criar conta</a>
         </nav>
     </header>
 
-    <main class="cadastro">
-        <img
-            src="logo-myh-completa-removebg-preview.png"
-            alt="Make Your Health"
-            class="logo-cadastro"
-        >
-
-        <h1 class="titulo-cadastro">Faça parte da Make Your Health</h1>
+    <main class="cadastro auth-card">
+        <h1 class="titulo-cadastro">Crie sua conta</h1>
+        <p class="auth-subtitle">Seu plano começa aqui.</p>
+        <nav class="auth-tabs" aria-label="Acesso à conta">
+            <a href="/login.html">Entrar</a>
+            <a class="active" href="/cadastro.html" aria-current="page">Criar conta</a>
+        </nav>
 
         <form class="form-cadastro" id="formCadastro">
             <div class="campo">
-                <label for="nome">Nome:</label>
-                <input id="nome" name="nome" required>
+                <label for="nome">Nome</label>
+                <input id="nome" name="nome" autocomplete="name" placeholder="Como devemos te chamar?" required>
             </div>
 
             <div class="campo">
-                <label for="apelidoAcesso">Apelido de acesso:</label>
+                <label for="apelidoAcesso">Apelido de acesso</label>
                 <input id="apelidoAcesso" name="apelidoAcesso" type="text" minlength="3" maxlength="30"
                     pattern="[A-Za-z0-9._-]{3,30}" autocomplete="username"
                     title="Use de 3 a 30 letras, números, ponto, hífen ou sublinhado."
@@ -54,14 +46,14 @@
             </div>
 
             <div class="campo">
-                <label for="email">E-mail:</label>
+                <label for="email">E-mail</label>
                 <input id="email" name="email" type="email" pattern="[^@]+@[Gg][Mm][Aa][Ii][Ll][.]com"
                     title="Use somente um endereço terminado em @gmail.com."
                     autocomplete="email" required>
             </div>
 
             <div class="campo">
-                <label for="senha">Senha:</label>
+                <label for="senha">Senha</label>
                 <div class="campo-senha">
                     <input
                         id="senha"
@@ -83,7 +75,7 @@
             </div>
 
             <div class="area-botao">
-                <button type="submit" class="btn-criar">Criar</button>
+                <button type="submit" class="btn-criar">Criar conta e começar</button>
             </div>
         </form>
 

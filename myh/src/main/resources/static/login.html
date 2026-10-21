@@ -7,45 +7,37 @@
     <link rel="stylesheet" href="/stylelogin.css">
     <link rel="stylesheet" href="/senha-toggle.css">
     <link rel="stylesheet" href="/tema.css">
+    <link rel="stylesheet" href="/styleauth-refresh.css">
     <title>Login - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-<body>
+<body class="auth-page">
     <header class="cabecalho">
         <nav class="navbar">
             <a class="logo" href="/" aria-label="Make Your Health - início">
-                <img src="logo-myh-m-removebg-preview.png" alt="MYH">
+                <img src="logo-myh-completa-removebg-preview.png" alt="Make Your Health">
             </a>
-
-            <ul class="menu">
-                <li><a href="/">INÍCIO</a></li>
-                <li><a href="#">PLANOS</a></li>
-                <li><a href="#">BLOG</a></li>
-            </ul>
-
-            <a href="/comeceagora.html" class="btn-aluno">
-                ÁREA DO ALUNO
-            </a>
+            <a class="auth-nav-link auth-nav-active" href="/login.html">Entrar</a>
+            <a class="btn-aluno" href="/cadastro.html">Criar conta</a>
         </nav>
     </header>
 
-    <main class="cadastro">
-        <img
-            src="logo-myh-completa-removebg-preview.png"
-            alt="Make Your Health"
-            class="logo-cadastro"
-        >
-
-        <h1 class="titulo-cadastro">Entre na Make Your Health</h1>
+    <main class="cadastro auth-card">
+        <h1 class="titulo-cadastro">Bem-vindo de volta</h1>
+        <p class="auth-subtitle">Entre para ver seu treino de hoje.</p>
+        <nav class="auth-tabs" aria-label="Acesso à conta">
+            <a class="active" href="/login.html" aria-current="page">Entrar</a>
+            <a href="/cadastro.html">Criar conta</a>
+        </nav>
 
         <form class="form-cadastro" id="formLogin">
             <div class="campo">
-                <label for="login">Login:</label>
-                <input id="login" name="login" type="text" autocomplete="username" placeholder="Ex.: usuario_123 ou usuario@gmail.com" required>
+                <label for="login">E-mail ou apelido</label>
+                <input id="login" name="login" type="text" autocomplete="username" placeholder="seu e-mail ou apelido" required>
             </div>
 
             <div class="campo">
-                <label for="senha">Senha:</label>
+                <label for="senha">Senha</label>
                 <div class="campo-senha">
                     <input id="senha" name="senha" type="password" autocomplete="current-password" required>
                     <button class="alternar-senha" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="senha">
