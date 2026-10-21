@@ -189,7 +189,12 @@
 
 .auth-page .alternar-senha {
     right: 12px;
+    width: auto;
+    height: auto;
+    padding: 4px;
     color: var(--auth-accent);
+    font-size: 14px;
+    font-weight: 700;
 }
 
 .auth-page .area-botao {
@@ -225,6 +230,24 @@
     font-weight: 500;
 }
 
+.auth-page .demo-login-link {
+    margin-top: 2px;
+    text-align: center;
+}
+
+.auth-page .demo-login-link a {
+    color: var(--auth-accent);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-page .demo-login-link a:hover,
+.auth-page .demo-login-link a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .auth-page #mensagem {
     color: var(--auth-text);
     line-height: 1.45;
@@ -235,6 +258,10 @@
 }
 
 @media (max-width: 520px) {
+    .auth-page header.cabecalho {
+        display: none;
+    }
+
     .auth-page header.cabecalho .navbar {
         width: 100%;
         padding: 0 12px;
@@ -257,7 +284,7 @@
     }
 
     .auth-page main.cadastro.auth-card {
-        margin-top: 26px;
+        margin-top: 10px;
         padding: 22px 18px;
     }
 

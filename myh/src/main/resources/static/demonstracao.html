@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/tema.css">
+    <link rel="stylesheet" href="/demonstracao.css">
+    <title>Área de demonstração - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body class="demo-page">
+    <header class="demo-header">
+        <nav class="navbar demo-nav" aria-label="Navegação da demonstração">
+            <a class="demo-brand" href="/demonstracao.html" aria-label="Make Your Health — demonstração">
+                <img src="logo-myh-m-removebg-preview.png" alt="">
+                <span>Make Your Health</span>
+            </a>
+            <div class="demo-nav-links">
+                <a class="active" href="#inicio" data-view="inicio">Início</a>
+                <a href="#treino" data-view="treino">Treino</a>
+                <a href="#metas" data-view="metas">Metas</a>
+                <a href="#progresso" data-view="progresso">Progresso</a>
+            </div>
+            <button class="theme-toggle" type="button" aria-label="Alternar tema"></button>
+            <a class="demo-exit btn-aluno" href="/login.html">Sair</a>
+        </nav>
+    </header>
+
+    <main class="demo-main">
+        <div class="demo-notice"><span>DEMONSTRAÇÃO</span><p>Os dados e ações desta área são apenas exemplos e não são salvos na sua conta.</p></div>
+
+        <section class="demo-view active" id="view-inicio" data-panel="inicio">
+            <div class="demo-greeting">
+                <p class="eyebrow">ÁREA DO ALUNO · DEMONSTRAÇÃO</p>
+                <h1>Olá, Aluno! <span aria-hidden="true">👋</span></h1>
+                <p>Veja o que vale a pena fazer hoje.</p>
+            </div>
+
+            <div class="demo-top-grid">
+                <article class="today-card">
+                    <span class="today-pill">Treino de hoje</span>
+                    <h2>Treino A · Peito e costas</h2>
+                    <p>40 min · 4 exercícios</p>
+                    <button type="button" class="start-button" data-go="treino">Começar agora</button>
+                </article>
+                <article class="week-card">
+                    <h2>Sua semana</h2>
+                    <div class="week-days" aria-label="Treinos concluídos nesta semana">
+                        <div class="week-day done"><span>D</span><b>✓</b></div>
+                        <div class="week-day done"><span>S</span><b>✓</b></div>
+                        <div class="week-day today"><span>T</span><b></b></div>
+                        <div class="week-day"><span>Q</span><b></b></div>
+                        <div class="week-day"><span>Q</span><b></b></div>
+                        <div class="week-day"><span>S</span><b></b></div>
+                        <div class="week-day"><span>S</span><b></b></div>
+                    </div>
+                    <p id="week-summary">2 treinos concluídos nesta semana</p>
+                </article>
+            </div>
+
+            <article class="goal-summary">
+                <div class="goal-summary-heading"><h2>Rumo à meta · Emagrecer</h2><strong id="goal-percent">24%</strong></div>
+                <div class="progress-track"><span id="goal-progress-bar"></span></div>
+                <div class="weight-stats">
+                    <div><strong id="initial-weight">82,4 kg</strong><span>Início</span></div>
+                    <div><strong id="current-weight">80,6 kg</strong><span>Agora</span></div>
+                    <div><strong id="target-weight">75 kg</strong><span>Meta</span></div>
+                </div>
+            </article>
+
+            <div class="demo-shortcuts">
+                <button type="button" data-go="treino"><span>🏋️</span><strong>Meu treino</strong><small>Veja e marque exercícios</small></button>
+                <button type="button" data-go="metas"><span>🎯</span><strong>Minhas metas</strong><small>Defina onde quer chegar</small></button>
+                <button type="button" data-go="progresso"><span>📈</span><strong>Meu progresso</strong><small>Peso e medidas</small></button>
+            </div>
+        </section>
+
+        <section class="demo-view" id="view-treino" data-panel="treino" hidden>
+            <div class="demo-greeting"><p class="eyebrow">MEU TREINO · EXEMPLO</p><h1>Treino A · Peito e costas</h1><p>Marque os exercícios para experimentar o acompanhamento.</p></div>
+            <article class="demo-content-card">
+                <div class="section-heading"><div><h2>Treino de hoje</h2><p>4 exercícios · cerca de 40 minutos</p></div><span class="sample-tag">PLANO DE EXEMPLO</span></div>
+                <div class="exercise-list">
+                    <label class="exercise"><input type="checkbox"><span class="exercise-number">01</span><span><strong>Supino reto com halteres</strong><small>3 séries · 10 a 12 repetições</small></span><b>Peito</b></label>
+                    <label class="exercise"><input type="checkbox"><span class="exercise-number">02</span><span><strong>Remada baixa</strong><small>3 séries · 10 a 12 repetições</small></span><b>Costas</b></label>
+                    <label class="exercise"><input type="checkbox"><span class="exercise-number">03</span><span><strong>Supino inclinado na máquina</strong><small>3 séries · 12 repetições</small></span><b>Peito</b></label>
+                    <label class="exercise"><input type="checkbox"><span class="exercise-number">04</span><span><strong>Puxada frontal</strong><small>3 séries · 10 a 12 repetições</small></span><b>Costas</b></label>
+                </div>
+                <p class="demo-feedback" id="workout-feedback" aria-live="polite">0 de 4 exercícios concluídos</p>
+            </article>
+        </section>
+
+        <section class="demo-view" id="view-metas" data-panel="metas" hidden>
+            <div class="demo-greeting"><p class="eyebrow">MINHAS METAS · EXEMPLO</p><h1>Metas claras, evolução real.</h1><p>Edite os dados de demonstração; eles ficam apenas neste navegador.</p></div>
+            <article class="demo-content-card">
+                <div class="section-heading"><div><h2>Sua meta atual</h2><p>Uma visão de exemplo da área de objetivos.</p></div><span class="sample-tag">DEMO</span></div>
+                <div class="goal-demo-card"><span class="goal-icon">🎯</span><div><small>OBJETIVO</small><h2 id="demo-goal-name">Emagrecer</h2><p>Meta de peso: <strong id="demo-goal-weight">75 kg</strong></p></div></div>
+                <form class="demo-form" id="demo-goal-form"><label for="demo-goal-select">Objetivo<select id="demo-goal-select"><option>Emagrecer</option><option>Condicionamento</option><option>Saúde</option><option>Definição</option></select></label><label for="demo-target-input">Peso-meta (kg)<input id="demo-target-input" type="number" min="1" max="300" step="0.1" value="75" required></label><button type="submit">Atualizar demonstração</button></form>
+                <p class="demo-feedback" id="goal-feedback" aria-live="polite"></p>
+            </article>
+        </section>
+
+        <section class="demo-view" id="view-progresso" data-panel="progresso" hidden>
+            <div class="demo-greeting"><p class="eyebrow">MEU PROGRESSO · EXEMPLO</p><h1>Celebre cada avanço.</h1><p>Experimente registrar um peso de demonstração.</p></div>
+            <article class="demo-content-card">
+                <div class="section-heading"><div><h2>Seu progresso</h2><p>Dados fictícios para mostrar como o acompanhamento funciona.</p></div><span class="sample-tag">DEMO</span></div>
+                <div class="progress-demo-stats"><div><small>PESO INICIAL</small><strong id="progress-initial">82,4 kg</strong></div><div><small>PESO ATUAL</small><strong id="progress-current">80,6 kg</strong></div><div><small>ÚLTIMO REGISTRO</small><strong id="progress-date">Hoje</strong></div></div>
+                <form class="demo-form" id="demo-progress-form"><label for="demo-weight-input">Registrar peso (kg)<input id="demo-weight-input" type="number" min="1" max="500" step="0.1" placeholder="Ex.: 80,2" required></label><button type="submit">Adicionar registro de exemplo</button></form>
+                <div class="demo-history" id="demo-history"><h3>Registros de exemplo</h3><p>80,6 kg <span>Hoje</span></p><p>81,2 kg <span>Há 7 dias</span></p><p>82,4 kg <span>Início</span></p></div>
+                <p class="demo-feedback" id="progress-feedback" aria-live="polite"></p>
+            </article>
+        </section>
+
+        <footer class="demo-footer">Esta é uma demonstração. Suas alterações não são enviadas ao banco de dados.</footer>
+    </main>
+    <script src="/demonstracao.js"></script>
+</body>
+</html>
