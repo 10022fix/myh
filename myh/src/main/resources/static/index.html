@@ -61,14 +61,17 @@
     <script>
         const concluirExercicio = document.getElementById("complete-preview-exercise");
         concluirExercicio.addEventListener("click", () => {
-            if (concluirExercicio.getAttribute("aria-pressed") === "true") return;
-            concluirExercicio.setAttribute("aria-pressed", "true");
-            concluirExercicio.classList.add("is-done");
-            concluirExercicio.querySelector(".home-check").classList.add("is-done");
-            concluirExercicio.querySelector(".home-check").textContent = "✓";
-            document.getElementById("preview-progress-fill").style.width = "100%";
-            document.getElementById("preview-progress-copy").textContent = "3 de 3 exercícios concluídos";
-            document.querySelector(".home-progress").setAttribute("aria-valuenow", "3");
+            const concluido = concluirExercicio.getAttribute("aria-pressed") !== "true";
+            const marcador = concluirExercicio.querySelector(".home-check");
+            concluirExercicio.setAttribute("aria-pressed", String(concluido));
+            concluirExercicio.classList.toggle("is-done", concluido);
+            marcador.classList.toggle("is-done", concluido);
+            marcador.textContent = concluido ? "✓" : "";
+
+            const totalConcluidos = concluido ? 3 : 2;
+            document.getElementById("preview-progress-fill").style.width = concluido ? "100%" : "66.67%";
+            document.getElementById("preview-progress-copy").textContent = `${totalConcluidos} de 3 exercícios concluídos`;
+            document.querySelector(".home-progress").setAttribute("aria-valuenow", String(totalConcluidos));
         });
     </script>
 </body>
