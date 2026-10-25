@@ -1,5 +1,58 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="shortcut icon" href="logo-myh-m-removebg-preview.png"><link rel="stylesheet" href="/area-aluno.css?v=20261025-3">
-    <link rel="stylesheet" href="/tema.css"><title>Meu progresso - Make Your Health</title>    <script src="/tema.js"></script>
-</head><body>
-<nav class="navbar"><a class="logo" href="/areadoaluno.html"><img src="logo-myh-m-removebg-preview.png" alt="MYH"></a><span class="marca">MAKE YOUR HEALTH</span><a class="nav-voltar" href="/areadoaluno.html">← Área do aluno</a></nav>
-<main class="painel"><section class="cabecalho"><p class="sobretitulo">MEU PROGRESSO</p><h1>Celebre cada avanço.</h1><p>Registre peso e medidas para enxergar sua evolução com mais clareza.</p></section><section class="conteudo"><div id="vazio" class="vazio oculto"><h2>Nenhum progresso registrado.</h2><p>Faça seu primeiro registro e comece a acompanhar sua evolução.</p><button id="abrirCadastro">Registrar progresso</button></div><div id="resumo" class="progresso-resumo oculto"></div><div id="registros" class="lista"></div><button id="novo" class="oculto">+ Registrar progresso</button><form id="formulario" class="formulario oculto"><h2>Registrar progresso</h2><div class="campos"><div class="campo"><label>Peso atual (kg) <input name="peso" type="number" min="1" step="0.1" required></label></div><div class="campo"><label>% de gordura <input name="gordura" type="number" min="0" max="100" step="0.1"></label></div><div class="campo"><label>Data <input id="dataRegistro" name="dataRegistro" type="date" required></label></div><div class="campo"><label>Braço (cm) <input name="braco" type="number" min="0" step="0.1"></label></div><div class="campo"><label>Cintura (cm) <input name="cintura" type="number" min="0" step="0.1"></label></div><div class="campo"><label>Peito (cm) <input name="peito" type="number" min="0" step="0.1"></label></div></div><button type="submit">Salvar registro</button><p id="mensagem" class="mensagem"></p></form></section></main><script src="/meu-progresso.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/meu-progresso.css?v=20261025-1">
+    <title>Meu progresso - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <nav class="navbar dashboard-nav" aria-label="Navegação principal">
+            <a class="dashboard-brand" href="/areadoaluno.html" aria-label="Make Your Health - início">
+                <svg viewBox="0 0 48 28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v8M7 7v14M45 10v8M41 7v14M7 14h34"/><path d="M14 23l6-12 4 7 4-7 6 12"/></svg>
+                <span>Make Your Health</span>
+            </a>
+            <div class="dashboard-links">
+                <a href="/areadoaluno.html">Início</a>
+                <a href="/meu-treino.html">Treino</a>
+                <a href="/meus-objetivos.html">Metas</a>
+                <a class="active" href="/meu-progresso.html" aria-current="page">Progresso</a>
+            </div>
+            <button type="button" class="theme-toggle" aria-label="Alternar tema"></button>
+            <button id="sair" class="btn-sair" type="button">Sair</button>
+        </nav>
+    </header>
+    <main class="dashboard dashboard--detail painel">
+        <section class="detail-heading cabecalho">
+            <h1>Meu progresso</h1>
+            <p>Cada registro conta.</p>
+        </section>
+        <section class="detail-content conteudo" aria-label="Histórico de progresso">
+            <div id="vazio" class="vazio oculto"><h2>Nenhum progresso registrado.</h2><p>Faça seu primeiro registro e comece a acompanhar sua evolução.</p><button id="abrirCadastro">Registrar progresso</button></div>
+            <div id="resumo" class="progresso-resumo oculto"></div>
+            <div id="registros" class="lista"></div>
+            <button id="novo" class="oculto">+ Novo registro</button>
+            <form id="formulario" class="formulario oculto">
+                <h2>Novo registro</h2>
+                <div class="campos">
+                    <div class="campo"><label for="pesoRegistro">Peso (kg)</label><input id="pesoRegistro" name="peso" type="number" min="1" step="0.1" required></div>
+                    <div class="campo"><label for="dataRegistro">Data</label><input id="dataRegistro" name="dataRegistro" type="date" required></div>
+                    <div class="campo"><label for="gorduraRegistro">Gordura corporal (%)</label><input id="gorduraRegistro" name="gordura" type="number" min="0" max="100" step="0.1"></div>
+                    <div class="campo"><label for="bracoRegistro">Braço (cm)</label><input id="bracoRegistro" name="braco" type="number" min="0" step="0.1"></div>
+                    <div class="campo"><label for="cinturaRegistro">Cintura (cm)</label><input id="cinturaRegistro" name="cintura" type="number" min="0" step="0.1"></div>
+                    <div class="campo"><label for="peitoRegistro">Peito (cm)</label><input id="peitoRegistro" name="peito" type="number" min="0" step="0.1"></div>
+                </div>
+                <button type="submit">Salvar registro</button><p id="mensagem" class="mensagem" aria-live="polite"></p>
+            </form>
+        </section>
+    </main>
+    <script src="/meu-progresso.js"></script>
+    <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
+</body>
+</html>

@@ -1,6 +1,45 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="shortcut icon" href="logo-myh-m-removebg-preview.png"><link rel="stylesheet" href="/area-aluno.css?v=20261025-3">
-    <link rel="stylesheet" href="/tema.css"><title>Meu treino - Make Your Health</title>    <script src="/tema.js"></script>
-</head><body>
-<nav class="navbar"><a class="logo" href="/areadoaluno.html"><img src="logo-myh-m-removebg-preview.png" alt="MYH"></a><span class="marca">MAKE YOUR HEALTH</span><a class="nav-voltar" href="/areadoaluno.html">← Área do aluno</a></nav>
-<main class="painel"><section class="cabecalho"><p class="sobretitulo">MEU TREINO</p><h1>Seu treino de hoje.</h1><p>Veja os exercícios ativos e encontre rapidamente o que você quer treinar.</p></section><section class="conteudo"><label class="oculto" for="busca">Buscar treino</label><input class="busca" id="busca" type="search" placeholder="Buscar por treino ou exercício, por exemplo: peito"><div id="lista" class="lista"></div></section></main>
-<script src="/meu-treino.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
+    <link rel="stylesheet" href="/meu-treino.css?v=20261025-1">
+    <title>Meu treino - Make Your Health</title>
+    <script src="/tema.js"></script>
+</head>
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <nav class="navbar dashboard-nav" aria-label="Navegação principal">
+            <a class="dashboard-brand" href="/areadoaluno.html" aria-label="Make Your Health - início">
+                <svg viewBox="0 0 48 28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v8M7 7v14M45 10v8M41 7v14M7 14h34"/><path d="M14 23l6-12 4 7 4-7 6 12"/></svg>
+                <span>Make Your Health</span>
+            </a>
+            <div class="dashboard-links">
+                <a href="/areadoaluno.html">Início</a>
+                <a class="active" href="/meu-treino.html" aria-current="page">Treino</a>
+                <a href="/meus-objetivos.html">Metas</a>
+                <a href="/meu-progresso.html">Progresso</a>
+            </div>
+            <button type="button" class="theme-toggle" aria-label="Alternar tema"></button>
+            <button id="sair" class="btn-sair" type="button">Sair</button>
+        </nav>
+    </header>
+    <main class="dashboard dashboard--detail painel">
+        <section class="detail-heading cabecalho">
+            <h1>Seu treino</h1>
+            <p>Toque em um treino, marque os exercícios e conclua.</p>
+        </section>
+        <section class="detail-content conteudo" aria-label="Treinos disponíveis">
+            <label class="oculto" for="busca">Buscar exercício</label>
+            <input class="busca" id="busca" type="search" placeholder="Buscar exercício, ex.: agachamento">
+            <div id="lista" class="lista"></div>
+        </section>
+    </main>
+    <script src="/meu-treino.js"></script>
+    <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
+</body>
+</html>
