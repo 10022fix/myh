@@ -195,3 +195,54 @@
 .home-exercise-button .home-check { display: grid; width: 22px; height: 22px; flex: 0 0 auto; place-items: center; border: 1px solid var(--ui-border); border-radius: 50%; color: var(--ui-on-primary); }
 .home-exercise-button.is-done .home-check { border-color: var(--ui-primary); background: var(--ui-primary); }
 .home-exercise-button { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+
+/* A última opção mantém o mesmo visual de linha das demais, com área clicável completa. */
+.home-page .home-exercises li.home-exercise-last {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--ui-surface-2);
+    color: var(--ui-text);
+}
+.home-page .home-exercises .home-exercise-button {
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: normal;
+    text-align: left;
+    text-transform: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .18s ease, transform .18s ease;
+}
+.home-page .home-exercises .home-exercise-button:hover {
+    background: color-mix(in srgb, var(--ui-primary) 10%, var(--ui-surface-2));
+}
+.home-page .home-exercises .home-exercise-button:active { transform: scale(.99); }
+.home-page .home-exercises .home-exercise-button:focus-visible {
+    outline: 2px solid var(--ui-primary);
+    outline-offset: -2px;
+}
+.home-page .home-exercises .home-exercise-button::selection,
+.home-page .home-exercises .home-exercise-button *::selection {
+    background: transparent;
+    color: inherit;
+}
