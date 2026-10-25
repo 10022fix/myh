@@ -42,7 +42,7 @@
     background: transparent;
 }
 
-.auth-page header.cabecalho .logo {
+.auth-page header.cabecalho .logo {`r`n    order: 0;
     display: inline-flex;
     align-items: center;
     margin-right: auto;
@@ -55,7 +55,7 @@
     object-position: left center;
 }
 
-.auth-page header.cabecalho .theme-toggle {
+.auth-page header.cabecalho .theme-toggle {`r`n    order: 1;
     width: 44px;
     height: 44px;
     margin: 0 2px 0 0 !important;
@@ -64,7 +64,7 @@
 }
 
 .auth-page header.cabecalho .auth-nav-link,
-.auth-page header.cabecalho .btn-aluno {
+.auth-page header.cabecalho .btn-aluno {`r`n    order: 3;
     display: inline-flex;
     min-height: 40px;
     align-items: center;
@@ -81,7 +81,7 @@
     white-space: nowrap;
 }
 
-.auth-page header.cabecalho .btn-aluno {
+.auth-page header.cabecalho .btn-aluno {`r`n    order: 3;
     border-color: var(--auth-accent);
     color: #07140d;
     background: var(--auth-accent);
@@ -271,13 +271,13 @@
         width: 142px;
     }
 
-    .auth-page header.cabecalho .theme-toggle {
+    .auth-page header.cabecalho .theme-toggle {`r`n    order: 1;
         width: 38px;
         height: 38px;
     }
 
     .auth-page header.cabecalho .auth-nav-link,
-    .auth-page header.cabecalho .btn-aluno {
+    .auth-page header.cabecalho .btn-aluno {`r`n    order: 3;
         min-height: 38px;
         padding: 0 10px;
         font-size: 12px;
@@ -298,3 +298,10 @@
         padding: 22px;
     }
 }
+
+
+/* Ordem consistente da navegação nas telas de acesso. */
+.auth-page header.cabecalho .logo { order: 0; }
+.auth-page header.cabecalho .theme-toggle { order: 1; }
+.auth-page header.cabecalho .auth-nav-link { order: 2; }
+.auth-page header.cabecalho .btn-aluno { order: 3; border-radius: 15px; }
