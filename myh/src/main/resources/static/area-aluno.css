@@ -68,8 +68,8 @@
 .dashboard { width: min(calc(100% - 64px), 1000px); margin: 0 auto; padding: 24px 0 64px; }
 .dashboard-welcome { margin: 0 0 24px; }
 .dashboard-welcome h1 { margin: 0; color: var(--dash-text); font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -.04em; }
-.dashboard-welcome p { margin-top: 4px; color: var(--dash-muted); font-size: 16px; }
-.dashboard-top { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+.dashboard-welcome p { margin: 4px 0 0; color: var(--dash-muted); font-size: 16px; }
+.dashboard-top { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
 .today-card, .week-card, .goal-card, .shortcut-card { border: 1px solid var(--dash-border); border-radius: 24px; }
 .today-card { min-height: 220px; padding: 24px; color: #092014; background: var(--dash-accent-strong); }
 .today-tag { display: inline-flex; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.26); font-size: 12px; font-weight: 700; }
@@ -96,7 +96,7 @@
 .goal-empty { margin-top: 12px; color: var(--dash-muted); font-size: 13px; }
 .goal-empty[hidden] { display: none; }
 .dashboard-shortcuts { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 20px; }
-.shortcut-card { min-height: 170px; display: block; padding: 22px; color: var(--dash-text); background: var(--dash-surface); text-decoration: none; transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.shortcut-card { min-height: 148px; display: block; padding: 22px; color: var(--dash-text); background: var(--dash-surface); text-decoration: none; transition: transform .2s ease, border-color .2s ease, background .2s ease; }
 .shortcut-card:hover { transform: translateY(-3px); border-color: var(--dash-accent); background: color-mix(in srgb, var(--dash-surface) 85%, var(--dash-accent)); }
 .shortcut-card > span { display: block; margin-bottom: 14px; font-size: 24px; }
 .shortcut-card h2 { margin: 0; color: var(--dash-text); font-size: 16px; }
