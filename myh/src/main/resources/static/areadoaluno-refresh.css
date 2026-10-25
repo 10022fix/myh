@@ -65,7 +65,7 @@
 .dashboard-nav .theme-toggle { order: 2; flex: 0 0 44px; width: 44px; height: 44px; margin: 0 !important; border: 1px solid var(--dash-border) !important; border-radius: 50% !important; background: var(--dash-surface) !important; color: var(--dash-text) !important; }
 .dashboard-nav .btn-sair { order: 3; min-height: 42px; margin: 0 !important; padding: 0 18px; border: 1px solid var(--dash-border) !important; border-radius: 15px !important; background: transparent !important; color: var(--dash-text) !important; font: inherit; font-size: 14px; font-weight: 700; }
 .dashboard-nav .btn-sair:hover { background: var(--dash-surface-2) !important; }
-.dashboard { width: min(calc(100% - 64px), 1200px); margin: 0 auto; padding: 24px 0 64px; }
+.dashboard { width: min(calc(100% - 64px), 1000px); margin: 0 auto; padding: 24px 0 64px; }
 .dashboard-welcome { margin: 0 0 24px; }
 .dashboard-welcome h1 { margin: 0; color: var(--dash-text); font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -.04em; }
 .dashboard-welcome p { margin-top: 4px; color: var(--dash-muted); font-size: 16px; }

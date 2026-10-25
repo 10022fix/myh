@@ -1,7 +1,8 @@
 (() => {
     const storageKey = "myh-theme-v2";
     const validThemes = ["dark", "light"];
-    let savedTheme = "light";
+    // O tema escuro é o padrão visual do produto; escolhas salvas pelo usuário continuam prevalecendo.
+    let savedTheme = "dark";
 
     try {
         const stored = localStorage.getItem(storageKey);
@@ -28,17 +29,19 @@
                 button = document.createElement("button");
                 button.type = "button";
                 button.className = "theme-toggle";
+                const entrarButton = nav.querySelector(".home-login, .auth-nav-link");
+                const primeiraAcao = entrarButton || nav.querySelector(".btn-aluno");
+                if (primeiraAcao) nav.insertBefore(button, primeiraAcao);
+                else nav.appendChild(button);
+            }
+            if (button.dataset.themeBound !== "true") {
+                button.dataset.themeBound = "true";
                 button.addEventListener("click", () => {
                     const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
                     document.documentElement.dataset.theme = nextTheme;
                     try { localStorage.setItem(storageKey, nextTheme); } catch (_) {}
                     document.querySelectorAll(".theme-toggle").forEach(item => updateButton(item, nextTheme));
                 });
-
-                const entrarButton = nav.querySelector(".home-login, .auth-nav-link");
-                const primeiraAcao = entrarButton || nav.querySelector(".btn-aluno");
-                if (primeiraAcao) nav.insertBefore(button, primeiraAcao);
-                else nav.appendChild(button);
             }
             updateButton(button, document.documentElement.dataset.theme || "dark");
         });

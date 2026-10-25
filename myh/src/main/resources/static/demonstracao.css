@@ -23,6 +23,26 @@
     --demo-green: #64c98a;
 }
 
+/* O tema global usa regras de alta especificidade para botões e body; mantenha a demonstração legível. */
+:root[data-theme="light"] body.demo-page {
+    color: var(--demo-text) !important;
+    background: var(--demo-bg) !important;
+}
+:root[data-theme="light"] .demo-page .demo-shortcuts button {
+    border-color: var(--demo-border) !important;
+    color: var(--demo-text) !important;
+    background: var(--demo-card) !important;
+    box-shadow: none !important;
+}
+:root[data-theme="light"] .demo-page .demo-shortcuts button:hover {
+    border-color: var(--demo-green) !important;
+    background: var(--demo-card-soft) !important;
+    box-shadow: none !important;
+}
+:root[data-theme="light"] .demo-page .demo-shortcuts button small {
+    color: var(--demo-muted) !important;
+}
+
 .demo-page * { box-sizing: border-box; }
 .demo-page button, .demo-page input, .demo-page select { font: inherit; }
 
