@@ -1,146 +1,151 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
     <link rel="stylesheet" href="/stylealuno.css">
     <link rel="stylesheet" href="/tema.css">
-
+    <link rel="stylesheet" href="/areadoaluno-refresh.css?v=20261025-1">
     <title>Área do Aluno - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-
-<body>
-
-    <header>
-        <nav class="navbar">
-
-            <a class="logo" href="/">
-                <img src="logo-myh-m-removebg-preview.png" alt="MYH">
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <nav class="navbar dashboard-nav" aria-label="Navegação principal">
+            <a class="dashboard-brand" href="/areadoaluno.html" aria-label="Make Your Health - início">
+                <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
             </a>
-
-            <span class="marca">MAKE YOUR HEALTH</span>
-
-            <button id="sair" class="btn-sair">
-                Sair
-            </button>
-
+            <div class="dashboard-links">
+                <a class="active" href="/areadoaluno.html" aria-current="page">Início</a>
+                <a href="/meu-treino.html">Treino</a>
+                <a href="/meus-objetivos.html">Metas</a>
+                <a href="/meu-progresso.html">Progresso</a>
+            </div>
+            <button id="sair" class="btn-sair" type="button">Sair</button>
         </nav>
     </header>
 
-    <main class="painel">
-
-        <section class="boas-vindas">
-            <p>ÁREA DO ALUNO</p>
-
-            <h1 id="titulo">
-                Carregando...
-            </h1>
-
-            <span>
-                Seu espaço para acompanhar seu desenvolvimento.
-            </span>
+    <main class="dashboard painel">
+        <section class="dashboard-welcome" aria-labelledby="titulo">
+            <h1 id="titulo">Olá!</h1>
+            <p>Veja o que vale a pena fazer hoje.</p>
         </section>
 
-        <section id="evolucao" class="evolucao oculto" aria-live="polite">
-            <div>
-                <p class="evolucao-etiqueta">SUA EVOLUÇÃO</p>
-                <h2 id="evolucaoTitulo">Carregando sua jornada...</h2>
-                <p id="evolucaoTexto"></p>
+        <section class="dashboard-top" aria-label="Resumo de hoje">
+            <article class="today-card">
+                <span class="today-tag">Treino de hoje</span>
+                <h2 id="treinoHojeTitulo">Seu treino está sendo preparado</h2>
+                <p id="treinoHojeResumo">Consulte os exercícios disponíveis no seu plano.</p>
+                <a id="comecarTreino" href="/meu-treino.html" class="today-action">Ver meu treino</a>
+            </article>
+
+            <section class="week-card" aria-labelledby="semanaTitulo">
+                <h2 id="semanaTitulo">Sua semana</h2>
+                <div class="week-days" aria-hidden="true">
+                    <span><b>S</b><i></i></span><span><b>T</b><i></i></span><span><b>Q</b><i></i></span>
+                    <span><b>Q</b><i></i></span><span><b>S</b><i></i></span><span><b>S</b><i></i></span><span><b>D</b><i></i></span>
+                </div>
+                <p>Seus dias de treino da semana aparecerão aqui.</p>
+            </section>
+        </section>
+
+        <section class="goal-card" aria-labelledby="goalTitle">
+            <div class="goal-heading">
+                <h2 id="goalTitle">Rumo à meta</h2>
+                <strong id="goalPercent">—</strong>
             </div>
-            <div class="evolucao-numeros">
-                <div><span>Início</span><strong id="pesoInicial">—</strong></div>
-                <div><span>Agora</span><strong id="pesoAtual">—</strong></div>
-                <div><span>Meta</span><strong id="pesoMeta">—</strong></div>
+            <div class="goal-track" role="progressbar" aria-label="Progresso em direção à meta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <span id="goalFill"></span>
             </div>
+            <div class="goal-values">
+                <div><strong id="pesoInicial">—</strong><span>Início</span></div>
+                <div><strong id="pesoAtual">—</strong><span>Agora</span></div>
+                <div><strong id="pesoMeta">—</strong><span>Meta</span></div>
+            </div>
+            <p id="goalEmpty" class="goal-empty">Registre uma meta para acompanhar seu progresso.</p>
         </section>
 
-        <section class="cards">
-
-            <article class="card">
-                <span>01</span>
-
-                <h2>Meu treino</h2>
-
-                <p>
-                    Consulte seus treinos e exercícios ativos.
-                </p>
-
-                <a class="btn-card" href="/meu-treino.html">Ver meu treino</a>
-            </article>
-
-            <article class="card">
-                <span>02</span>
-
-                <h2>Meus objetivos</h2>
-
-                <p>
-                    Defina sua meta de peso e acompanhe sua evolução.
-                </p>
-
-                <a class="btn-card" href="/meus-objetivos.html">Ver objetivos</a>
-            </article>
-
-            <article class="card">
-                <span>03</span>
-
-                <h2>Meu progresso</h2>
-
-                <p>
-                    Registre medidas, peso e IMC.
-                </p>
-
-                <a class="btn-card" href="/meu-progresso.html">Acompanhar progresso</a>
-            </article>
-
+        <section class="dashboard-shortcuts" aria-label="Acesse suas áreas">
+            <a class="shortcut-card" href="/meu-treino.html">
+                <span aria-hidden="true">🏋️</span><h2>Meu treino</h2><p>Veja e marque exercícios</p>
+            </a>
+            <a class="shortcut-card" href="/meus-objetivos.html">
+                <span aria-hidden="true">🎯</span><h2>Minhas metas</h2><p>Defina onde quer chegar</p>
+            </a>
+            <a class="shortcut-card" href="/meu-progresso.html">
+                <span aria-hidden="true">📈</span><h2>Meu progresso</h2><p>Peso e medidas</p>
+            </a>
         </section>
-
     </main>
 
     <script>
-        (async () => {
-            const resposta = await fetch("/api/sessao");
+        const formatarPeso = valor => valor == null ? "—" : Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " kg";
 
-            if (!resposta.ok) {
+        async function carregarPainel() {
+            const sessaoResposta = await fetch("/api/sessao");
+            if (!sessaoResposta.ok) {
                 location.href = "/login.html";
                 return;
             }
+            const usuario = await sessaoResposta.json();
+            document.getElementById("titulo").textContent = `Olá, ${usuario.nome}! 👋`;
 
-            const dados = await resposta.json();
+            const [resumoResposta, treinosResposta] = await Promise.all([
+                fetch("/api/painel/resumo"),
+                fetch("/api/treinos")
+            ]);
 
-            document.getElementById("titulo").textContent =
-                "Olá, " + dados.nome + "!";
-
-            const resumoResposta = await fetch("/api/painel/resumo");
-            if (resumoResposta.ok) {
-                const resumo = await resumoResposta.json();
-                if (Object.keys(resumo).length) {
-                    const formatarPeso = valor => valor == null ? "—" : Number(valor).toLocaleString("pt-BR") + " kg";
-                    document.getElementById("pesoInicial").textContent = formatarPeso(resumo.pesoInicial);
-                    document.getElementById("pesoAtual").textContent = formatarPeso(resumo.pesoAtual);
-                    document.getElementById("pesoMeta").textContent = formatarPeso(resumo.pesoMeta);
-                    document.getElementById("evolucaoTitulo").textContent = resumo.objetivo
-                        ? "Objetivo: " + resumo.objetivo : "Registre sua primeira meta";
-                    document.getElementById("evolucaoTexto").textContent = resumo.pesoMeta == null
-                        ? "Defina um objetivo para visualizar seu caminho daqui até a meta."
-                        : "Você começou com " + formatarPeso(resumo.pesoInicial) + " e sua meta é " + formatarPeso(resumo.pesoMeta) + ".";
-                    document.getElementById("evolucao").classList.remove("oculto");
+            if (treinosResposta.ok) {
+                const treinos = await treinosResposta.json();
+                if (treinos.length) {
+                    const treino = treinos[0];
+                    const quantidade = Array.isArray(treino.exercicios) ? treino.exercicios.length : 0;
+                    document.getElementById("treinoHojeTitulo").textContent = treino.nome;
+                    document.getElementById("treinoHojeResumo").textContent = `${treino.duracao} min · ${quantidade} exercícios`;
+                    document.getElementById("comecarTreino").textContent = "Começar agora";
+                } else {
+                    document.getElementById("treinoHojeTitulo").textContent = "Seu plano de treino";
+                    document.getElementById("treinoHojeResumo").textContent = "Seu treino aparecerá aqui assim que estiver disponível.";
                 }
             }
-        })();
+
+            if (resumoResposta.ok) {
+                const resumo = await resumoResposta.json();
+                const inicial = Number(resumo.pesoInicial);
+                const atual = Number(resumo.pesoAtual);
+                const meta = resumo.pesoMeta == null ? null : Number(resumo.pesoMeta);
+                document.getElementById("pesoInicial").textContent = formatarPeso(resumo.pesoInicial);
+                document.getElementById("pesoAtual").textContent = formatarPeso(resumo.pesoAtual);
+                document.getElementById("pesoMeta").textContent = formatarPeso(resumo.pesoMeta);
+
+                const objetivo = resumo.objetivo || "sua meta";
+                document.getElementById("goalTitle").textContent = `Rumo à meta · ${objetivo}`;
+                if (meta != null && Number.isFinite(inicial) && Number.isFinite(atual) && inicial !== meta) {
+                    const emagrecer = /emagrecer/i.test(objetivo);
+                    const percentual = Math.max(0, Math.min(100, emagrecer
+                        ? (inicial - atual) / (inicial - meta) * 100
+                        : (atual - inicial) / (meta - inicial) * 100));
+                    document.getElementById("goalPercent").textContent = `${Math.round(percentual)}%`;
+                    document.getElementById("goalFill").style.width = `${percentual}%`;
+                    document.querySelector(".goal-track").setAttribute("aria-valuenow", String(Math.round(percentual)));
+                    document.getElementById("goalEmpty").hidden = true;
+                }
+            }
+        }
+
+        carregarPainel().catch(() => {
+            document.getElementById("treinoHojeTitulo").textContent = "Não foi possível carregar seu painel";
+            document.getElementById("treinoHojeResumo").textContent = "Atualize a página para tentar novamente.";
+        });
 
         document.getElementById("sair").addEventListener("click", async () => {
-            await fetch("/api/logout", {
-                method: "POST"
-            });
-
+            await fetch("/api/logout", { method: "POST" });
             location.href = "/";
         });
     </script>
-
 </body>
-
 </html>
