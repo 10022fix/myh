@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/area-aluno.css?v=20261025-2">
+    <link rel="stylesheet" href="/area-aluno.css?v=20261025-3">
     <title>Área do Aluno - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -15,7 +15,8 @@
     <header class="dashboard-header">
         <nav class="navbar dashboard-nav" aria-label="Navegação principal">
             <a class="dashboard-brand" href="/areadoaluno.html" aria-label="Make Your Health - início">
-                <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
+                <svg viewBox="0 0 48 28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v8M7 7v14M45 10v8M41 7v14M7 14h34"/><path d="M14 23l6-12 4 7 4-7 6 12"/></svg>
+                <span>Make Your Health</span>
             </a>
             <div class="dashboard-links">
                 <a class="active" href="/areadoaluno.html" aria-current="page">Início</a>
@@ -43,11 +44,11 @@
 
             <section class="week-card" aria-labelledby="semanaTitulo">
                 <h2 id="semanaTitulo">Sua semana</h2>
-                <div class="week-days" aria-hidden="true">
+                <div class="week-days" id="weekDays" aria-label="Dias da semana">
                     <span><b>S</b><i></i></span><span><b>T</b><i></i></span><span><b>Q</b><i></i></span>
                     <span><b>Q</b><i></i></span><span><b>S</b><i></i></span><span><b>S</b><i></i></span><span><b>D</b><i></i></span>
                 </div>
-                <p>Seus dias de treino da semana aparecerão aqui.</p>
+                <p id="weekSummary">Conclua seus treinos para acompanhar sua semana.</p>
             </section>
         </section>
 
@@ -91,6 +92,7 @@
             }
             const usuario = await sessaoResposta.json();
             document.getElementById("titulo").textContent = `Olá, ${usuario.nome}! 👋`;
+            atualizarSemana();
 
             const [resumoResposta, treinosResposta] = await Promise.all([
                 fetch("/api/painel/resumo"),
@@ -133,6 +135,18 @@
                     document.getElementById("goalEmpty").hidden = true;
                 }
             }
+        }
+
+        function atualizarSemana() {
+            const hoje = new Date();
+            const indiceHoje = (hoje.getDay() + 6) % 7;
+            const dias = document.querySelectorAll("#weekDays > span");
+            const nomes = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"];
+            dias.forEach((dia, indice) => {
+                const atual = indice === indiceHoje;
+                dia.classList.toggle("is-today", atual);
+                dia.setAttribute("aria-label", atual ? `${nomes[indice]}, hoje` : nomes[indice]);
+            });
         }
 
         carregarPainel().catch(() => {

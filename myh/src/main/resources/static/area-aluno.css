@@ -1,24 +1,26 @@
 :root {
-    --dash-bg: #0b1510;
-    --dash-surface: #13221a;
+    --dash-bg: #0c1511;
+    --dash-surface: #14211a;
     --dash-surface-2: #1b2b22;
-    --dash-border: #263b2e;
-    --dash-text: #f0f7f2;
-    --dash-muted: #a9bbb0;
-    --dash-accent: #7cdda0;
-    --dash-accent-strong: #80dda0;
-    --dash-accent-text: #07140d;
+    --dash-border: #25382d;
+    --dash-text: #e8f3ec;
+    --dash-muted: #9db5a7;
+    --dash-accent: #7fe0a0;
+    --dash-accent-strong: #7fe0a0;
+    --dash-accent-text: #0c1511;
+    --dash-action-text: #7fe0a0;
 }
 :root[data-theme="light"] {
-    --dash-bg: #f3f7f4;
+    --dash-bg: #f6f8f5;
     --dash-surface: #fff;
     --dash-surface-2: #e9f1eb;
     --dash-border: #d6e4d9;
     --dash-text: #20362a;
-    --dash-muted: #64776b;
-    --dash-accent: #50ad76;
-    --dash-accent-strong: #75dda0;
-    --dash-accent-text: #092014;
+    --dash-muted: #4f655a;
+    --dash-accent: #2f7d4f;
+    --dash-accent-strong: #2f7d4f;
+    --dash-accent-text: #fff;
+    --dash-action-text: #a0efad;
 }
 .dashboard-page {
     min-height: 100vh;
@@ -36,8 +38,8 @@
     backdrop-filter: blur(14px);
 }
 .dashboard-nav {
-    width: min(100%, 1280px);
-    min-height: 70px;
+    width: min(100%, 1080px);
+    min-height: 64px;
     margin: 0 auto;
     padding: 0 32px;
     display: flex;
@@ -46,8 +48,8 @@
     background: transparent;
     border: 0;
 }
-.dashboard-brand { order: 0; display: inline-flex; align-items: center; margin-right: auto; }
-.dashboard-brand img { display: block; width: 184px; height: 34px; object-fit: contain; object-position: left center; }
+.dashboard-brand { order: 0; display: inline-flex; align-items: center; gap: 10px; margin-right: auto; color: var(--dash-text); font-weight: 800; letter-spacing: -.02em; text-decoration: none; white-space: nowrap; }
+.dashboard-brand svg { display: block; width: 40px; height: 24px; color: var(--dash-accent); }
 .dashboard-links { order: 1; display: flex; align-items: center; gap: 8px; }
 .dashboard-links a {
     display: inline-flex;
@@ -65,40 +67,41 @@
 .dashboard-nav .theme-toggle { order: 2; flex: 0 0 44px; width: 44px; height: 44px; margin: 0 !important; border: 1px solid var(--dash-border) !important; border-radius: 50% !important; background: var(--dash-surface) !important; color: var(--dash-text) !important; }
 .dashboard-nav .btn-sair { order: 3; min-height: 42px; margin: 0 !important; padding: 0 18px; border: 1px solid var(--dash-border) !important; border-radius: 15px !important; background: transparent !important; color: var(--dash-text) !important; font: inherit; font-size: 14px; font-weight: 700; }
 .dashboard-nav .btn-sair:hover { background: var(--dash-surface-2) !important; }
-.dashboard { width: min(calc(100% - 64px), 1000px); margin: 0 auto; padding: 24px 0 64px; }
+.dashboard { width: min(100%, 1040px); margin: 0 auto; padding: 28px 20px 64px; }
 .dashboard-welcome { margin: 0 0 24px; }
-.dashboard-welcome h1 { margin: 0; color: var(--dash-text); font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -.04em; }
-.dashboard-welcome p { margin: 4px 0 0; color: var(--dash-muted); font-size: 16px; }
-.dashboard-top { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+.dashboard-welcome h1 { margin: 0; color: var(--dash-text); font-size: clamp(32px, 4vw, 40px); line-height: 1.12; letter-spacing: -.04em; }
+.dashboard-welcome p { margin: 4px 0 0; color: var(--dash-muted); font-size: 16px; line-height: 1.55; }
+.dashboard-top { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-top: 22px; }
 .today-card, .week-card, .goal-card, .shortcut-card { border: 1px solid var(--dash-border); border-radius: 24px; }
-.today-card { min-height: 220px; padding: 24px; color: #092014; background: var(--dash-accent-strong); }
+.today-card { min-height: 220px; padding: 22px; color: var(--dash-accent-text); background: var(--dash-accent-strong); }
 .today-tag { display: inline-flex; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.26); font-size: 12px; font-weight: 700; }
-.today-card h2 { margin-top: 16px; color: inherit; font-size: clamp(20px,2.5vw,26px); letter-spacing: -.03em; }
-.today-card p { margin-top: 4px; color: rgba(9,32,20,.78); font-size: 16px; }
-.today-action { display: inline-flex; min-height: 48px; margin-top: 20px; padding: 0 24px; align-items: center; justify-content: center; border-radius: 14px; color: var(--dash-accent); background: #08140e; font-weight: 800; text-decoration: none; transition: transform .16s ease, background .16s ease; }
+.today-card h2 { margin: 16px 0 4px; color: inherit; font-size: clamp(20px,2.5vw,26px); letter-spacing: -.03em; }
+.today-card p { margin: 4px 0 0; color: inherit; opacity: .82; font-size: 16px; }
+.today-action { display: inline-flex; min-height: 48px; margin-top: 20px; padding: 0 24px; align-items: center; justify-content: center; border-radius: 14px; color: var(--dash-action-text); background: #08140e; font-weight: 800; text-decoration: none; transition: transform .16s ease, background .16s ease; }
 .today-action:hover { transform: translateY(-1px); background: #14271b; }
-.week-card { min-height: 220px; padding: 24px; background: var(--dash-surface); }
+.week-card { min-height: 220px; padding: 22px; background: var(--dash-surface); }
 .week-card h2, .goal-card h2 { margin: 0; color: var(--dash-text); font-size: 18px; }
-.week-days { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 8px; margin-top: 20px; text-align: center; }
-.week-days > span { display: grid; justify-items: center; gap: 8px; }
+.week-days { display: flex; gap: 8px; margin-top: 14px; text-align: center; }
+.week-days > span { display: grid; flex: 1; min-width: 0; justify-items: center; gap: 8px; }
 .week-days b { color: var(--dash-muted); font-size: 12px; }
-.week-days i { display: block; width: 100%; aspect-ratio: 1.55; max-height: 42px; border-radius: 999px; background: var(--dash-surface-2); }
-.week-card p { margin-top: 10px; color: var(--dash-muted); font-size: 13px; }
-.goal-card { margin-top: 16px; padding: 24px; background: var(--dash-surface); }
+.week-days i { display: grid; place-items: center; width: 100%; height: 36px; border-radius: 50%; background: var(--dash-surface-2); font-style: normal; font-size: 14px; }
+.week-days .is-today i { box-shadow: 0 0 0 2px var(--dash-accent); }
+.week-card p { margin: 6px 0 0; color: var(--dash-muted); font-size: 13px; }
+.goal-card { margin-top: 16px; padding: 22px; background: var(--dash-surface); }
 .goal-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .goal-heading strong { color: var(--dash-text); font-size: 16px; }
-.goal-track { height: 10px; margin-top: 18px; overflow: hidden; border-radius: 999px; background: var(--dash-surface-2); }
+.goal-track { height: 10px; margin-top: 14px; overflow: hidden; border-radius: 999px; background: var(--dash-surface-2); }
 .goal-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--dash-accent-strong); transition: width .35s ease; }
-.goal-values { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 14px; }
-.goal-values div { min-height: 78px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; border-radius: 16px; background: var(--dash-surface-2); }
+.goal-values { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 14px; text-align: center; }
+.goal-values div { min-height: 78px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; background: var(--dash-surface-2); }
 .goal-values strong { color: var(--dash-text); font-size: 21px; }
 .goal-values span { color: var(--dash-muted); font-size: 12px; font-weight: 700; }
 .goal-empty { margin-top: 12px; color: var(--dash-muted); font-size: 13px; }
 .goal-empty[hidden] { display: none; }
-.dashboard-shortcuts { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 20px; }
-.shortcut-card { min-height: 148px; display: block; padding: 22px; color: var(--dash-text); background: var(--dash-surface); text-decoration: none; transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.dashboard-shortcuts { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 22px; }
+.shortcut-card { min-height: 148px; display: flex; flex-direction: column; gap: 6px; padding: 22px; color: var(--dash-text); background: var(--dash-surface); text-decoration: none; transition: transform .2s ease, border-color .2s ease, background .2s ease; }
 .shortcut-card:hover { transform: translateY(-3px); border-color: var(--dash-accent); background: color-mix(in srgb, var(--dash-surface) 85%, var(--dash-accent)); }
-.shortcut-card > span { display: block; margin-bottom: 14px; font-size: 24px; }
+.shortcut-card > span { display: block; margin-bottom: 6px; font-size: 26px; }
 .shortcut-card h2 { margin: 0; color: var(--dash-text); font-size: 16px; }
 .shortcut-card p { margin-top: 7px; color: var(--dash-muted); font-size: 15px; }
 @media (max-width: 850px) {
@@ -106,18 +109,18 @@
     .dashboard-brand { margin-right: auto; }
     .dashboard-links { order: 4; width: 100%; justify-content: space-between; overflow-x: auto; }
     .dashboard-links a { padding: 0 12px; }
-    .dashboard { width: min(calc(100% - 40px), 720px); padding-top: 22px; }
+    .dashboard { width: min(100%, 760px); padding: 22px 20px 56px; }
     .dashboard-top { grid-template-columns: 1fr; }
     .today-card, .week-card { min-height: auto; }
 }
 @media (max-width: 600px) {
     .dashboard-nav { gap: 8px; padding: 10px 14px; }
-    .dashboard-brand img { width: 152px; height: 30px; }
+    .dashboard-brand span { font-size: 14px; }
     .dashboard-nav .theme-toggle { flex-basis: 38px; width: 38px; height: 38px; }
     .dashboard-nav .btn-sair { min-height: 38px; padding: 0 13px; font-size: 13px; }
     .dashboard-links { gap: 2px; }
     .dashboard-links a { min-height: 40px; padding: 0 10px; font-size: 13px; }
-    .dashboard { width: calc(100% - 28px); padding: 22px 0 40px; }
+    .dashboard { width: 100%; padding: 22px 14px 40px; }
     .dashboard-welcome h1 { font-size: 32px; }
     .today-card, .week-card, .goal-card { padding: 19px; border-radius: 20px; }
     .goal-values { gap: 7px; }
