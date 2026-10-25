@@ -172,3 +172,25 @@
 }
 .home-page .home-login:hover { border-color: var(--ui-primary); background: var(--ui-surface-2); }
 .home-page nav.home-nav .btn-aluno { order: 3; border-radius: 15px; }
+
+.home-page .home-exercises li.home-exercise-last { padding: 0; background: transparent; }
+.home-exercise-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 12px;
+    color: var(--ui-text);
+    background: var(--ui-surface-2);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+}
+.home-exercise-button:hover { background: color-mix(in srgb, var(--ui-primary) 14%, var(--ui-surface-2)); }
+.home-exercise-button:active { transform: scale(.99); }
+.home-exercise-button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 2px; }
+.home-exercise-button .home-check { display: grid; width: 22px; height: 22px; flex: 0 0 auto; place-items: center; border: 1px solid var(--ui-border); border-radius: 50%; color: var(--ui-on-primary); }
+.home-exercise-button.is-done .home-check { border-color: var(--ui-primary); background: var(--ui-primary); }

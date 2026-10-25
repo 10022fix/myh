@@ -42,12 +42,12 @@
                 <span class="home-tag">Exemplo de plano</span>
                 <h2>Treino B · Pernas e glúteos</h2>
                 <p class="home-muted">45 min · 3 exercícios</p>
-                <div class="home-progress" aria-hidden="true"><span></span></div>
-                <p class="home-hint">2 de 3 exercícios concluídos</p>
+                <div class="home-progress" role="progressbar" aria-label="Progresso do treino" aria-valuemin="0" aria-valuemax="3" aria-valuenow="2"><span id="preview-progress-fill" style="width: 66.67%"></span></div>
+                <p class="home-hint" id="preview-progress-copy" aria-live="polite">2 de 3 exercícios concluídos</p>
                 <ul class="home-exercises">
                     <li><span class="home-check is-done" aria-hidden="true">✓</span><span>Agachamento livre<small>3 séries × 12 · 75s</small></span></li>
                     <li><span class="home-check is-done" aria-hidden="true">✓</span><span>Leg press<small>3 séries × 12 · 60s</small></span></li>
-                    <li><span class="home-check" aria-hidden="true"></span><span>Cadeira extensora<small>3 séries × 15 · 45s</small></span></li>
+                    <li class="home-exercise-last"><button class="home-exercise-button" id="complete-preview-exercise" type="button" aria-pressed="false"><span class="home-check" aria-hidden="true"></span><span>Cadeira extensora<small>3 séries × 15 · 45s</small></span></button></li>
                 </ul>
             </aside>
         </section>
@@ -58,5 +58,18 @@
             <article class="home-step"><span>3</span><h2>Acompanhe a evolução</h2><p>Registre peso e medidas e veja seu progresso.</p></article>
         </section>
     </main>
+    <script>
+        const concluirExercicio = document.getElementById("complete-preview-exercise");
+        concluirExercicio.addEventListener("click", () => {
+            if (concluirExercicio.getAttribute("aria-pressed") === "true") return;
+            concluirExercicio.setAttribute("aria-pressed", "true");
+            concluirExercicio.classList.add("is-done");
+            concluirExercicio.querySelector(".home-check").classList.add("is-done");
+            concluirExercicio.querySelector(".home-check").textContent = "✓";
+            document.getElementById("preview-progress-fill").style.width = "100%";
+            document.getElementById("preview-progress-copy").textContent = "3 de 3 exercícios concluídos";
+            document.querySelector(".home-progress").setAttribute("aria-valuenow", "3");
+        });
+    </script>
 </body>
 </html>
