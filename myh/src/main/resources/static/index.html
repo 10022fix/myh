@@ -60,7 +60,10 @@
     </main>
     <script>
         const concluirExercicio = document.getElementById("complete-preview-exercise");
+        concluirExercicio.addEventListener("selectstart", event => event.preventDefault());
+        concluirExercicio.addEventListener("dragstart", event => event.preventDefault());
         concluirExercicio.addEventListener("click", () => {
+            window.getSelection()?.removeAllRanges();
             const concluido = concluirExercicio.getAttribute("aria-pressed") !== "true";
             const marcador = concluirExercicio.querySelector(".home-check");
             concluirExercicio.setAttribute("aria-pressed", String(concluido));
@@ -76,3 +79,4 @@
     </script>
 </body>
 </html>
+

@@ -246,3 +246,8 @@
     background: transparent;
     color: inherit;
 }
+.home-page .home-exercise-button,
+.home-page .home-exercise-button * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
