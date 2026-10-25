@@ -35,8 +35,9 @@
                     document.querySelectorAll(".theme-toggle").forEach(item => updateButton(item, nextTheme));
                 });
 
-                const alunoButton = nav.querySelector(".btn-aluno");
-                if (alunoButton) nav.insertBefore(button, alunoButton);
+                const entrarButton = nav.querySelector(".home-login, .auth-nav-link");
+                const primeiraAcao = entrarButton || nav.querySelector(".btn-aluno");
+                if (primeiraAcao) nav.insertBefore(button, primeiraAcao);
                 else nav.appendChild(button);
             }
             updateButton(button, document.documentElement.dataset.theme || "dark");
