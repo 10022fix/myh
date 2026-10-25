@@ -251,3 +251,39 @@
     user-select: none !important;
     -webkit-user-select: none !important;
 }
+
+/* Sobrepõe os estilos globais de botões dos temas claro e escuro nesta linha. */
+:root[data-theme="light"] .home-page .home-exercises .home-exercise-button,
+:root[data-theme="dark"] .home-page .home-exercises .home-exercise-button {
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--ui-text) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+:root[data-theme="light"] .home-page .home-exercises .home-exercise-button:hover,
+:root[data-theme="dark"] .home-page .home-exercises .home-exercise-button:hover {
+    background: color-mix(in srgb, var(--ui-primary) 10%, var(--ui-surface-2)) !important;
+    box-shadow: none !important;
+}
+:root[data-theme="light"] .home-page .home-exercises .home-exercise-button:active,
+:root[data-theme="dark"] .home-page .home-exercises .home-exercise-button:active {
+    transform: scale(.99) !important;
+}
+.home-page .home-exercises .home-exercise-button > span:last-child {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: inherit;
+    -webkit-text-fill-color: currentColor;
+}
+.home-page .home-exercises .home-exercise-button > .home-check {
+    display: grid;
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+}
