@@ -12,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Consultas e registros usados na area autenticada do aluno. */
 public class DAOAreaAluno {
@@ -27,16 +29,33 @@ public class DAOAreaAluno {
                 + "FROM questionario_usuario q WHERE q.usuario_id=?";
         try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
             comando.setInt(1, usuarioId);
+            String respostas;
+            String objetivo;
+            String local;
+            int frequencia;
+            int duracao;
             try (ResultSet resultado = comando.executeQuery()) {
                 if (!resultado.next() || resultado.getString("objetivo") == null) return Optional.empty();
-                String local = resultado.getString("local_treino");
-                int frequencia = resultado.getInt("frequencia_semanal");
-                int duracao = resultado.getInt("duracao_preferida");
-                List<GeradorTreinoQuestionario.TreinoGerado> treinos = GeradorTreinoQuestionario.gerar(
-                        resultado.getString("respostas"), resultado.getString("objetivo"), local, duracao);
-                if (treinos.isEmpty()) return Optional.empty();
-                return Optional.of(new Recomendacoes(resultado.getString("objetivo"), local, frequencia, treinos));
+                respostas = resultado.getString("respostas");
+                objetivo = resultado.getString("objetivo");
+                local = resultado.getString("local_treino");
+                frequencia = resultado.getInt("frequencia_semanal");
+                duracao = resultado.getInt("duracao_preferida");
             }
+            Set<String> exerciciosAtivos = new HashSet<>();
+            String exerciciosSql = "SELECT DISTINCT e.nome FROM usuario_treinos ut "
+                    + "JOIN treino_exercicios te ON te.treino_id=ut.treino_id "
+                    + "JOIN exercicios e ON e.id=te.exercicio_id WHERE ut.usuario_id=? AND ut.ativo=TRUE";
+            try (PreparedStatement ativos = conexao.prepareStatement(exerciciosSql)) {
+                ativos.setInt(1, usuarioId);
+                try (ResultSet resultadoAtivos = ativos.executeQuery()) {
+                    while (resultadoAtivos.next()) exerciciosAtivos.add(resultadoAtivos.getString("nome"));
+                }
+            }
+            List<GeradorTreinoQuestionario.TreinoGerado> treinos = GeradorTreinoQuestionario.gerar(
+                    respostas, objetivo, local, duracao, exerciciosAtivos);
+            if (treinos.isEmpty()) return Optional.empty();
+            return Optional.of(new Recomendacoes(objetivo, local, frequencia, treinos));
         }
     }
 

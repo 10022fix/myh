@@ -50,6 +50,12 @@ public final class GeradorTreinoQuestionario {
     private GeradorTreinoQuestionario() { }
 
     public static List<TreinoGerado> gerar(String respostasJson, String objetivo, String local, int duracao) {
+        return gerar(respostasJson, objetivo, local, duracao, Set.of());
+    }
+
+    /** Favorece opções diferentes das sessões ativas, mantendo os filtros e prioridades do questionário. */
+    public static List<TreinoGerado> gerar(String respostasJson, String objetivo, String local, int duracao,
+            Set<String> exerciciosAtivos) {
         final JsonNode respostas;
         try {
             respostas = JSON.readTree(respostasJson);
@@ -73,7 +79,8 @@ public final class GeradorTreinoQuestionario {
         boolean podeTreinarNaAcademia = "academia".equals(local)
                 || ("hibrido".equals(local) && !"em_casa".equals(tipoAcademia));
         Contexto contexto = new Contexto(objetivoQuiz, iniciante, senior, podeTreinarEmCasa,
-                podeTreinarNaAcademia, restricoes, prioridades, duracao);
+                podeTreinarNaAcademia, restricoes, prioridades, duracao,
+                exerciciosAtivos == null ? Set.of() : Set.copyOf(exerciciosAtivos));
 
         // Evita repetir o mesmo exercício nos dois dias do plano.
         Set<String> usados = new HashSet<>();
@@ -126,6 +133,8 @@ public final class GeradorTreinoQuestionario {
         for (ExercicioCatalogo exercicio : escolhidos) {
             sessao.add(prescrever(exercicio, contexto));
         }
+        // A ordem muda entre as recomendações para que uma nova sugestão não pareça apenas uma cópia.
+        Collections.shuffle(sessao);
 
         if ("perder_peso".equals(contexto.objetivo)) {
             sessao.add(ExercicioGerado.tempo(cardio(contexto, usados), minutosCardio(contexto.duracao)));
@@ -149,6 +158,12 @@ public final class GeradorTreinoQuestionario {
         List<ExercicioCatalogo> opcoes = usarPrioridade && !priorizados.isEmpty()
                 ? priorizados
                 : (!priorizados.isEmpty() && ThreadLocalRandom.current().nextInt(100) < 65 ? priorizados : candidatos);
+        List<ExercicioCatalogo> diferentesDoPlano = opcoes.stream()
+                .filter(exercicio -> !contexto.exerciciosAtivos.contains(exercicio.nome))
+                .toList();
+        if (!diferentesDoPlano.isEmpty() && ThreadLocalRandom.current().nextInt(100) < 75) {
+            opcoes = diferentesDoPlano;
+        }
         ExercicioCatalogo escolhido = opcoes.get(ThreadLocalRandom.current().nextInt(opcoes.size()));
         escolhidos.add(escolhido);
         usados.add(escolhido.nome);
@@ -242,7 +257,8 @@ public final class GeradorTreinoQuestionario {
     }
 
     private record Contexto(String objetivo, boolean iniciante, boolean senior, boolean casa,
-            boolean academia, Set<String> restricoes, Set<String> prioridades, int duracao) { }
+            boolean academia, Set<String> restricoes, Set<String> prioridades, int duracao,
+            Set<String> exerciciosAtivos) { }
 
     private record ExercicioCatalogo(String nome, String grupo, boolean casa, boolean academia,
             boolean avancado, boolean adequadoSenior, Set<String> areasEnvolvidas) { }
