@@ -138,3 +138,17 @@ CREATE TABLE IF NOT EXISTS usuario_treinos (
     CONSTRAINT fk_usuario_treinos_treino FOREIGN KEY (treino_id)
         REFERENCES treinos(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS treinos_concluidos (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    treino_id INT NOT NULL,
+    data_conclusao DATE NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_treino_concluido_dia (usuario_id, treino_id, data_conclusao),
+    KEY idx_treinos_concluidos_data (usuario_id, data_conclusao),
+    CONSTRAINT fk_treino_concluido_usuario FOREIGN KEY (usuario_id)
+        REFERENCES usuario(id) ON DELETE CASCADE,
+    CONSTRAINT fk_treino_concluido_treino FOREIGN KEY (treino_id)
+        REFERENCES treinos(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

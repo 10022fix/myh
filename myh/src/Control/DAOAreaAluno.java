@@ -89,6 +89,49 @@ public class DAOAreaAluno {
         return objetivos;
     }
 
+    public boolean registrarTreinoConcluido(int usuarioId, int treinoId, LocalDate dataConclusao) throws SQLException {
+        String verificar = "SELECT 1 FROM usuario_treinos WHERE usuario_id = ? AND treino_id = ? AND ativo = TRUE LIMIT 1";
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(verificar)) {
+            comando.setInt(1, usuarioId);
+            comando.setInt(2, treinoId);
+            try (ResultSet resultado = comando.executeQuery()) {
+                if (!resultado.next()) return false;
+            }
+        }
+
+        String inserir = "INSERT INTO treinos_concluidos (usuario_id, treino_id, data_conclusao) VALUES (?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)";
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(inserir)) {
+            comando.setInt(1, usuarioId);
+            comando.setInt(2, treinoId);
+            comando.setDate(3, Date.valueOf(dataConclusao));
+            comando.executeUpdate();
+            return true;
+        }
+    }
+
+    public List<Map<String, Object>> listarTreinosConcluidos(int usuarioId, LocalDate inicio, LocalDate fim) throws SQLException {
+        String sql = "SELECT tc.treino_id, t.nome_treino, tc.data_conclusao FROM treinos_concluidos tc "
+                + "JOIN treinos t ON t.id = tc.treino_id WHERE tc.usuario_id = ? "
+                + "AND tc.data_conclusao BETWEEN ? AND ? ORDER BY tc.data_conclusao, tc.id";
+        List<Map<String, Object>> concluidos = new ArrayList<>();
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, usuarioId);
+            comando.setDate(2, Date.valueOf(inicio));
+            comando.setDate(3, Date.valueOf(fim));
+            try (ResultSet resultado = comando.executeQuery()) {
+                while (resultado.next()) {
+                    Map<String, Object> treino = new LinkedHashMap<>();
+                    treino.put("treinoId", resultado.getInt("treino_id"));
+                    treino.put("nome", resultado.getString("nome_treino"));
+                    treino.put("data", resultado.getDate("data_conclusao").toLocalDate().toString());
+                    concluidos.add(treino);
+                }
+            }
+        }
+        return concluidos;
+    }
+
     public void cadastrarObjetivo(int usuarioId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
         String sql = "INSERT INTO objetivos (usuario_id, objetivo, peso_meta, data_meta) VALUES (?, ?, ?, ?)";
         try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {

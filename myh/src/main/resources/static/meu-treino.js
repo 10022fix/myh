@@ -3,6 +3,7 @@
     const busca = document.getElementById("busca");
     let temporizador;
     const marcados = {};
+    let concluidosHoje = new Set();
 
     const escapar = valor => String(valor ?? "").replace(/[&<>"']/g, caractere => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -18,16 +19,18 @@
         const exercicios = Array.isArray(treino.exercicios) ? treino.exercicios : [];
         const duracao = Number(treino.duracao);
         const titulo = escapar(treino.nome || `Treino ${indiceTreino + 1}`);
+        const treinoId = Number(treino.id);
+        const concluidoHoje = concluidosHoje.has(treinoId);
         const detalhes = exercicios.map((exercicio, indice) => {
             const chave = chaveExercicio(treino, exercicio, indice);
-            const marcado = Boolean(marcados[chave]);
+            const marcado = concluidoHoje || Boolean(marcados[chave]);
             const repeticoes = Number(exercicio.repeticoes);
             const prescricao = repeticoes === 0
                 ? "Tempo indicado no nome do exercício"
                 : `${Number(exercicio.series) || 0} séries · ${repeticoes || 0} repetições · ${Number(exercicio.descanso) || 0}s descanso`;
             const grupo = exercicio.grupoMuscular || exercicio.grupo || exercicio.musculo || "";
             return `<label class="exercise${marcado ? " is-complete" : ""}">
-                <input type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
+                <input type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
                 <span class="exercise-number">${String(indice + 1).padStart(2, "0")}</span>
                 <span class="exercise-copy"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></span>
                 ${grupo ? `<b>${escapar(grupo)}</b>` : ""}
@@ -38,9 +41,11 @@
         const percentual = total ? Math.round(completo / total * 100) : 0;
         const duracaoTexto = Number.isFinite(duracao) && duracao > 0 ? `${duracao} min` : "Duração não informada";
         const nivel = treino.nivel ? escapar(treino.nivel) : "PLANO PERSONALIZADO";
-        const treinoId = escapar(treino.id ?? treino.nome ?? indiceTreino);
+        const totalConcluidos = concluidoHoje ? total : completo;
+        const todosMarcados = total > 0 && totalConcluidos === total;
+        const treinoIdCard = escapar(treino.id ?? treino.nome ?? indiceTreino);
 
-        return `<article class="training-card demo-content-card" data-training-id="${treinoId}">
+        return `<article class="training-card demo-content-card" data-training-id="${treinoIdCard}">
             <div class="section-heading">
                 <div><h2>${titulo}</h2><p>${total} ${total === 1 ? "exercício" : "exercícios"} · ${duracaoTexto}</p></div>
                 <span class="sample-tag">${nivel}</span>
@@ -49,7 +54,8 @@
             <div class="workout-progress" role="progressbar" aria-label="Progresso de ${titulo}" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${completo}">
                 <span style="width:${percentual}%"></span>
             </div>
-            <p class="demo-feedback" data-workout-feedback>${completo} de ${total} exercícios concluídos</p>
+            <p class="demo-feedback" data-workout-feedback>${totalConcluidos} de ${total} exercícios concluídos</p>
+            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados ? "" : "hidden"} ${concluidoHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
         </article>`;
     }
 
@@ -64,11 +70,18 @@
         if (barra) barra.setAttribute("aria-valuenow", String(concluidos));
         if (preenchimento) preenchimento.style.width = `${percentual}%`;
         if (feedback) feedback.textContent = `${concluidos} de ${total} exercícios concluídos`;
+        const botaoFinalizar = card.querySelector("[data-finalizar-treino]");
+        if (botaoFinalizar && !concluidosHoje.has(Number(card.dataset.trainingId))) {
+            botaoFinalizar.hidden = total === 0 || concluidos !== total;
+        }
     }
 
     async function carregar() {
         try {
-            const resposta = await fetch("/api/treinos?busca=" + encodeURIComponent(busca.value));
+            const [resposta, conclusoesResposta] = await Promise.all([
+                fetch("/api/treinos?busca=" + encodeURIComponent(busca.value)),
+                fetch("/api/treinos/conclusoes-semana")
+            ]);
             if (resposta.status === 401) {
                 location.href = "/login.html";
                 return;
@@ -76,6 +89,12 @@
             if (!resposta.ok) {
                 lista.innerHTML = `<section class="empty-state"><h2>Não foi possível carregar os treinos.</h2><p>O servidor retornou o erro ${resposta.status}. Tente novamente mais tarde.</p></section>`;
                 return;
+            }
+            if (conclusoesResposta.ok) {
+                const conclusoes = await conclusoesResposta.json();
+                const hoje = new Date();
+                const hojeLocal = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+                concluidosHoje = new Set(conclusoes.filter(item => item.data === hojeLocal).map(item => Number(item.treinoId)));
             }
             const treinos = await resposta.json();
             lista.innerHTML = treinos.length
@@ -96,6 +115,28 @@
         else checkbox.closest(".exercise").classList.remove("is-complete");
 
         atualizarProgresso(card);
+    });
+
+    lista.addEventListener("click", async event => {
+        const botao = event.target.closest("[data-finalizar-treino]");
+        if (!botao || botao.disabled) return;
+        const treinoId = Number(botao.dataset.finalizarTreino);
+        if (!treinoId) return;
+        botao.disabled = true;
+        try {
+            const resposta = await fetch(`/api/treinos/${treinoId}/concluir`, { method: "POST" });
+            const dados = await resposta.json();
+            if (resposta.status === 401) {
+                location.href = "/login.html";
+                return;
+            }
+            if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível registrar o treino.");
+            await carregar();
+        } catch (erro) {
+            botao.disabled = false;
+            const feedback = botao.closest(".training-card")?.querySelector("[data-workout-feedback]");
+            if (feedback) feedback.textContent = erro.message;
+        }
     });
 
     busca.addEventListener("input", () => {

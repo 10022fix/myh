@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/area-aluno.css?v=20261025-4">
+    <link rel="stylesheet" href="/area-aluno.css?v=20261025-5">
     <title>Área do Aluno - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -92,12 +92,14 @@
             }
             const usuario = await sessaoResposta.json();
             document.getElementById("titulo").textContent = `Olá, ${usuario.nome}! 👋`;
-            atualizarSemana();
-
-            const [resumoResposta, treinosResposta] = await Promise.all([
+            const [resumoResposta, treinosResposta, conclusoesResposta] = await Promise.all([
                 fetch("/api/painel/resumo"),
-                fetch("/api/treinos")
+                fetch("/api/treinos"),
+                fetch("/api/treinos/conclusoes-semana")
             ]);
+
+            const conclusoes = conclusoesResposta.ok ? await conclusoesResposta.json() : [];
+            atualizarSemana(conclusoes);
 
             if (treinosResposta.ok) {
                 const treinos = await treinosResposta.json();
@@ -137,16 +139,37 @@
             }
         }
 
-        function atualizarSemana() {
+        function chaveDataLocal(data) {
+            const ano = data.getFullYear();
+            const mes = String(data.getMonth() + 1).padStart(2, "0");
+            const dia = String(data.getDate()).padStart(2, "0");
+            return `${ano}-${mes}-${dia}`;
+        }
+
+        function atualizarSemana(conclusoes) {
             const hoje = new Date();
             const indiceHoje = (hoje.getDay() + 6) % 7;
             const dias = document.querySelectorAll("#weekDays > span");
             const nomes = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"];
+            const inicioSemana = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - indiceHoje);
+            const porData = new Map();
+            conclusoes.forEach(item => porData.set(item.data, (porData.get(item.data) || 0) + 1));
             dias.forEach((dia, indice) => {
                 const atual = indice === indiceHoje;
+                const data = new Date(inicioSemana.getFullYear(), inicioSemana.getMonth(), inicioSemana.getDate() + indice);
+                const quantidade = porData.get(chaveDataLocal(data)) || 0;
+                const marcado = dia.querySelector("i");
+                dia.dataset.date = chaveDataLocal(data);
                 dia.classList.toggle("is-today", atual);
-                dia.setAttribute("aria-label", atual ? `${nomes[indice]}, hoje` : nomes[indice]);
+                dia.classList.toggle("is-done", quantidade > 0);
+                marcado.textContent = quantidade > 0 ? "✓" : "";
+                const descricao = quantidade > 0 ? `, ${quantidade} ${quantidade === 1 ? "treino concluído" : "treinos concluídos"}` : "";
+                dia.setAttribute("aria-label", `${nomes[indice]}${atual ? ", hoje" : ""}${descricao}`);
             });
+            const total = conclusoes.length;
+            document.getElementById("weekSummary").textContent = total
+                ? `${total} ${total === 1 ? "treino concluído" : "treinos concluídos"} nesta semana`
+                : "Conclua seus treinos para acompanhar sua semana.";
         }
 
         carregarPainel().catch(() => {

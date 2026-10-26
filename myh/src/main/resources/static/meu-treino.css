@@ -63,6 +63,11 @@
 .workout-progress { height: 8px; margin-top: 16px; overflow: hidden; border-radius: 99px; background: var(--demo-card-soft); }
 .workout-progress span { width: 0; height: 100%; display: block; border-radius: inherit; background: var(--demo-green); transition: width .25s ease; }
 .demo-feedback { min-height: 20px; margin: 12px 0 0; color: var(--demo-green); font-size: 14px; font-weight: 700; }
+.finish-workout { min-height: 42px; margin-top: 12px; padding: 0 18px; border: 0; border-radius: 12px; color: #0c1511; background: var(--demo-green); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.finish-workout:hover { filter: brightness(1.05); }
+.finish-workout:focus-visible { outline: 2px solid var(--demo-green); outline-offset: 3px; }
+.finish-workout:disabled { cursor: default; opacity: .75; }
+.finish-workout[hidden] { display: none; }
 .empty-exercises { color: var(--demo-muted); font-size: 14px; }
 .empty-state h2 { margin: 0 0 6px; color: var(--demo-text); font-size: 18px; }
 .empty-state p { margin: 0; color: var(--demo-muted); font-size: 14px; line-height: 1.5; }

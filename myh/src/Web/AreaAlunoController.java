@@ -3,7 +3,10 @@ package Web;
 import Control.DAOAreaAluno;
 import jakarta.servlet.http.HttpSession;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,20 @@ public class AreaAlunoController {
 
     @GetMapping("/api/treinos")
     public ResponseEntity<?> treinos(@RequestParam(defaultValue = "") String busca, HttpSession sessao) { return executar(sessao, id -> areaAluno.listarTreinos(id, busca)); }
+    @GetMapping("/api/treinos/conclusoes-semana")
+    public ResponseEntity<?> conclusoesSemana(HttpSession sessao) {
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        LocalDate inicio = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        return executar(sessao, id -> areaAluno.listarTreinosConcluidos(id, inicio, inicio.plusDays(6)));
+    }
+    @PostMapping("/api/treinos/{treinoId}/concluir")
+    public ResponseEntity<?> concluirTreino(@PathVariable int treinoId, HttpSession sessao) {
+        if (treinoId <= 0) return ResponseEntity.badRequest().body(Map.of("mensagem", "Treino inválido."));
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        return executar(sessao, id -> areaAluno.registrarTreinoConcluido(id, treinoId, hoje)
+                ? Map.of("mensagem", "Treino concluído com sucesso.")
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Treino não encontrado no seu plano.")));
+    }
     @GetMapping("/api/objetivos")
     public ResponseEntity<?> objetivos(HttpSession sessao) { return executar(sessao, areaAluno::listarObjetivos); }
     @GetMapping("/api/progresso")

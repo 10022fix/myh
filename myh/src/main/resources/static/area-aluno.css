@@ -109,6 +109,7 @@
 .week-days > span { display: grid; flex: 1; min-width: 0; justify-items: center; gap: 8px; }
 .week-days b { color: var(--dash-muted); font-size: 12px; }
 .week-days i { display: grid; place-items: center; width: 100%; height: 36px; border-radius: 50%; background: var(--dash-surface-2); font-style: normal; font-size: 14px; }
+.week-days .is-done i { color: var(--dash-accent-text); background: var(--dash-accent-strong); font-weight: 800; }
 .week-days .is-today i { box-shadow: 0 0 0 2px var(--dash-accent); }
 .week-card p { margin: 6px 0 0; color: var(--dash-muted); font-size: 13px; }
 .goal-card { margin-top: 16px; padding: 22px; background: var(--dash-surface); }
