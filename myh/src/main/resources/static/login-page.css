@@ -1,0 +1,33 @@
+.login-page .link-recuperacao {
+    margin: 12px 0 0;
+    text-align: center;
+}
+
+.login-page .link-recuperacao a {
+    min-height: 38px;
+    padding: 0 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--auth-accent);
+    background: color-mix(in srgb, var(--auth-accent) 14%, var(--auth-card));
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.login-page .link-recuperacao a:hover {
+    background: color-mix(in srgb, var(--auth-accent) 22%, var(--auth-card));
+    transform: translateY(-1px);
+}
+
+.login-page .link-recuperacao a:focus-visible {
+    outline: 2px solid var(--auth-accent);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-page .link-recuperacao a { transition: none; }
+}

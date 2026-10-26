@@ -37,6 +37,34 @@ body.recovery-page {
 
 .recovery-page * { font-family: inherit; }
 
+.recovery-header {
+    position: fixed;
+    z-index: 5;
+    top: 16px;
+    right: 20px;
+}
+
+.recovery-header .navbar { display: flex; align-items: center; }
+
+.recovery-header .theme-toggle {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--recovery-border);
+    border-radius: 50%;
+    color: var(--recovery-text);
+    background: var(--recovery-card);
+    cursor: pointer;
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.recovery-header .theme-toggle svg { display: block; width: 20px; height: 20px; }
+.recovery-header .theme-toggle:hover { border-color: var(--recovery-accent); transform: translateY(-1px); }
+.recovery-header .theme-toggle:focus-visible { outline: 2px solid var(--recovery-accent); outline-offset: 3px; }
+
 .recovery-card {
     width: min(100%, 520px);
     padding: 34px clamp(22px, 6vw, 48px) 32px;
@@ -143,6 +171,8 @@ body.recovery-page {
 
 @media (max-width: 480px) {
     body.recovery-page { padding: 18px 12px; }
+    .recovery-header { top: 12px; right: 12px; }
+    .recovery-header .theme-toggle { width: 40px; height: 40px; }
     .recovery-card { padding: 28px 20px 24px; border-radius: 20px; }
     .recovery-brand { margin-bottom: 19px; }
     .recovery-brand img { height: 76px; }
@@ -150,5 +180,5 @@ body.recovery-page {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .recovery-card input, .recovery-submit, .back-to-login { transition: none; }
+    .recovery-header .theme-toggle, .recovery-card input, .recovery-submit, .back-to-login { transition: none; }
 }

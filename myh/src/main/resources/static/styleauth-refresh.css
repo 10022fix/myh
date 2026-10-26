@@ -346,6 +346,85 @@
     .auth-page header.cabecalho .home-login,
     .auth-page header.cabecalho .btn-aluno { padding: 0 6px; font-size: 11px; }
 }
+
+/* Barra compacta, centralizada e compartilhada pelo login e cadastro. */
+.auth-page header.cabecalho .navbar {
+    width: min(calc(100% - 48px), 1000px);
+    padding: 0;
+    gap: 8px;
+}
+
+.auth-page header.cabecalho .theme-toggle {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    margin: 0 !important;
+    border: 1px solid var(--auth-border) !important;
+    border-radius: 50% !important;
+    background: var(--auth-card) !important;
+    color: var(--auth-text) !important;
+}
+
+.auth-page header.cabecalho .home-login,
+.auth-page header.cabecalho .btn-aluno {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 15px;
+}
+
+.auth-page header.cabecalho .home-login {
+    border-color: var(--auth-border);
+    background: transparent;
+}
+
+.auth-page header.cabecalho .btn-aluno {
+    border: 1px solid var(--auth-accent);
+    color: #07140d;
+    background: var(--auth-accent);
+}
+
+@media (max-width: 520px) {
+    .auth-page header.cabecalho .navbar {
+        width: calc(100% - 24px);
+        padding: 0;
+        gap: 6px;
+    }
+
+    .auth-page header.cabecalho .theme-toggle {
+        flex-basis: 36px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .auth-page header.cabecalho .home-login,
+    .auth-page header.cabecalho .btn-aluno {
+        min-height: 36px;
+        padding: 0 9px;
+        font-size: 12px;
+    }
+}
+
+:root[data-theme="light"] .auth-page header.cabecalho .home-login {
+    border-color: var(--auth-border) !important;
+    color: var(--auth-text) !important;
+    background: transparent !important;
+}
+
+:root[data-theme="light"] .auth-page header.cabecalho .btn-aluno {
+    border-color: var(--auth-accent) !important;
+    color: #07140d !important;
+    background: var(--auth-accent) !important;
+}
+
+@media (max-width: 360px) {
+    .auth-page header.cabecalho .navbar { width: calc(100% - 16px); gap: 4px; }
+    .auth-page header.cabecalho .home-brand { gap: 6px; }
+    .auth-page header.cabecalho .home-brand img { width: 22px; }
+    .auth-page header.cabecalho .home-brand span { font-size: 11px; }
+    .auth-page header.cabecalho .theme-toggle { flex-basis: 32px; width: 32px; height: 32px; }
+    .auth-page header.cabecalho .home-login,
+    .auth-page header.cabecalho .btn-aluno { padding: 0 6px; font-size: 11px; }
+}
 :root[data-theme="light"] .auth-page header.cabecalho .btn-aluno {
     border: 1px solid var(--auth-accent) !important;
     color: #07140d !important;
