@@ -3,9 +3,11 @@
     const busca = document.getElementById("busca");
     const guiaDialogo = document.getElementById("exerciseGuideDialog");
     const recomendacoesDialogo = document.getElementById("recommendationsDialog");
+    const confirmarTreinoDialogo = document.getElementById("manualWorkoutConfirmDialog");
     const botaoRecomendar = document.querySelector("[data-recommend-workout]");
     let temporizador;
     let recomendacoesAtuais = null;
+    let treinoManualPendente = null;
     let acaoRecomendacao = { tipo: "adicionar", treinoId: null };
     const marcados = {};
     let concluidosHoje = new Set();
@@ -183,7 +185,7 @@
         const tituloAcao = acaoRecomendacao.tipo === "substituir" ? "Substituir este treino" : "Adicionar ao meu plano";
         recomendacoesDialogo.innerHTML = `<div class="recommendations-content">
             <div class="recommendations-heading"><div><span class="sample-tag">SUGESTÕES PERSONALIZADAS</span><h2 id="recommendationsTitle">Escolha um treino</h2><p>Opções montadas pelo site com base nas respostas do seu questionário.</p></div>
-                <button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div>
+                <div class="recommendations-heading-actions">${acaoRecomendacao.tipo === "adicionar" ? `<button type="button" class="manual-workout-trigger" data-montar-personalizado>Montar meu treino</button>` : ""}<button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div></div>
             <div class="recommendation-list">${treinos.map((treino, indice) => `<article class="recommendation-card">
                 <h3>${escapar(treino.nome || `Treino ${indice + 1}`)}</h3>
                 <p>${escapar(treino.descricao || "Treino ajustado ao seu perfil")} · ${Number(treino.duracao) || 0} min · ${(treino.exercicios || []).length} exercícios</p>
@@ -192,7 +194,23 @@
             </article>`).join("") || `<p class="empty-exercises">Não há sugestões disponíveis agora.</p>`}</div>
             <p class="recommendation-message" data-recommendation-message aria-live="polite"></p>
         </div>`;
-        recomendacoesDialogo.showModal();
+        if (!recomendacoesDialogo.open) recomendacoesDialogo.showModal();
+    }
+
+    function renderizarMontagemManual() {
+        const catalogo = Array.isArray(recomendacoesAtuais?.catalogo) ? recomendacoesAtuais.catalogo : [];
+        const grupos = { pernas: "Pernas", gluteos: "Glúteos", peitoral: "Peitoral", costas: "Costas", bracos: "Braços", ombros: "Ombros", abdominais: "Abdominais" };
+        recomendacoesDialogo.innerHTML = `<div class="recommendations-content">
+            <div class="recommendations-heading"><div><span class="sample-tag">TREINO PERSONALIZADO</span><h2 id="recommendationsTitle">Monte seu treino</h2><p>Escolha os exercícios compatíveis com seu perfil. Selecione de 3 a 12 opções.</p></div>
+                <button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div>
+            <form class="manual-workout-form" data-manual-workout-form>
+                <label>Nome do treino<input name="nome" type="text" maxlength="60" required value="Meu treino" placeholder="Ex.: Treino de superiores"></label>
+                <label>Duração aproximada<select name="duracao"><option value="30">30 minutos</option><option value="45" selected>45 minutos</option><option value="60">60 minutos</option><option value="75">75 minutos</option><option value="90">90 minutos</option></select></label>
+                <fieldset><legend>Exercícios disponíveis</legend><div class="manual-exercise-list">${catalogo.map(exercicio => `<label class="manual-exercise-option"><input type="checkbox" name="exercicios" value="${escapar(exercicio.nome)}"><span><strong>${escapar(exercicio.nome)}</strong><small>${escapar(grupos[exercicio.grupo] || exercicio.grupo || "Exercício")}</small></span></label>`).join("") || `<p class="empty-exercises">Não há exercícios compatíveis disponíveis para este perfil.</p>`}</div></fieldset>
+                <p class="recommendation-message" data-recommendation-message aria-live="polite"></p>
+                <div class="manual-workout-actions"><button type="button" class="training-action" data-voltar-recomendacoes>Voltar às sugestões</button><button type="submit" class="recommendation-select">Adicionar meu treino</button></div>
+            </form>
+        </div>`;
     }
 
     async function abrirRecomendacoes(tipo, treinoId, botaoOrigem) {
@@ -200,14 +218,19 @@
         if (botaoOrigem) botaoOrigem.disabled = true;
         if (botaoRecomendar) botaoRecomendar.disabled = true;
         try {
-            const resposta = await fetch("/api/treinos/recomendados");
+            const resposta = await fetch("/api/treinos/recomendados", { cache: "no-store" });
             const dados = await resposta.json();
             if (resposta.status === 401) return location.href = "/login.html";
             if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível gerar recomendações.");
             recomendacoesAtuais = dados;
             renderizarRecomendacoes(dados);
         } catch (erro) {
-            lista.insertAdjacentHTML("afterbegin", `<p class="recommendation-error" role="alert">${escapar(erro.message)}</p>`);
+            if (recomendacoesDialogo.open) {
+                const mensagem = recomendacoesDialogo.querySelector("[data-recommendation-message]");
+                if (mensagem) mensagem.textContent = erro.message;
+            } else {
+                lista.insertAdjacentHTML("afterbegin", `<p class="recommendation-error" role="alert">${escapar(erro.message)}</p>`);
+            }
         } finally {
             if (botaoOrigem) botaoOrigem.disabled = false;
             if (botaoRecomendar) botaoRecomendar.disabled = false;
@@ -217,6 +240,14 @@
     recomendacoesDialogo.addEventListener("click", async event => {
         if (event.target === recomendacoesDialogo || event.target.closest("[data-close-recommendations]")) {
             recomendacoesDialogo.close();
+            return;
+        }
+        if (event.target.closest("[data-montar-personalizado]")) {
+            renderizarMontagemManual();
+            return;
+        }
+        if (event.target.closest("[data-voltar-recomendacoes]")) {
+            if (recomendacoesAtuais) renderizarRecomendacoes(recomendacoesAtuais);
             return;
         }
         const botao = event.target.closest("[data-selecionar-recomendacao]");
@@ -232,14 +263,75 @@
             if (resposta.status === 401) return location.href = "/login.html";
             if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível salvar a alteração.");
             recomendacoesAtuais = null;
-            recomendacoesDialogo.close();
             await carregar();
+            if (acaoRecomendacao.tipo === "adicionar") {
+                await abrirRecomendacoes("adicionar", null, null);
+            } else {
+                recomendacoesDialogo.close();
+            }
         } catch (erro) {
             const mensagem = recomendacoesDialogo.querySelector("[data-recommendation-message]");
             if (mensagem) mensagem.textContent = erro.message;
             botao.disabled = false;
         }
     });
+
+    recomendacoesDialogo.addEventListener("submit", async event => {
+        const formulario = event.target.closest("[data-manual-workout-form]");
+        if (!formulario) return;
+        event.preventDefault();
+        const selecionados = [...formulario.querySelectorAll('input[name="exercicios"]:checked')];
+        const mensagem = formulario.querySelector("[data-recommendation-message]");
+        if (selecionados.length < 3 || selecionados.length > 12) {
+            mensagem.textContent = "Escolha entre 3 e 12 exercícios para montar o treino.";
+            return;
+        }
+        const dados = new URLSearchParams({ token: recomendacoesAtuais.token });
+        const campos = new FormData(formulario);
+        dados.set("nome", campos.get("nome"));
+        dados.set("duracao", campos.get("duracao"));
+        selecionados.forEach(exercicio => dados.append("exercicios", exercicio.value));
+        treinoManualPendente = dados;
+        const feedbackConfirmacao = confirmarTreinoDialogo.querySelector("[data-confirm-feedback]");
+        feedbackConfirmacao.textContent = "";
+        confirmarTreinoDialogo.showModal();
+    });
+
+    confirmarTreinoDialogo.addEventListener("click", async event => {
+        if (event.target.closest("[data-cancelar-criacao]")) {
+            treinoManualPendente = null;
+            confirmarTreinoDialogo.close();
+            return;
+        }
+        if (!event.target.closest("[data-confirmar-criacao]") || !treinoManualPendente) return;
+        const confirmar = event.target.closest("[data-confirmar-criacao]");
+        const cancelar = confirmarTreinoDialogo.querySelector("[data-cancelar-criacao]");
+        const feedback = confirmarTreinoDialogo.querySelector("[data-confirm-feedback]");
+        confirmar.disabled = true;
+        cancelar.disabled = true;
+        feedback.textContent = "Criando seu treino…";
+        try {
+            const resposta = await fetch("/api/treinos/personalizado", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body: treinoManualPendente
+            });
+            const retorno = await resposta.json();
+            if (resposta.status === 401) return location.href = "/login.html";
+            if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível salvar seu treino.");
+            treinoManualPendente = null;
+            confirmarTreinoDialogo.close();
+            recomendacoesAtuais = null;
+            await carregar();
+            await abrirRecomendacoes("adicionar", null, null);
+        } catch (erro) {
+            feedback.textContent = erro.message;
+            confirmar.disabled = false;
+            cancelar.disabled = false;
+        }
+    });
+
+    confirmarTreinoDialogo.addEventListener("cancel", () => { treinoManualPendente = null; });
 
     botaoRecomendar?.addEventListener("click", () => abrirRecomendacoes("adicionar", null, botaoRecomendar));
 

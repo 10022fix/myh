@@ -20,7 +20,8 @@ public class DAOAreaAluno {
     private final frmConsultas consultas = new frmConsultas();
 
     public record Recomendacoes(String objetivo, String local, int frequencia,
-            List<GeradorTreinoQuestionario.TreinoGerado> treinos) { }
+            List<GeradorTreinoQuestionario.TreinoGerado> treinos,
+            List<GeradorTreinoQuestionario.ExercicioDisponivel> exerciciosDisponiveis) { }
 
     /** Gera opções novas usando o perfil do questionário e a meta mais recente do aluno. */
     public Optional<Recomendacoes> recomendarTreinos(int usuarioId) throws SQLException {
@@ -55,7 +56,9 @@ public class DAOAreaAluno {
             List<GeradorTreinoQuestionario.TreinoGerado> treinos = GeradorTreinoQuestionario.gerar(
                     respostas, objetivo, local, duracao, exerciciosAtivos);
             if (treinos.isEmpty()) return Optional.empty();
-            return Optional.of(new Recomendacoes(objetivo, local, frequencia, treinos));
+            List<GeradorTreinoQuestionario.ExercicioDisponivel> catalogo =
+                    GeradorTreinoQuestionario.exerciciosDisponiveis(respostas, objetivo, local, duracao);
+            return Optional.of(new Recomendacoes(objetivo, local, frequencia, treinos, catalogo));
         }
     }
 
@@ -64,6 +67,21 @@ public class DAOAreaAluno {
             conexao.setAutoCommit(false);
             try {
                 int id = persistirRecomendacao(conexao, usuarioId, recomendacoes, indice);
+                conexao.commit();
+                return id;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
+        }
+    }
+
+    public int adicionarTreinoPersonalizado(int usuarioId, Recomendacoes recomendacoes,
+            GeradorTreinoQuestionario.TreinoGerado treino) throws SQLException {
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try {
+                int id = persistirTreino(conexao, usuarioId, recomendacoes, treino);
                 conexao.commit();
                 return id;
             } catch (SQLException | RuntimeException erro) {
@@ -110,7 +128,11 @@ public class DAOAreaAluno {
 
     private int persistirRecomendacao(Connection conexao, int usuarioId, Recomendacoes recomendacoes, int indice) throws SQLException {
         if (indice < 0 || indice >= recomendacoes.treinos().size()) throw new SQLException("Recomendação inválida.");
-        GeradorTreinoQuestionario.TreinoGerado treino = recomendacoes.treinos().get(indice);
+        return persistirTreino(conexao, usuarioId, recomendacoes, recomendacoes.treinos().get(indice));
+    }
+
+    private int persistirTreino(Connection conexao, int usuarioId, Recomendacoes recomendacoes,
+            GeradorTreinoQuestionario.TreinoGerado treino) throws SQLException {
         int treinoId = inserirTreino(conexao, treino, recomendacoes.objetivo(), recomendacoes.local(), recomendacoes.frequencia());
         for (GeradorTreinoQuestionario.ExercicioGerado exercicio : treino.exercicios()) {
             int exercicioId = obterOuCriarExercicio(conexao, exercicio.nome());

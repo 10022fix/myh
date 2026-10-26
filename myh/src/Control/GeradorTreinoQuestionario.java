@@ -94,6 +94,31 @@ public final class GeradorTreinoQuestionario {
         );
     }
 
+    /** Lista o catálogo compatível com o questionário para a montagem manual do aluno. */
+    public static List<ExercicioDisponivel> exerciciosDisponiveis(String respostasJson, String objetivo,
+            String local, int duracao) {
+        final JsonNode respostas;
+        try {
+            respostas = JSON.readTree(respostasJson);
+        } catch (Exception erro) {
+            throw new IllegalArgumentException("Não foi possível interpretar as respostas do questionário.", erro);
+        }
+        int idade = idade(respostas.path("dados_pessoais").path("dataNascimento"));
+        boolean iniciante = List.of("nunca", "no_passado", "varias_mes").contains(respostas.path("frequencia_atual").asText());
+        Set<String> restricoes = valores(respostas.path("areas_sensiveis"));
+        if (restricoes.contains("nenhum")) restricoes.clear();
+        Set<String> prioridades = valores(respostas.path("musculos_importantes"));
+        if (prioridades.contains("todos")) prioridades.clear();
+        String tipoAcademia = respostas.path("tipo_academia").asText();
+        boolean casa = "casa".equals(local) || "em_casa".equals(tipoAcademia);
+        boolean academia = "academia".equals(local) || ("hibrido".equals(local) && !"em_casa".equals(tipoAcademia));
+        String objetivoQuiz = "Ganhar Massa".equalsIgnoreCase(objetivo) ? "ganhar_musculo" : "perder_peso";
+        Contexto contexto = new Contexto(objetivoQuiz, iniciante, idade >= 60, casa, academia,
+                restricoes, prioridades, duracao, Set.of());
+        return CATALOGO.stream().filter(exercicio -> elegivel(exercicio, contexto))
+                .map(exercicio -> new ExercicioDisponivel(exercicio.nome, exercicio.grupo)).toList();
+    }
+
     /** Identifica o plano pelo gênero informado sem mudar a seleção de exercícios. */
     private static String identificacaoGenero(String sexo) {
         if ("Feminino".equalsIgnoreCase(sexo)) return " (Feminino)";
@@ -264,6 +289,8 @@ public final class GeradorTreinoQuestionario {
             boolean avancado, boolean adequadoSenior, Set<String> areasEnvolvidas) { }
 
     public record TreinoGerado(String nome, String descricao, int duracao, List<ExercicioGerado> exercicios) { }
+
+    public record ExercicioDisponivel(String nome, String grupo) { }
 
     public record ExercicioGerado(String nome, int series, int repeticoes, int descanso) {
         static ExercicioGerado tempo(String nome, String prescricao) {

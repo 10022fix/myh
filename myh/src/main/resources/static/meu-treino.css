@@ -58,6 +58,10 @@
 .recommendations-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .recommendations-heading h2 { margin: 12px 0 4px; color: var(--demo-text); font-size: 23px; }
 .recommendations-heading p { margin: 0; color: var(--demo-muted); font-size: 14px; line-height: 1.5; }
+.recommendations-heading-actions { display: flex; align-items: center; gap: 10px; }
+.manual-workout-trigger { min-height: 34px; padding: 0 12px; border: 1px solid var(--demo-border); border-radius: 10px; color: var(--demo-green); background: var(--demo-card-soft); font: inherit; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.manual-workout-trigger:hover { border-color: var(--demo-green); background: color-mix(in srgb, var(--demo-green) 12%, var(--demo-card-soft)); }
+.manual-workout-trigger:focus-visible { outline: 2px solid var(--demo-green); outline-offset: 3px; }
 .recommendation-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .recommendation-card { min-width: 0; padding: 18px; border: 1px solid var(--demo-border); border-radius: 17px; background: var(--demo-card-soft); }
 .recommendation-card h3 { margin: 0 0 6px; font-size: 17px; }
@@ -71,6 +75,29 @@
 .recommendation-message, .recommendation-error { color: #f0a5a5; font-size: 14px; }
 .recommendation-message:empty { display: none; }
 .recommendation-error { margin: 0; padding: 12px; border: 1px solid var(--demo-border); border-radius: 12px; background: var(--demo-card); }
+.manual-workout-form { display: grid; gap: 16px; }
+.manual-workout-form > label { display: grid; gap: 7px; color: var(--demo-text); font-size: 13px; font-weight: 700; }
+.manual-workout-form input[type="text"], .manual-workout-form select { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--demo-border); border-radius: 10px; color: var(--demo-text); background: var(--demo-bg); font: inherit; font-weight: 500; }
+.manual-workout-form input:focus, .manual-workout-form select:focus { border-color: var(--demo-green); outline: 2px solid color-mix(in srgb, var(--demo-green) 25%, transparent); }
+.manual-workout-form fieldset { min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--demo-border); border-radius: 14px; }
+.manual-workout-form legend { padding: 0 7px; color: var(--demo-text); font-size: 14px; font-weight: 800; }
+.manual-exercise-list { max-height: 340px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; overflow: auto; }
+.manual-exercise-option { min-width: 0; min-height: 56px; padding: 9px 10px; display: flex; align-items: center; gap: 9px; border: 1px solid var(--demo-border); border-radius: 11px; background: var(--demo-card-soft); cursor: pointer; }
+.manual-exercise-option:has(input:checked) { border-color: var(--demo-green); background: color-mix(in srgb, var(--demo-green) 12%, var(--demo-card-soft)); }
+.manual-exercise-option input { flex: 0 0 auto; accent-color: var(--demo-green); }
+.manual-exercise-option span, .manual-exercise-option strong, .manual-exercise-option small { min-width: 0; display: block; }
+.manual-exercise-option strong { color: var(--demo-text); font-size: 12px; line-height: 1.35; }
+.manual-exercise-option small { margin-top: 3px; color: var(--demo-muted); font-size: 11px; }
+.manual-workout-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.manual-confirm-dialog { width: min(440px, calc(100% - 28px)); max-width: none; padding: 0; border: 1px solid var(--demo-border); border-radius: 20px; color: var(--demo-text); background: var(--demo-card); box-shadow: 0 24px 80px rgba(0, 0, 0, .5); }
+.manual-confirm-dialog::backdrop { background: rgba(0, 0, 0, .72); backdrop-filter: blur(4px); }
+.manual-confirm-content { padding: 24px; }
+.manual-confirm-content h2 { margin: 14px 0 8px; color: var(--demo-text); font-size: 21px; }
+.manual-confirm-content > p:not(.manual-confirm-feedback) { margin: 0; color: var(--demo-muted); font-size: 14px; line-height: 1.6; }
+.manual-confirm-feedback { min-height: 20px; margin: 12px 0 0; color: var(--demo-green); font-size: 13px; }
+.manual-confirm-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.manual-confirm-actions button { min-width: 88px; }
+.manual-confirm-actions button:focus-visible { outline: 2px solid var(--demo-green); outline-offset: 3px; }
 .training-card, .empty-state { padding: 24px; border: 1px solid var(--demo-border); border-radius: 22px; background: var(--demo-card); color: var(--demo-text); }
 .section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--demo-border); }
 .section-heading h2 { margin: 0 0 6px; color: var(--demo-text); font-size: 20px; }
@@ -135,7 +162,9 @@
     .dashboard--detail { width: calc(100% - 24px); margin-top: 20px; }
     .training-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
     .recommendation-list { grid-template-columns: 1fr; }
+    .manual-exercise-list { grid-template-columns: 1fr; }
     .recommendations-content { padding: 18px; }
+    .manual-confirm-content { padding: 20px; }
     .training-card, .empty-state { padding: 18px; }
     .section-heading { gap: 9px; }
     .section-heading h2 { font-size: 18px; }

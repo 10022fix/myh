@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meu-treino.css?v=20261026-2">
+    <link rel="stylesheet" href="/meu-treino.css?v=20261026-4">
     <title>Meu treino - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -45,7 +45,19 @@
     </main>
     <dialog id="exerciseGuideDialog" class="exercise-guide-dialog" aria-labelledby="exerciseGuideTitle"></dialog>
     <dialog id="recommendationsDialog" class="recommendations-dialog" aria-labelledby="recommendationsTitle"></dialog>
-    <script src="/meu-treino.js?v=20261026-3"></script>
+    <dialog id="manualWorkoutConfirmDialog" class="manual-confirm-dialog" aria-labelledby="manualConfirmTitle">
+        <div class="manual-confirm-content">
+            <span class="sample-tag">CONFIRMAÇÃO</span>
+            <h2 id="manualConfirmTitle">Criar este treino?</h2>
+            <p>Tem certeza que gostaria de criar esse treino? Se não for montado da maneira correta, poderá ocasionar em sérios problemas de saúde.</p>
+            <p class="manual-confirm-feedback" data-confirm-feedback aria-live="polite"></p>
+            <div class="manual-confirm-actions">
+                <button type="button" class="training-action" data-cancelar-criacao>Não</button>
+                <button type="button" class="recommendation-select" data-confirmar-criacao>Sim</button>
+            </div>
+        </div>
+    </dialog>
+    <script src="/meu-treino.js?v=20261026-6"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package Web;
 
 import Control.DAOAreaAluno;
+import Control.GeradorTreinoQuestionario;
 import jakarta.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +52,9 @@ public class AreaAlunoController {
                     .body(Map.of("mensagem", "Conclua o questionário e defina uma meta para receber recomendações personalizadas."));
             String token = UUID.randomUUID().toString();
             sessao.setAttribute("recomendacoesTreino", new RecomendacaoSessao(usuarioId, token, recomendacoes.get()));
-            return ResponseEntity.ok(Map.of("token", token, "treinos", recomendacoes.get().treinos()));
+            return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                    .body(Map.of("token", token, "treinos", recomendacoes.get().treinos(),
+                            "catalogo", recomendacoes.get().exerciciosDisponiveis()));
         } catch (SQLException erro) {
             return erroBanco();
         }
@@ -58,6 +62,38 @@ public class AreaAlunoController {
     @PostMapping("/api/treinos/recomendados")
     public ResponseEntity<?> adicionarRecomendado(@RequestParam String token, @RequestParam int indice, HttpSession sessao) {
         return aplicarRecomendacao(sessao, token, indice, null);
+    }
+    @PostMapping("/api/treinos/personalizado")
+    public ResponseEntity<?> salvarTreinoPersonalizado(@RequestParam String token, @RequestParam String nome,
+            @RequestParam int duracao, @RequestParam List<String> exercicios, HttpSession sessao) {
+        Object usuario = sessao.getAttribute("usuarioId");
+        if (!(usuario instanceof Integer usuarioId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Faça login para continuar."));
+        Object valor = sessao.getAttribute("recomendacoesTreino");
+        if (!(valor instanceof RecomendacaoSessao estado) || estado.usuarioId() != usuarioId || !estado.token().equals(token)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "As opções expiraram. Gere novas recomendações."));
+        }
+        String nomeFinal = nome == null ? "" : nome.trim();
+        List<String> selecionados = exercicios == null ? List.of() : exercicios.stream().distinct().toList();
+        if (nomeFinal.length() < 2 || nomeFinal.length() > 60 || duracao < 10 || duracao > 180
+                || selecionados.size() < 3 || selecionados.size() > 12) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe um nome, duração e selecione de 3 a 12 exercícios."));
+        }
+        var catalogo = estado.recomendacoes().exerciciosDisponiveis().stream()
+                .map(GeradorTreinoQuestionario.ExercicioDisponivel::nome).collect(java.util.stream.Collectors.toSet());
+        if (!catalogo.containsAll(selecionados)) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Selecione apenas exercícios disponíveis para o seu perfil."));
+        }
+        List<GeradorTreinoQuestionario.ExercicioGerado> exerciciosGerados = selecionados.stream()
+                .map(exercicio -> new GeradorTreinoQuestionario.ExercicioGerado(exercicio, 3, 12, 60)).toList();
+        var treino = new GeradorTreinoQuestionario.TreinoGerado(nomeFinal,
+                "Treino montado pelo aluno com exercícios compatíveis com o perfil informado.", duracao, exerciciosGerados);
+        try {
+            int novoId = areaAluno.adicionarTreinoPersonalizado(usuarioId, estado.recomendacoes(), treino);
+            sessao.removeAttribute("recomendacoesTreino");
+            return ResponseEntity.ok(Map.of("mensagem", "Seu treino foi adicionado ao plano.", "treinoId", novoId));
+        } catch (SQLException erro) {
+            return erroBanco();
+        }
     }
     @PutMapping("/api/treinos/{treinoId}")
     public ResponseEntity<?> substituirTreino(@PathVariable int treinoId, @RequestParam String token,
