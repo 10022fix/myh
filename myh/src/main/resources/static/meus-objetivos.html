@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meus-objetivos.css?v=20261025-2">
+    <link rel="stylesheet" href="/meus-objetivos.css?v=20261025-3">
     <title>Minhas metas - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -38,13 +38,14 @@
             <div id="objetivos" class="objetivos"></div>
             <button id="novo" class="oculto">+ Nova meta</button>
             <form id="formulario" class="formulario oculto">
-                <h2>Atualizar meta</h2>
+                <h2 id="tituloFormulario">Nova meta</h2>
                 <div class="campos">
                     <div class="campo"><label for="objetivo">Objetivo</label><select id="objetivo" name="objetivo" required><option value="">Selecione</option><option>Emagrecer</option><option>Ganhar Massa</option><option>Condicionamento</option><option>Definicao</option><option>Saude</option></select></div>
                     <div class="campo"><label for="pesoMeta">Peso-meta (kg)</label><input id="pesoMeta" name="pesoMeta" type="number" min="1" step="0.1"></div>
                     <div class="campo campo-largo"><label for="dataMeta">Data desejada (opcional)</label><input id="dataMeta" name="dataMeta" type="date"></div>
                 </div>
-                <button type="submit">Salvar meta</button><p id="mensagem" class="mensagem" aria-live="polite"></p>
+                <div class="acoes-formulario"><button type="submit">Salvar meta</button><button id="cancelarEdicao" class="botao-secundario" type="button">Cancelar</button></div>
+                <p id="mensagem" class="mensagem" aria-live="polite"></p>
             </form>
         </section>
     </main>

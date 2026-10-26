@@ -100,6 +100,27 @@ public class DAOAreaAluno {
         }
     }
 
+    public boolean atualizarObjetivo(int usuarioId, int objetivoId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
+        String sql = "UPDATE objetivos SET objetivo = ?, peso_meta = ?, data_meta = ? WHERE id = ? AND usuario_id = ?";
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setString(1, objetivo);
+            if (pesoMeta == null) comando.setNull(2, java.sql.Types.DECIMAL); else comando.setFloat(2, pesoMeta);
+            if (dataMeta == null) comando.setNull(3, java.sql.Types.DATE); else comando.setDate(3, Date.valueOf(dataMeta));
+            comando.setInt(4, objetivoId);
+            comando.setInt(5, usuarioId);
+            return comando.executeUpdate() == 1;
+        }
+    }
+
+    public boolean excluirObjetivo(int usuarioId, int objetivoId) throws SQLException {
+        String sql = "DELETE FROM objetivos WHERE id = ? AND usuario_id = ?";
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, objetivoId);
+            comando.setInt(2, usuarioId);
+            return comando.executeUpdate() == 1;
+        }
+    }
+
     public List<Map<String, Object>> listarProgresso(int usuarioId) throws SQLException {
         String sql = "SELECT p.peso_atual, p.percentual_gordura, p.data_registro, m.braco, m.antebraco, m.cintura, m.peito, m.quadril, m.coxa, m.panturrilha "
                 + "FROM progressao p JOIN medidasC m ON m.id = p.medidasC_id WHERE p.usuario_id = ? ORDER BY p.data_registro DESC, p.id DESC";

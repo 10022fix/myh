@@ -1,4 +1,5 @@
 const $ = id => document.getElementById(id);
+let metaEmEdicaoId = null;
 
 function escaparHtml(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, caractere => ({
@@ -46,6 +47,10 @@ function renderizarMeta(meta, resumo) {
             <span style="width:${percentual}%"></span>
         </div>
         <p class="legenda-progresso">${percentual}% do caminho percorrido</p>
+        <div class="acoes-meta">
+            <button type="button" class="botao-editar" data-acao="editar" data-id="${Number(meta.id)}">Alterar meta</button>
+            <button type="button" class="botao-excluir" data-acao="excluir" data-id="${Number(meta.id)}">Excluir meta</button>
+        </div>
     </article>`;
 }
 
@@ -65,22 +70,82 @@ async function carregar() {
 }
 
 $('abrirCadastro').onclick = mostrarFormulario;
-$('novo').onclick = mostrarFormulario;
+$('novo').onclick = () => iniciarNovaMeta();
+$('cancelarEdicao').onclick = fecharFormulario;
+$('objetivos').addEventListener('click', async evento => {
+    const botao = evento.target.closest('button[data-acao]');
+    if (!botao) return;
+
+    const objetivoId = Number(botao.dataset.id);
+    if (botao.dataset.acao === 'editar') {
+        const resposta = await fetch('/api/objetivos');
+        if (!resposta.ok) return;
+        const objetivos = await resposta.json();
+        const meta = objetivos.find(item => Number(item.id) === objetivoId);
+        if (meta) iniciarEdicao(meta);
+        return;
+    }
+
+    if (botao.dataset.acao === 'excluir'
+            && window.confirm('Tem certeza de que deseja excluir esta meta? Esta ação não pode ser desfeita.')) {
+        botao.disabled = true;
+        const resposta = await fetch(`/api/objetivos/${objetivoId}`, { method: 'DELETE' });
+        const dados = await resposta.json();
+        $('mensagem').textContent = dados.mensagem || (resposta.ok ? 'Meta excluída.' : 'Não foi possível excluir a meta.');
+        $('mensagem').classList.toggle('erro', !resposta.ok);
+        if (resposta.ok) {
+            fecharFormulario();
+            await carregar();
+        } else {
+            botao.disabled = false;
+        }
+    }
+});
+
+function iniciarNovaMeta() {
+    metaEmEdicaoId = null;
+    $('formulario').reset();
+    $('tituloFormulario').textContent = 'Nova meta';
+    $('mensagem').textContent = '';
+    mostrarFormulario();
+}
+
+function iniciarEdicao(meta) {
+    metaEmEdicaoId = Number(meta.id);
+    $('objetivo').value = meta.objetivo || '';
+    $('pesoMeta').value = meta.pesoMeta ?? '';
+    $('dataMeta').value = meta.dataMeta || '';
+    $('tituloFormulario').textContent = 'Alterar meta';
+    $('mensagem').textContent = '';
+    mostrarFormulario();
+}
+
+function fecharFormulario() {
+    metaEmEdicaoId = null;
+    $('formulario').reset();
+    $('formulario').classList.add('oculto');
+    $('tituloFormulario').textContent = 'Nova meta';
+}
+
 $('formulario').addEventListener('submit', async evento => {
+    await salvarFormulario(evento);
+});
+
+async function salvarFormulario(evento) {
     evento.preventDefault();
-    const resposta = await fetch('/api/objetivos', {
-        method: 'POST',
+    const id = metaEmEdicaoId;
+    const resposta = await fetch(id ? `/api/objetivos/${id}` : '/api/objetivos', {
+        method: id ? 'PUT' : 'POST',
         body: new URLSearchParams(new FormData(evento.currentTarget))
     });
     const dados = await resposta.json();
     $('mensagem').textContent = dados.mensagem || (resposta.ok ? 'Meta salva.' : 'Não foi possível salvar a meta.');
     $('mensagem').classList.toggle('erro', !resposta.ok);
     if (resposta.ok) {
-        evento.currentTarget.reset();
-        $('formulario').classList.add('oculto');
+        fecharFormulario();
         await carregar();
     }
-});
+}
 
 carregar().catch(() => {
     $('vazio').classList.remove('oculto');
