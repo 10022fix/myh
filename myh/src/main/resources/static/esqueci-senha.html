@@ -4,43 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/stylelogin.css">
-    <link rel="stylesheet" href="/tema.css">
+    <link rel="stylesheet" href="/esqueci-senha.css?v=20261026-1">
     <title>Recuperar senha - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-<body>
-    <main class="cadastro">
-        <a href="/login.html" aria-label="Voltar ao login">
-            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health" class="logo-cadastro">
-        
+<body class="recovery-page">
+    <main class="recovery-card">
+        <a class="recovery-brand" href="/login.html" aria-label="Make Your Health - voltar ao login">
+            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
         </a>
-        <h1 class="titulo-cadastro">Esqueci minha senha</h1>
-        <p class="texto-recuperacao">Informe o e-mail da sua conta. Enviaremos um link temporário para criar uma nova senha.</p>
-        <form class="form-cadastro" id="formRecuperacao">
+        <h1>Esqueci minha senha</h1>
+        <p class="recovery-description">Informe o e-mail da sua conta. Enviaremos um link temporário para criar uma nova senha.</p>
+        <form id="formRecuperacao">
             <div class="campo">
                 <label for="email">E-mail:</label>
-                <input id="email" name="email" type="email" autocomplete="email" required>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required>
             </div>
-            <div class="area-botao">
-                <button type="submit" class="btn-criar">Enviar link</button>
-            </div>
+            <button type="submit" class="recovery-submit">Enviar link</button>
         </form>
-        <p id="mensagem" aria-live="polite"></p>
-        <p class="link-recuperacao"><a href="/login.html">Voltar ao login</a></p>
+        <p id="mensagem" class="recovery-message" aria-live="polite" role="status"></p>
+        <a class="back-to-login" href="/login.html">Voltar ao login</a>
     </main>
     
     <script>
         document.getElementById("formRecuperacao").addEventListener("submit", async e => {
             e.preventDefault();
-            const botao = e.currentTarget.querySelector("button");
+            const formulario = e.currentTarget;
+            const botao = formulario.querySelector("button[type=submit]");
             const mensagem = document.getElementById("mensagem");
             botao.disabled = true;
+            formulario.setAttribute("aria-busy", "true");
             mensagem.textContent = "Enviando...";
             try {
                 const resposta = await fetch("/api/senha/esqueci", {
                     method: "POST",
-                    body: new URLSearchParams(new FormData(e.currentTarget))
+                    body: new URLSearchParams(new FormData(formulario))
                 });
                 const dados = await resposta.json();
                 mensagem.textContent = dados.mensagem || "Não foi possível solicitar o link.";
@@ -48,6 +46,7 @@
                 mensagem.textContent = "Falha de conexão. Tente novamente.";
             } finally {
                 botao.disabled = false;
+                formulario.removeAttribute("aria-busy");
             }
         });
     </script>
