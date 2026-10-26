@@ -2,7 +2,11 @@
     const lista = document.getElementById("lista");
     const busca = document.getElementById("busca");
     const guiaDialogo = document.getElementById("exerciseGuideDialog");
+    const recomendacoesDialogo = document.getElementById("recommendationsDialog");
+    const botaoRecomendar = document.querySelector("[data-recommend-workout]");
     let temporizador;
+    let recomendacoesAtuais = null;
+    let acaoRecomendacao = { tipo: "adicionar", treinoId: null };
     const marcados = {};
     let concluidosHoje = new Set();
 
@@ -59,6 +63,10 @@
             </div>
             <p class="demo-feedback" data-workout-feedback>${totalConcluidos} de ${total} exercícios concluídos</p>
             <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados ? "" : "hidden"} ${concluidoHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
+            <div class="training-actions">
+                <button type="button" class="training-action" data-alterar-treino="${treinoIdCard}">Alterar por recomendação</button>
+                <button type="button" class="training-action training-action--delete" data-excluir-treino="${treinoIdCard}">Excluir treino</button>
+            </div>
         </article>`;
     }
 
@@ -126,6 +134,29 @@
             abrirGuia(botaoGuia.dataset.exerciseGuide, botaoGuia.dataset.exerciseGroup);
             return;
         }
+        const alterar = event.target.closest("[data-alterar-treino]");
+        if (alterar) {
+            abrirRecomendacoes("substituir", Number(alterar.dataset.alterarTreino), alterar);
+            return;
+        }
+        const excluir = event.target.closest("[data-excluir-treino]");
+        if (excluir) {
+            const id = Number(excluir.dataset.excluirTreino);
+            if (!id || !window.confirm("Excluir este treino do seu plano? O histórico de conclusões será preservado.")) return;
+            excluir.disabled = true;
+            try {
+                const resposta = await fetch(`/api/treinos/${id}`, { method: "DELETE" });
+                const dados = await resposta.json();
+                if (resposta.status === 401) return location.href = "/login.html";
+                if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível excluir o treino.");
+                await carregar();
+            } catch (erro) {
+                excluir.disabled = false;
+                const feedback = excluir.closest(".training-card")?.querySelector("[data-workout-feedback]");
+                if (feedback) feedback.textContent = erro.message;
+            }
+            return;
+        }
         const botao = event.target.closest("[data-finalizar-treino]");
         if (!botao || botao.disabled) return;
         const treinoId = Number(botao.dataset.finalizarTreino);
@@ -146,6 +177,71 @@
             if (feedback) feedback.textContent = erro.message;
         }
     });
+
+    function renderizarRecomendacoes(recomendacoes) {
+        const treinos = Array.isArray(recomendacoes.treinos) ? recomendacoes.treinos : [];
+        const tituloAcao = acaoRecomendacao.tipo === "substituir" ? "Substituir este treino" : "Adicionar ao meu plano";
+        recomendacoesDialogo.innerHTML = `<div class="recommendations-content">
+            <div class="recommendations-heading"><div><span class="sample-tag">SUGESTÕES PERSONALIZADAS</span><h2 id="recommendationsTitle">Escolha um treino</h2><p>Opções montadas pelo site com base nas respostas do seu questionário.</p></div>
+                <button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div>
+            <div class="recommendation-list">${treinos.map((treino, indice) => `<article class="recommendation-card">
+                <h3>${escapar(treino.nome || `Treino ${indice + 1}`)}</h3>
+                <p>${escapar(treino.descricao || "Treino ajustado ao seu perfil")} · ${Number(treino.duracao) || 0} min · ${(treino.exercicios || []).length} exercícios</p>
+                <ul>${(treino.exercicios || []).map(exercicio => `<li><strong>${escapar(exercicio.nome)}</strong><span>${Number(exercicio.series) || 0} séries · ${Number(exercicio.repeticoes) || 0} repetições</span></li>`).join("")}</ul>
+                <button type="button" class="recommendation-select" data-selecionar-recomendacao="${indice}">${tituloAcao}</button>
+            </article>`).join("") || `<p class="empty-exercises">Não há sugestões disponíveis agora.</p>`}</div>
+            <p class="recommendation-message" data-recommendation-message aria-live="polite"></p>
+        </div>`;
+        recomendacoesDialogo.showModal();
+    }
+
+    async function abrirRecomendacoes(tipo, treinoId, botaoOrigem) {
+        acaoRecomendacao = { tipo, treinoId };
+        if (botaoOrigem) botaoOrigem.disabled = true;
+        if (botaoRecomendar) botaoRecomendar.disabled = true;
+        try {
+            const resposta = await fetch("/api/treinos/recomendados");
+            const dados = await resposta.json();
+            if (resposta.status === 401) return location.href = "/login.html";
+            if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível gerar recomendações.");
+            recomendacoesAtuais = dados;
+            renderizarRecomendacoes(dados);
+        } catch (erro) {
+            lista.insertAdjacentHTML("afterbegin", `<p class="recommendation-error" role="alert">${escapar(erro.message)}</p>`);
+        } finally {
+            if (botaoOrigem) botaoOrigem.disabled = false;
+            if (botaoRecomendar) botaoRecomendar.disabled = false;
+        }
+    }
+
+    recomendacoesDialogo.addEventListener("click", async event => {
+        if (event.target === recomendacoesDialogo || event.target.closest("[data-close-recommendations]")) {
+            recomendacoesDialogo.close();
+            return;
+        }
+        const botao = event.target.closest("[data-selecionar-recomendacao]");
+        if (!botao || !recomendacoesAtuais) return;
+        botao.disabled = true;
+        const payload = new URLSearchParams({ token: recomendacoesAtuais.token, indice: botao.dataset.selecionarRecomendacao });
+        const url = acaoRecomendacao.tipo === "substituir"
+            ? `/api/treinos/${acaoRecomendacao.treinoId}?${payload}`
+            : `/api/treinos/recomendados?${payload}`;
+        try {
+            const resposta = await fetch(url, { method: acaoRecomendacao.tipo === "substituir" ? "PUT" : "POST" });
+            const dados = await resposta.json();
+            if (resposta.status === 401) return location.href = "/login.html";
+            if (!resposta.ok) throw new Error(dados.mensagem || "Não foi possível salvar a alteração.");
+            recomendacoesAtuais = null;
+            recomendacoesDialogo.close();
+            await carregar();
+        } catch (erro) {
+            const mensagem = recomendacoesDialogo.querySelector("[data-recommendation-message]");
+            if (mensagem) mensagem.textContent = erro.message;
+            botao.disabled = false;
+        }
+    });
+
+    botaoRecomendar?.addEventListener("click", () => abrirRecomendacoes("adicionar", null, botaoRecomendar));
 
     function abrirGuia(nome, grupo) {
         const guias = window.MYH_EXERCISE_GUIDES || {};

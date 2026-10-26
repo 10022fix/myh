@@ -11,10 +11,108 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /** Consultas e registros usados na area autenticada do aluno. */
 public class DAOAreaAluno {
     private final frmConsultas consultas = new frmConsultas();
+
+    public record Recomendacoes(String objetivo, String local, int frequencia,
+            List<GeradorTreinoQuestionario.TreinoGerado> treinos) { }
+
+    /** Gera opções novas usando o perfil do questionário e a meta mais recente do aluno. */
+    public Optional<Recomendacoes> recomendarTreinos(int usuarioId) throws SQLException {
+        String sql = "SELECT q.respostas, q.local_treino, q.frequencia_semanal, q.duracao_preferida, "
+                + "(SELECT o.objetivo FROM objetivos o WHERE o.usuario_id=q.usuario_id ORDER BY o.id DESC LIMIT 1) objetivo "
+                + "FROM questionario_usuario q WHERE q.usuario_id=?";
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, usuarioId);
+            try (ResultSet resultado = comando.executeQuery()) {
+                if (!resultado.next() || resultado.getString("objetivo") == null) return Optional.empty();
+                String local = resultado.getString("local_treino");
+                int frequencia = resultado.getInt("frequencia_semanal");
+                int duracao = resultado.getInt("duracao_preferida");
+                List<GeradorTreinoQuestionario.TreinoGerado> treinos = GeradorTreinoQuestionario.gerar(
+                        resultado.getString("respostas"), resultado.getString("objetivo"), local, duracao);
+                if (treinos.isEmpty()) return Optional.empty();
+                return Optional.of(new Recomendacoes(resultado.getString("objetivo"), local, frequencia, treinos));
+            }
+        }
+    }
+
+    public int adicionarTreinoRecomendado(int usuarioId, Recomendacoes recomendacoes, int indice) throws SQLException {
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try {
+                int id = persistirRecomendacao(conexao, usuarioId, recomendacoes, indice);
+                conexao.commit();
+                return id;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
+        }
+    }
+
+    /** Substitui somente o vínculo ativo do usuário; o treino antigo e conclusões ficam no histórico. */
+    public int substituirTreinoRecomendado(int usuarioId, int treinoAntigoId,
+            Recomendacoes recomendacoes, int indice) throws SQLException {
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try {
+                try (PreparedStatement desativar = conexao.prepareStatement(
+                        "UPDATE usuario_treinos SET ativo=FALSE WHERE usuario_id=? AND treino_id=? AND ativo=TRUE")) {
+                    desativar.setInt(1, usuarioId);
+                    desativar.setInt(2, treinoAntigoId);
+                    if (desativar.executeUpdate() != 1) {
+                        conexao.rollback();
+                        return 0;
+                    }
+                }
+                int id = persistirRecomendacao(conexao, usuarioId, recomendacoes, indice);
+                conexao.commit();
+                return id;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
+        }
+    }
+
+    /** Exclusão lógica individual: mantém o treino e as conclusões para preservar o histórico. */
+    public boolean excluirTreino(int usuarioId, int treinoId) throws SQLException {
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(
+                "UPDATE usuario_treinos SET ativo=FALSE WHERE usuario_id=? AND treino_id=? AND ativo=TRUE")) {
+            comando.setInt(1, usuarioId);
+            comando.setInt(2, treinoId);
+            return comando.executeUpdate() == 1;
+        }
+    }
+
+    private int persistirRecomendacao(Connection conexao, int usuarioId, Recomendacoes recomendacoes, int indice) throws SQLException {
+        if (indice < 0 || indice >= recomendacoes.treinos().size()) throw new SQLException("Recomendação inválida.");
+        GeradorTreinoQuestionario.TreinoGerado treino = recomendacoes.treinos().get(indice);
+        int treinoId = inserirTreino(conexao, treino, recomendacoes.objetivo(), recomendacoes.local(), recomendacoes.frequencia());
+        for (GeradorTreinoQuestionario.ExercicioGerado exercicio : treino.exercicios()) {
+            int exercicioId = obterOuCriarExercicio(conexao, exercicio.nome());
+            try (PreparedStatement associar = conexao.prepareStatement(
+                    "INSERT INTO treino_exercicios (treino_id, exercicio_id, series, repeticoes, tempo_descanso) VALUES (?, ?, ?, ?, ?)")) {
+                associar.setInt(1, treinoId);
+                associar.setInt(2, exercicioId);
+                associar.setInt(3, exercicio.series());
+                associar.setInt(4, exercicio.repeticoes());
+                associar.setInt(5, exercicio.descanso());
+                associar.executeUpdate();
+            }
+        }
+        try (PreparedStatement vincular = conexao.prepareStatement(
+                "INSERT INTO usuario_treinos (usuario_id, treino_id, data_inicio, ativo) VALUES (?, ?, CURDATE(), TRUE)")) {
+            vincular.setInt(1, usuarioId);
+            vincular.setInt(2, treinoId);
+            vincular.executeUpdate();
+        }
+        return treinoId;
+    }
 
     public List<Map<String, Object>> listarTreinos(int usuarioId, String busca) throws SQLException {
         String filtro = busca == null ? "" : busca.trim();

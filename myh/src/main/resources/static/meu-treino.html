@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meu-treino.css?v=20261026-1">
+    <link rel="stylesheet" href="/meu-treino.css?v=20261026-2">
     <title>Meu treino - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -34,13 +34,18 @@
             <p>Marque os exercícios para acompanhar o que você já concluiu.</p>
         </section>
         <section class="detail-content conteudo" aria-label="Treinos disponíveis">
+            <div class="training-toolbar">
+                <p>Adicione treinos sugeridos pelo site ou troque um dos treinos atuais.</p>
+                <button type="button" class="recommend-workout" data-recommend-workout>＋ Montar treino recomendado</button>
+            </div>
             <label class="oculto" for="busca">Buscar exercício</label>
             <input class="busca" id="busca" type="search" placeholder="Buscar treino ou exercício, ex.: agachamento">
             <div id="lista" class="lista"></div>
         </section>
     </main>
     <dialog id="exerciseGuideDialog" class="exercise-guide-dialog" aria-labelledby="exerciseGuideTitle"></dialog>
-    <script src="/meu-treino.js?v=20261026-2"></script>
+    <dialog id="recommendationsDialog" class="recommendations-dialog" aria-labelledby="recommendationsTitle"></dialog>
+    <script src="/meu-treino.js?v=20261026-3"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
 </body>
 </html>

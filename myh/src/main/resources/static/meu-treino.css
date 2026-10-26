@@ -42,6 +42,35 @@
 .dashboard--detail .busca::placeholder { color: var(--demo-muted); }
 .dashboard--detail .busca:focus { border-color: var(--demo-green); outline: 2px solid color-mix(in srgb, var(--demo-green) 25%, transparent); }
 .dashboard--detail .lista { display: grid; gap: 14px; }
+.training-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0; }
+.training-toolbar p { margin: 0; color: var(--demo-muted); font-size: 14px; }
+.recommend-workout, .recommendation-select { min-height: 42px; padding: 0 16px; border: 0; border-radius: 12px; color: #0c1511; background: var(--demo-green); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.recommend-workout:hover, .recommendation-select:hover { filter: brightness(1.05); }
+.recommend-workout:disabled, .training-action:disabled, .recommendation-select:disabled { cursor: wait; opacity: .65; }
+.training-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+.training-action { min-height: 38px; padding: 0 13px; border: 1px solid var(--demo-border); border-radius: 11px; color: var(--demo-green); background: transparent; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.training-action:hover { border-color: var(--demo-green); background: color-mix(in srgb, var(--demo-green) 10%, transparent); }
+.training-action--delete { color: #f0a5a5; }
+.training-action--delete:hover { border-color: #d77979; background: color-mix(in srgb, #d77979 10%, transparent); }
+.recommendations-dialog { width: min(760px, calc(100% - 28px)); max-width: none; max-height: min(88vh, 900px); padding: 0; overflow: auto; border: 1px solid var(--demo-border); border-radius: 22px; color: var(--demo-text); background: var(--demo-card); box-shadow: 0 24px 80px rgba(0, 0, 0, .45); }
+.recommendations-dialog::backdrop { background: rgba(0, 0, 0, .62); backdrop-filter: blur(3px); }
+.recommendations-content { padding: 24px; }
+.recommendations-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.recommendations-heading h2 { margin: 12px 0 4px; color: var(--demo-text); font-size: 23px; }
+.recommendations-heading p { margin: 0; color: var(--demo-muted); font-size: 14px; line-height: 1.5; }
+.recommendation-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.recommendation-card { min-width: 0; padding: 18px; border: 1px solid var(--demo-border); border-radius: 17px; background: var(--demo-card-soft); }
+.recommendation-card h3 { margin: 0 0 6px; font-size: 17px; }
+.recommendation-card > p { margin: 0 0 14px; color: var(--demo-muted); font-size: 13px; line-height: 1.5; }
+.recommendation-card ul { max-height: 260px; margin: 0 0 15px; padding: 0; overflow: auto; list-style: none; }
+.recommendation-card li { padding: 9px 0; border-bottom: 1px solid var(--demo-border); }
+.recommendation-card li strong, .recommendation-card li span { display: block; }
+.recommendation-card li strong { font-size: 13px; }
+.recommendation-card li span { margin-top: 3px; color: var(--demo-muted); font-size: 12px; }
+.recommendation-select { width: 100%; }
+.recommendation-message, .recommendation-error { color: #f0a5a5; font-size: 14px; }
+.recommendation-message:empty { display: none; }
+.recommendation-error { margin: 0; padding: 12px; border: 1px solid var(--demo-border); border-radius: 12px; background: var(--demo-card); }
 .training-card, .empty-state { padding: 24px; border: 1px solid var(--demo-border); border-radius: 22px; background: var(--demo-card); color: var(--demo-text); }
 .section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--demo-border); }
 .section-heading h2 { margin: 0 0 6px; color: var(--demo-text); font-size: 20px; }
@@ -104,6 +133,9 @@
     .dashboard-nav .theme-toggle { flex-basis: 38px; width: 38px; height: 38px; }
     .dashboard-nav .btn-sair { padding: 8px 12px; }
     .dashboard--detail { width: calc(100% - 24px); margin-top: 20px; }
+    .training-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
+    .recommendation-list { grid-template-columns: 1fr; }
+    .recommendations-content { padding: 18px; }
     .training-card, .empty-state { padding: 18px; }
     .section-heading { gap: 9px; }
     .section-heading h2 { font-size: 18px; }
