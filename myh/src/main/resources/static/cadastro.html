@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/stylecadastro.css">
     <link rel="stylesheet" href="/senha-toggle.css">
     <link rel="stylesheet" href="/tema.css">
-    <link rel="stylesheet" href="/styleauth-refresh.css?v=20261025-3">
+    <link rel="stylesheet" href="/styleauth-refresh.css?v=20261026-2">
     <title>Cadastro - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -50,8 +50,7 @@
                 <label for="email">E-mail</label>
                 <input id="email" name="email" type="email" pattern="[^@]+@[Gg][Mm][Aa][Ii][Ll][.]com"
                     title="Use somente um endereço terminado em @gmail.com."
-                    autocomplete= "email" placeholder="voce@gmail.com" required>
-            </div>
+                    autocomplete="email" placeholder="voce@gmail.com" required>
             </div>
 
             <div class="campo">
@@ -64,11 +63,16 @@
                         minlength="8"
                         maxlength="128"
                         autocomplete="new-password"
+                        aria-describedby="passwordStrengthText"
                         required
                     >
                     <button class="alternar-senha" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="senha">
                         <span>Mostrar</span>
                     </button>
+                </div>
+                <div class="password-strength" role="meter" aria-label="Força da senha" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" data-strength="0">
+                    <div class="password-strength-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                    <p id="passwordStrengthText" class="password-strength-text" aria-live="polite">Use 8 ou mais caracteres, misturando letras e números.</p>
                 </div>
             </div>
 
@@ -82,6 +86,7 @@
     </main>
 
     <script src="/senha-toggle.js" defer></script>
+    <script src="/cadastro-page.js" defer></script>
     <script>
         document
             .getElementById("formCadastro")

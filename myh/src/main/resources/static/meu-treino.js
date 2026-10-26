@@ -1,6 +1,7 @@
 (() => {
     const lista = document.getElementById("lista");
     const busca = document.getElementById("busca");
+    const guiaDialogo = document.getElementById("exerciseGuideDialog");
     let temporizador;
     const marcados = {};
     let concluidosHoje = new Set();
@@ -23,18 +24,20 @@
         const concluidoHoje = concluidosHoje.has(treinoId);
         const detalhes = exercicios.map((exercicio, indice) => {
             const chave = chaveExercicio(treino, exercicio, indice);
+            const idCheckbox = `exercicio-${indiceTreino}-${indice}`;
             const marcado = concluidoHoje || Boolean(marcados[chave]);
             const repeticoes = Number(exercicio.repeticoes);
             const prescricao = repeticoes === 0
                 ? "Tempo indicado no nome do exercício"
                 : `${Number(exercicio.series) || 0} séries · ${repeticoes || 0} repetições · ${Number(exercicio.descanso) || 0}s descanso`;
             const grupo = exercicio.grupoMuscular || exercicio.grupo || exercicio.musculo || "";
-            return `<label class="exercise${marcado ? " is-complete" : ""}">
-                <input type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
+            return `<div class="exercise${marcado ? " is-complete" : ""}">
+                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
                 <span class="exercise-number">${String(indice + 1).padStart(2, "0")}</span>
-                <span class="exercise-copy"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></span>
+                <label class="exercise-copy" for="${idCheckbox}"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></label>
                 ${grupo ? `<b>${escapar(grupo)}</b>` : ""}
-            </label>`;
+                <button type="button" class="exercise-guide-button" data-exercise-guide="${escapar(exercicio.nome || "Exercício")}" data-exercise-group="${escapar(grupo)}" aria-label="Como fazer: ${escapar(exercicio.nome || "Exercício")}">Como fazer</button>
+            </div>`;
         }).join("");
         const completo = exercicios.filter((exercicio, indice) => marcados[chaveExercicio(treino, exercicio, indice)]).length;
         const total = exercicios.length;
@@ -118,6 +121,11 @@
     });
 
     lista.addEventListener("click", async event => {
+        const botaoGuia = event.target.closest("[data-exercise-guide]");
+        if (botaoGuia) {
+            abrirGuia(botaoGuia.dataset.exerciseGuide, botaoGuia.dataset.exerciseGroup);
+            return;
+        }
         const botao = event.target.closest("[data-finalizar-treino]");
         if (!botao || botao.disabled) return;
         const treinoId = Number(botao.dataset.finalizarTreino);
@@ -139,9 +147,224 @@
         }
     });
 
+    function abrirGuia(nome, grupo) {
+        const guias = window.MYH_EXERCISE_GUIDES || {};
+        const nomeBase = nome.replace(/\s*\([^)]*\)\s*$/, "").trim();
+        const guia = guias[nome] || guias[nomeBase] || guias.default;
+        const video = "https://www.youtube.com/results?search_query=" + encodeURIComponent(`como fazer ${nome} execução correta`);
+        guiaDialogo.innerHTML = `<div class="exercise-guide-content">
+            <div class="exercise-guide-heading">
+                <div><h2 id="exerciseGuideTitle">${escapar(nome)}</h2><p>${escapar(grupo || "Orientação de execução")}</p></div>
+                <button type="button" class="exercise-guide-close" data-close-guide aria-label="Fechar guia">×</button>
+            </div>
+            <a class="exercise-guide-video" href="${video}" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">▶</span><span><strong>Assistir vídeo demonstrativo</strong><small>Abre uma busca no YouTube em nova aba</small></span></a>
+            <h3>Passo a passo</h3>
+            <ol>${guia.passos.map(passo => `<li>${escapar(passo)}</li>`).join("")}</ol>
+            <p class="exercise-guide-tip"><strong>Dica:</strong> ${escapar(guia.dica)}</p>
+            <button type="button" class="exercise-guide-done" data-close-guide>Entendi</button>
+        </div>`;
+        guiaDialogo.showModal();
+    }
+
+    guiaDialogo.addEventListener("click", event => {
+        if (event.target === guiaDialogo || event.target.closest("[data-close-guide]")) guiaDialogo.close();
+    });
+
     busca.addEventListener("input", () => {
         clearTimeout(temporizador);
         temporizador = setTimeout(carregar, 250);
     });
     carregar();
 })();
+
+
+/* Guias de execução dos exercícios, consolidados do antigo meu-treino-guias.js. */
+(() => {
+    const passos = (itens, dica) => ({ passos: itens, dica });
+    window.MYH_EXERCISE_GUIDES = {
+        "Agachamento com peso corporal": passos([
+            "Fique em pé com os pés aproximadamente na largura dos ombros.",
+            "Leve o quadril para trás e flexione os joelhos, mantendo-os alinhados aos pés.",
+            "Desça somente até onde consiga manter o tronco firme e os calcanhares apoiados.",
+            "Empurre o chão para voltar à posição inicial, sem travar os joelhos."
+        ], "Faça o movimento sem pressa. Reduza a amplitude se sentir desconforto nos joelhos ou nas costas."),
+        "Sentar e levantar do banco": passos([
+            "Sente-se na parte da frente do banco, com os pés apoiados no chão.",
+            "Incline levemente o tronco e empurre o chão para ficar em pé.",
+            "Leve o quadril para trás e sente-se devagar, controlando a descida."
+        ], "Use um banco firme e, se necessário, apoie as mãos para manter o equilíbrio."),
+        "Leg press em amplitude confortável": passos([
+            "Ajuste o banco para que as costas e o quadril permaneçam apoiados.",
+            "Posicione os pés na plataforma, aproximadamente na largura dos ombros.",
+            "Desça a plataforma só até onde o quadril continue apoiado.",
+            "Empurre a plataforma de volta sem travar os joelhos."
+        ], "Use uma carga confortável e não force a amplitude se houver dor."),
+        "Agachamento goblet": passos([
+            "Segure um halter junto ao peito e firme os pés no chão.",
+            "Leve o quadril para trás e para baixo, mantendo o peso próximo ao corpo.",
+            "Desça com os joelhos acompanhando a direção dos pés.",
+            "Empurre o chão para voltar à posição inicial."
+        ], "Mantenha a coluna neutra e escolha uma carga que permita controlar todas as repetições."),
+        "Extensão de joelhos na máquina": passos([
+            "Ajuste o banco e o rolo para que o eixo da máquina fique alinhado aos joelhos.",
+            "Estenda as pernas com controle, sem dar impulso.",
+            "Pause brevemente perto do final e volte devagar à posição inicial."
+        ], "Evite esticar os joelhos com força ou usar uma carga que cause dor."),
+        "Ponte de glúteos": passos([
+            "Deite-se de costas com os joelhos flexionados e os pés apoiados no chão.",
+            "Contraia o abdômen e os glúteos.",
+            "Eleve o quadril até alinhar tronco e coxas, sem arquear a lombar.",
+            "Desça devagar até perto do chão e repita."
+        ], "O movimento deve vir do quadril; não force a lombar no topo."),
+        "Hip thrust": passos([
+            "Apoie a parte alta das costas em um banco firme e mantenha os pés no chão.",
+            "Comece com o quadril próximo ao chão e o queixo levemente recolhido.",
+            "Eleve o quadril contraindo os glúteos até formar uma linha entre ombros e joelhos.",
+            "Desça com controle, mantendo os pés estáveis."
+        ], "Comece sem carga até dominar a posição e não hiperestenda as costas."),
+        "Extensão de quadril em pé com apoio": passos([
+            "Segure em um apoio estável e fique com o tronco ereto.",
+            "Leve uma perna para trás sem girar o quadril.",
+            "Retorne devagar à posição inicial e complete as repetições antes de trocar de lado."
+        ], "Use uma amplitude confortável e evite inclinar ou arquear a lombar."),
+        "Cadeira flexora": passos([
+            "Ajuste a máquina para que o eixo fique alinhado aos joelhos e o rolo fique acima dos calcanhares.",
+            "Flexione os joelhos trazendo o rolo em direção às pernas.",
+            "Volte devagar, sem deixar a carga bater."
+        ], "Mantenha o quadril apoiado no banco e não use impulso."),
+        "Flexão na parede": passos([
+            "Apoie as mãos na parede na altura do peito, um pouco mais abertas que os ombros.",
+            "Afaste os pés e mantenha o corpo alinhado da cabeça aos calcanhares.",
+            "Flexione os cotovelos levando o peito em direção à parede.",
+            "Empurre a parede para retornar, sem deixar o quadril cair."
+        ], "Quanto mais perto da parede, mais leve fica o exercício."),
+        "Flexão inclinada": passos([
+            "Apoie as mãos em uma superfície firme, na largura dos ombros.",
+            "Estenda as pernas e mantenha o corpo alinhado.",
+            "Flexione os cotovelos e aproxime o peito do apoio.",
+            "Empurre o apoio para voltar à posição inicial."
+        ], "Use um apoio que não escorregue e mantenha o abdômen contraído."),
+        "Supino máquina leve": passos([
+            "Ajuste o assento para que as alças fiquem na altura do meio do peito.",
+            "Apoie as costas e segure as alças com os punhos alinhados aos antebraços.",
+            "Empurre as alças para a frente sem travar os cotovelos.",
+            "Retorne devagar até sentir alongamento confortável no peito."
+        ], "Mantenha os ombros afastados das orelhas e use carga leve no início."),
+        "Supino com halteres": passos([
+            "Deite-se no banco com os pés firmes no chão e os halteres sobre o peito.",
+            "Mantenha os cotovelos ligeiramente abaixo da linha dos ombros.",
+            "Empurre os halteres para cima sem bater um no outro.",
+            "Desça devagar até uma amplitude confortável."
+        ], "Mantenha as escápulas apoiadas no banco e peça ajuda para posicionar cargas pesadas."),
+        "Remada com elástico": passos([
+            "Prenda o elástico em um ponto firme, aproximadamente na altura do peito.",
+            "Segure as pontas, afaste-se até sentir leve tensão e mantenha o tronco estável.",
+            "Puxe os cotovelos para trás, aproximando as mãos do tronco.",
+            "Retorne devagar sem perder a tensão do elástico."
+        ], "Confira se o elástico está bem preso e não puxe em direção ao rosto."),
+        "Remada máquina com apoio do peito": passos([
+            "Ajuste o banco para apoiar o peito e alcance as alças sem arredondar as costas.",
+            "Puxe as alças em direção ao tronco levando os cotovelos para trás.",
+            "Aperte as costas brevemente e retorne com controle."
+        ], "Mantenha o peito apoiado e evite encolher os ombros."),
+        "Puxada frontal leve": passos([
+            "Ajuste o apoio das coxas e segure a barra um pouco mais aberta que os ombros.",
+            "Puxe a barra à frente do corpo em direção à parte alta do peito.",
+            "Leve os cotovelos para baixo e retorne devagar com os braços quase estendidos."
+        ], "Não puxe a barra atrás da nuca nem balance o tronco."),
+        "Remada unilateral apoiada": passos([
+            "Apoie uma mão e um joelho em um banco firme, mantendo as costas alinhadas.",
+            "Segure o halter com o braço estendido e puxe o cotovelo em direção ao quadril.",
+            "Desça o halter devagar sem girar o tronco.",
+            "Complete as repetições e troque de lado."
+        ], "Use um peso que permita manter o tronco estável."),
+        "Rosca direta leve": passos([
+            "Fique em pé com os pés firmes e segure a barra ou os halteres ao lado do corpo.",
+            "Mantenha os cotovelos próximos ao tronco e flexione os braços.",
+            "Aproxime o peso dos ombros sem mover os cotovelos para a frente.",
+            "Desça devagar até quase estender os braços."
+        ], "Evite balançar o corpo; reduza a carga se precisar usar impulso."),
+        "Tríceps na polia leve": passos([
+            "Fique de frente para a polia e segure a corda com os cotovelos junto ao tronco.",
+            "Estenda os braços para baixo sem mover os ombros.",
+            "Afaste as pontas da corda no final e retorne com controle."
+        ], "Mantenha os punhos neutros e use uma carga confortável."),
+        "Elevação lateral leve": passos([
+            "Fique em pé com um halter leve em cada mão e os braços ao lado do corpo.",
+            "Eleve os braços lateralmente até uma altura confortável, com os cotovelos levemente flexionados.",
+            "Desça lentamente até a posição inicial."
+        ], "Não balance o corpo nem eleve os ombros em direção às orelhas."),
+        "Panturrilha em pé com apoio": passos([
+            "Fique em pé segurando um apoio estável, com os pés paralelos.",
+            "Eleve os calcanhares e suba na ponta dos pés.",
+            "Pause brevemente e desça os calcanhares devagar."
+        ], "Faça o movimento sem quicar e use o apoio para manter o equilíbrio."),
+        "Dead bug": passos([
+            "Deite-se de costas com os braços apontados para cima e os joelhos flexionados.",
+            "Contraia o abdômen e mantenha a lombar confortável junto ao chão.",
+            "Estenda devagar um braço e a perna oposta sem perder o controle do tronco.",
+            "Volte ao centro e alterne os lados."
+        ], "Diminua a amplitude ou mova apenas uma perna se a lombar sair da posição."),
+        "Bird dog": passos([
+            "Fique em quatro apoios com mãos abaixo dos ombros e joelhos abaixo do quadril.",
+            "Contraia levemente o abdômen e estenda um braço e a perna oposta.",
+            "Mantenha o tronco estável por um instante e retorne devagar.",
+            "Alterne os lados."
+        ], "Evite girar o quadril ou arquear a lombar."),
+        "Prancha adaptada": passos([
+            "Apoie os antebraços e os joelhos no chão, com os cotovelos abaixo dos ombros.",
+            "Alinhe cabeça, tronco e quadril e contraia o abdômen.",
+            "Respire normalmente e mantenha a posição pelo tempo indicado.",
+            "Apoie o corpo no chão antes de descansar."
+        ], "Pare se sentir dor nas costas ou nos ombros; não deixe o quadril afundar."),
+        "Bicicleta ergométrica": passos([
+            "Ajuste o banco para que o joelho fique levemente flexionado quando o pedal estiver embaixo.",
+            "Comece pedalando devagar e aumente o ritmo somente até ficar confortável.",
+            "Mantenha o tronco relaxado e respire continuamente durante o tempo indicado."
+        ], "Reduza o ritmo ou pare se sentir dor, tontura ou falta de ar fora do normal."),
+        "Cicloergômetro em ritmo leve": passos([
+            "Ajuste o equipamento e sente-se com as costas apoiadas.",
+            "Pedale em ritmo leve e constante pelo tempo indicado.",
+            "Mantenha a respiração confortável e desacelere gradualmente ao terminar."
+        ], "Interrompa se sentir dor ou mal-estar."),
+        "Caminhada em ritmo confortável": passos([
+            "Escolha um percurso plano e seguro e comece em ritmo leve.",
+            "Caminhe com passos naturais, braços relaxados e olhar à frente.",
+            "Mantenha um ritmo em que ainda consiga falar frases curtas.",
+            "Desacelere aos poucos ao final do tempo indicado."
+        ], "Use calçado adequado e pare se sentir dor ou tontura."),
+        "Caminhada plana em ritmo confortável": passos([
+            "Escolha uma superfície plana, firme e sem obstáculos.",
+            "Comece devagar e caminhe com passos curtos e confortáveis.",
+            "Mantenha o tronco ereto e os braços relaxados.",
+            "Desacelere gradualmente ao final."
+        ], "A opção plana reduz inclinações; interrompa se sentir dor nos joelhos."),
+        "Caminhada intervalada leve": passos([
+            "Comece com alguns minutos de caminhada tranquila.",
+            "Alterne períodos curtos de ritmo um pouco mais vivo com períodos leves.",
+            "Repita pelo tempo indicado e termine desacelerando."
+        ], "Mantenha os intervalos moderados e confortáveis; não é necessário correr."),
+        "Marcha leve sem impacto": passos([
+            "Fique em pé próximo a um apoio estável, se precisar de equilíbrio.",
+            "Alterne a elevação baixa dos pés, como uma caminhada no lugar.",
+            "Mantenha o movimento suave e contínuo pelo tempo indicado."
+        ], "Mantenha os pés próximos ao chão e reduza o ritmo se as articulações incomodarem."),
+        "Marcha estacionária leve": passos([
+            "Fique em pé em um local livre de obstáculos.",
+            "Alterne os passos no mesmo lugar, elevando os pés apenas até uma altura confortável.",
+            "Use os braços naturalmente e mantenha o ritmo leve pelo tempo indicado."
+        ], "Segure em um apoio se precisar de equilíbrio e pare se sentir mal-estar."),
+        "Elíptico em ritmo leve": passos([
+            "Suba no equipamento parado e segure nas alças antes de começar.",
+            "Inicie com passadas curtas e lentas, mantendo os pés apoiados nas plataformas.",
+            "Aumente o ritmo gradualmente até ficar confortável e mantenha-o pelo tempo indicado.",
+            "Reduza o ritmo antes de parar e descer."
+        ], "Não desça enquanto os pedais ainda estiverem em movimento."),
+        "default": passos([
+            "Confira a regulagem e a estabilidade do equipamento antes de começar.",
+            "Faça o movimento devagar, com uma carga confortável e sem prender a respiração.",
+            "Interrompa se sentir dor e peça orientação a um profissional."
+        ], "A técnica e uma amplitude confortável são mais importantes do que aumentar a carga.")
+    };
+})();
+

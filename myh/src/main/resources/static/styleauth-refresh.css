@@ -440,3 +440,49 @@
     background: var(--auth-card) !important;
     box-shadow: none !important;
 }
+
+/* Indicador de força da senha no cadastro. */
+.auth-page .password-strength { margin-top: 8px; }
+.auth-page .password-strength-bars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.auth-page .password-strength-bars i { height: 5px; border-radius: 99px; background: var(--auth-border); transition: background-color .16s ease; }
+.auth-page .password-strength-text { margin: 7px 0 0; color: var(--auth-muted); font-size: 12px; line-height: 1.45; }
+.auth-page .password-strength[data-strength="1"] .password-strength-bars i.is-active { background: #e57373; }
+.auth-page .password-strength[data-strength="2"] .password-strength-bars i.is-active { background: #f0aa55; }
+.auth-page .password-strength[data-strength="3"] .password-strength-bars i.is-active { background: #c4d96a; }
+.auth-page .password-strength[data-strength="4"] .password-strength-bars i.is-active { background: var(--auth-accent); }
+
+/* Link de recuperação destacado apenas na tela de login. */
+.login-page .link-recuperacao {
+    margin: 12px 0 0;
+    text-align: center;
+}
+
+.login-page .link-recuperacao a {
+    min-height: 38px;
+    padding: 0 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--auth-accent);
+    background: color-mix(in srgb, var(--auth-accent) 14%, var(--auth-card));
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.login-page .link-recuperacao a:hover {
+    background: color-mix(in srgb, var(--auth-accent) 22%, var(--auth-card));
+    transform: translateY(-1px);
+}
+
+.login-page .link-recuperacao a:focus-visible {
+    outline: 2px solid var(--auth-accent);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-page .password-strength-bars i,
+    .login-page .link-recuperacao a { transition: none; }
+}

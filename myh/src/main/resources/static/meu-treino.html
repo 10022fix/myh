@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meu-treino.css?v=20261025-4">
+    <link rel="stylesheet" href="/meu-treino.css?v=20261026-1">
     <title>Meu treino - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -39,7 +39,8 @@
             <div id="lista" class="lista"></div>
         </section>
     </main>
-    <script src="/meu-treino.js"></script>
+    <dialog id="exerciseGuideDialog" class="exercise-guide-dialog" aria-labelledby="exerciseGuideTitle"></dialog>
+    <script src="/meu-treino.js?v=20261026-2"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
 </body>
 </html>
