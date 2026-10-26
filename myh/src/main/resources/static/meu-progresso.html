@@ -7,50 +7,71 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meu-progresso.css?v=20261025-1">
+    <link rel="stylesheet" href="/meu-progresso.css?v=20261025-2">
     <title>Meu progresso - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-<body class="dashboard-page">
-    <header class="dashboard-header">
-        <nav class="navbar dashboard-nav" aria-label="Navegação principal">
-            <a class="dashboard-brand" href="/areadoaluno.html" aria-label="Make Your Health - início">
+<body class="progress-page">
+    <header class="progress-header">
+        <nav class="navbar progress-nav" aria-label="Navegação principal">
+            <a class="progress-brand" href="/areadoaluno.html" aria-label="Make Your Health - início">
                 <svg viewBox="0 0 48 28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v8M7 7v14M45 10v8M41 7v14M7 14h34"/><path d="M14 23l6-12 4 7 4-7 6 12"/></svg>
                 <span>Make Your Health</span>
             </a>
-            <div class="dashboard-links">
+            <div class="progress-links">
                 <a href="/areadoaluno.html">Início</a>
                 <a href="/meu-treino.html">Treino</a>
                 <a href="/meus-objetivos.html">Metas</a>
                 <a class="active" href="/meu-progresso.html" aria-current="page">Progresso</a>
             </div>
             <button type="button" class="theme-toggle" aria-label="Alternar tema"></button>
-            <button id="sair" class="btn-sair" type="button">Sair</button>
+            <button id="sair" class="progress-exit" type="button">Sair</button>
         </nav>
     </header>
-    <main class="dashboard dashboard--detail painel">
-        <section class="detail-heading cabecalho">
-            <h1>Meu progresso</h1>
+    <main class="progress-main">
+        <section class="progress-heading" aria-labelledby="tituloProgresso">
+            <h1 id="tituloProgresso">Meu progresso</h1>
             <p>Cada registro conta.</p>
         </section>
-        <section class="detail-content conteudo" aria-label="Histórico de progresso">
-            <div id="vazio" class="vazio oculto"><h2>Nenhum progresso registrado.</h2><p>Faça seu primeiro registro e comece a acompanhar sua evolução.</p><button id="abrirCadastro">Registrar progresso</button></div>
-            <div id="resumo" class="progresso-resumo oculto"></div>
-            <div id="registros" class="lista"></div>
-            <button id="novo" class="oculto">+ Novo registro</button>
-            <form id="formulario" class="formulario oculto">
-                <h2>Novo registro</h2>
-                <div class="campos">
-                    <div class="campo"><label for="pesoRegistro">Peso (kg)</label><input id="pesoRegistro" name="peso" type="number" min="1" step="0.1" required></div>
-                    <div class="campo"><label for="dataRegistro">Data</label><input id="dataRegistro" name="dataRegistro" type="date" required></div>
-                    <div class="campo"><label for="gorduraRegistro">Gordura corporal (%)</label><input id="gorduraRegistro" name="gordura" type="number" min="0" max="100" step="0.1"></div>
-                    <div class="campo"><label for="bracoRegistro">Braço (cm)</label><input id="bracoRegistro" name="braco" type="number" min="0" step="0.1"></div>
-                    <div class="campo"><label for="cinturaRegistro">Cintura (cm)</label><input id="cinturaRegistro" name="cintura" type="number" min="0" step="0.1"></div>
-                    <div class="campo"><label for="peitoRegistro">Peito (cm)</label><input id="peitoRegistro" name="peito" type="number" min="0" step="0.1"></div>
-                </div>
-                <button type="submit">Salvar registro</button><p id="mensagem" class="mensagem" aria-live="polite"></p>
-            </form>
+        <section id="resumo" class="progress-stats" aria-label="Resumo do progresso">
+            <article class="progress-stat"><strong id="ultimoPeso">—</strong><span>Último peso</span></article>
+            <article class="progress-stat"><strong id="variacaoPeso">—</strong><span>Variação total</span></article>
+            <article class="progress-stat"><strong id="totalRegistros">0</strong><span>Registros</span></article>
         </section>
+        <section class="weight-chart-card" aria-labelledby="tituloGrafico">
+            <h2 id="tituloGrafico">Evolução do peso</h2>
+            <svg id="graficoPeso" class="weight-chart" viewBox="0 0 760 220" role="img" aria-label="Gráfico de evolução do peso">
+                <polyline id="linhaPeso" points="" />
+                <g id="pontosPeso"></g>
+            </svg>
+            <p id="graficoVazio" class="chart-empty" hidden>Seus registros de peso aparecerão aqui.</p>
+        </section>
+        <details id="historico" class="history-details" hidden>
+            <summary>Ver registros anteriores</summary>
+            <div id="registros" class="history-list"></div>
+        </details>
+        <form id="formulario" class="progress-form">
+            <h2>Novo registro</h2>
+            <div class="progress-form-grid">
+                <div class="progress-field"><label for="pesoRegistro">Peso (kg)</label><input id="pesoRegistro" name="peso" type="number" min="25" max="400" step="0.1" required></div>
+                <div class="progress-field"><label for="dataRegistro">Data</label><input id="dataRegistro" name="dataRegistro" type="date" required></div>
+            </div>
+            <details class="measure-details">
+                <summary>Adicionar medidas (opcional)</summary>
+                <div class="progress-form-grid measure-grid">
+                    <div class="progress-field"><label for="gorduraRegistro">Gordura corporal (%)</label><input id="gorduraRegistro" name="gordura" type="number" min="0" max="100" step="0.1"></div>
+                    <div class="progress-field"><label for="bracoRegistro">Braço (cm)</label><input id="bracoRegistro" name="braco" type="number" min="0" max="200" step="0.1"></div>
+                    <div class="progress-field"><label for="antebracoRegistro">Antebraço (cm)</label><input id="antebracoRegistro" name="antebraco" type="number" min="0" max="200" step="0.1"></div>
+                    <div class="progress-field"><label for="cinturaRegistro">Cintura (cm)</label><input id="cinturaRegistro" name="cintura" type="number" min="0" max="300" step="0.1"></div>
+                    <div class="progress-field"><label for="peitoRegistro">Peito (cm)</label><input id="peitoRegistro" name="peito" type="number" min="0" max="300" step="0.1"></div>
+                    <div class="progress-field"><label for="quadrilRegistro">Quadril (cm)</label><input id="quadrilRegistro" name="quadril" type="number" min="0" max="300" step="0.1"></div>
+                    <div class="progress-field"><label for="coxaRegistro">Coxa (cm)</label><input id="coxaRegistro" name="coxa" type="number" min="0" max="200" step="0.1"></div>
+                    <div class="progress-field"><label for="panturrilhaRegistro">Panturrilha (cm)</label><input id="panturrilhaRegistro" name="panturrilha" type="number" min="0" max="200" step="0.1"></div>
+                </div>
+            </details>
+            <button type="submit">Salvar registro</button>
+            <p id="mensagem" class="progress-message" aria-live="polite"></p>
+        </form>
     </main>
     <script src="/meu-progresso.js"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
