@@ -185,7 +185,7 @@
         const tituloAcao = acaoRecomendacao.tipo === "substituir" ? "Substituir este treino" : "Adicionar ao meu plano";
         recomendacoesDialogo.innerHTML = `<div class="recommendations-content">
             <div class="recommendations-heading"><div><span class="sample-tag">SUGESTÕES PERSONALIZADAS</span><h2 id="recommendationsTitle">Escolha um treino</h2><p>Opções montadas pelo site com base nas respostas do seu questionário.</p></div>
-                <div class="recommendations-heading-actions">${acaoRecomendacao.tipo === "adicionar" ? `<button type="button" class="manual-workout-trigger" data-montar-personalizado>Montar meu treino</button>` : ""}<button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div></div>
+                <div class="recommendations-heading-actions">${acaoRecomendacao.tipo === "adicionar" ? `<button type="button" class="manual-workout-trigger" data-montar-personalizado>Escolher exercícios</button><button type="button" class="manual-workout-trigger" data-criar-do-meu-jeito>Criar do meu jeito</button>` : ""}<button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div></div>
             <div class="recommendation-list">${treinos.map((treino, indice) => `<article class="recommendation-card">
                 <h3>${escapar(treino.nome || `Treino ${indice + 1}`)}</h3>
                 <p>${escapar(treino.descricao || "Treino ajustado ao seu perfil")} · ${Number(treino.duracao) || 0} min · ${(treino.exercicios || []).length} exercícios</p>
@@ -209,6 +209,32 @@
                 <fieldset><legend>Exercícios disponíveis</legend><div class="manual-exercise-list">${catalogo.map(exercicio => `<label class="manual-exercise-option"><input type="checkbox" name="exercicios" value="${escapar(exercicio.nome)}"><span><strong>${escapar(exercicio.nome)}</strong><small>${escapar(grupos[exercicio.grupo] || exercicio.grupo || "Exercício")}</small></span></label>`).join("") || `<p class="empty-exercises">Não há exercícios compatíveis disponíveis para este perfil.</p>`}</div></fieldset>
                 <p class="recommendation-message" data-recommendation-message aria-live="polite"></p>
                 <div class="manual-workout-actions"><button type="button" class="training-action" data-voltar-recomendacoes>Voltar às sugestões</button><button type="submit" class="recommendation-select">Adicionar meu treino</button></div>
+            </form>
+        </div>`;
+    }
+
+    function linhaExercicioLivre(indice) {
+        return `<div class="custom-exercise-row">
+            <label>Exercício<input type="text" name="exercicios" maxlength="120" required placeholder="Ex.: Agachamento" aria-label="Nome do exercício ${indice + 1}"></label>
+            <label>Séries<input type="number" name="series" min="1" max="10" value="3" required aria-label="Séries do exercício ${indice + 1}"></label>
+            <label>Repetições<input type="number" name="repeticoes" min="1" max="100" value="12" required aria-label="Repetições do exercício ${indice + 1}"></label>
+            <label>Descanso (s)<input type="number" name="descansos" min="0" max="300" value="60" required aria-label="Descanso do exercício ${indice + 1}"></label>
+            <button type="button" class="custom-exercise-remove" data-remover-exercicio aria-label="Remover exercício ${indice + 1}">×</button>
+        </div>`;
+    }
+
+    function renderizarTreinoLivre() {
+        recomendacoesDialogo.innerHTML = `<div class="recommendations-content">
+            <div class="recommendations-heading"><div><span class="sample-tag">MONTAGEM LIVRE</span><h2 id="recommendationsTitle">Crie do seu jeito</h2><p>Escreva os exercícios na ordem que preferir e defina séries, repetições e descanso.</p></div>
+                <button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div>
+            <form class="manual-workout-form" data-free-workout-form>
+                <label>Nome do treino<input name="nome" type="text" maxlength="60" required value="Meu treino" placeholder="Ex.: Treino de superiores"></label>
+                <label>Duração aproximada<select name="duracao"><option value="30">30 minutos</option><option value="45" selected>45 minutos</option><option value="60">60 minutos</option><option value="75">75 minutos</option><option value="90">90 minutos</option></select></label>
+                <fieldset><legend>Seus exercícios</legend><div class="custom-exercise-list" data-custom-exercise-list>${linhaExercicioLivre(0)}</div>
+                    <button type="button" class="training-action custom-exercise-add" data-adicionar-exercicio>＋ Adicionar exercício</button></fieldset>
+                <p class="manual-custom-note">Você define a ordem e a prescrição. Use cargas adequadas à sua experiência e peça orientação profissional se tiver dúvidas.</p>
+                <p class="recommendation-message" data-recommendation-message aria-live="polite"></p>
+                <div class="manual-workout-actions"><button type="button" class="training-action" data-voltar-recomendacoes>Voltar às sugestões</button><button type="submit" class="recommendation-select">Criar meu treino</button></div>
             </form>
         </div>`;
     }
@@ -246,6 +272,26 @@
             renderizarMontagemManual();
             return;
         }
+        if (event.target.closest("[data-criar-do-meu-jeito]")) {
+            renderizarTreinoLivre();
+            return;
+        }
+        if (event.target.closest("[data-adicionar-exercicio]")) {
+            const formulario = event.target.closest("[data-free-workout-form]");
+            const listaExercicios = formulario?.querySelector("[data-custom-exercise-list]");
+            const quantidade = listaExercicios?.querySelectorAll(".custom-exercise-row").length || 0;
+            if (listaExercicios && quantidade < 12) {
+                listaExercicios.insertAdjacentHTML("beforeend", linhaExercicioLivre(quantidade));
+                atualizarBotoesRemover(listaExercicios);
+            }
+            return;
+        }
+        if (event.target.closest("[data-remover-exercicio]")) {
+            const listaExercicios = event.target.closest("[data-custom-exercise-list]");
+            event.target.closest(".custom-exercise-row")?.remove();
+            if (listaExercicios) atualizarBotoesRemover(listaExercicios);
+            return;
+        }
         if (event.target.closest("[data-voltar-recomendacoes]")) {
             if (recomendacoesAtuais) renderizarRecomendacoes(recomendacoesAtuais);
             return;
@@ -276,22 +322,49 @@
         }
     });
 
+    function atualizarBotoesRemover(listaExercicios) {
+        const linhas = [...listaExercicios.querySelectorAll(".custom-exercise-row")];
+        linhas.forEach((linha, indice) => {
+            const botao = linha.querySelector("[data-remover-exercicio]");
+            if (botao) {
+                botao.disabled = linhas.length <= 1;
+                botao.setAttribute("aria-label", `Remover exercício ${indice + 1}`);
+            }
+        });
+        const adicionar = recomendacoesDialogo.querySelector("[data-adicionar-exercicio]");
+        if (adicionar) adicionar.disabled = linhas.length >= 12;
+    }
+
     recomendacoesDialogo.addEventListener("submit", async event => {
-        const formulario = event.target.closest("[data-manual-workout-form]");
+        const formulario = event.target.closest("[data-manual-workout-form], [data-free-workout-form]");
         if (!formulario) return;
         event.preventDefault();
-        const selecionados = [...formulario.querySelectorAll('input[name="exercicios"]:checked')];
         const mensagem = formulario.querySelector("[data-recommendation-message]");
-        if (selecionados.length < 3 || selecionados.length > 12) {
+        const campos = new FormData(formulario);
+        const montagemLivre = formulario.matches("[data-free-workout-form]");
+        const selecionados = [...formulario.querySelectorAll('input[name="exercicios"]:checked')];
+        if (!montagemLivre && (selecionados.length < 3 || selecionados.length > 12)) {
             mensagem.textContent = "Escolha entre 3 e 12 exercícios para montar o treino.";
             return;
         }
-        const dados = new URLSearchParams({ token: recomendacoesAtuais.token });
-        const campos = new FormData(formulario);
-        dados.set("nome", campos.get("nome"));
-        dados.set("duracao", campos.get("duracao"));
-        selecionados.forEach(exercicio => dados.append("exercicios", exercicio.value));
-        treinoManualPendente = dados;
+        if (montagemLivre) {
+            const quantidade = formulario.querySelectorAll(".custom-exercise-row").length;
+            if (quantidade < 1 || quantidade > 12) {
+                mensagem.textContent = "Adicione de 1 a 12 exercícios ao seu treino.";
+                return;
+            }
+        }
+        const dados = new URLSearchParams();
+        for (const [chave, valor] of campos.entries()) dados.append(chave, valor);
+        dados.set("token", recomendacoesAtuais.token);
+        if (!montagemLivre) {
+            dados.delete("exercicios");
+            selecionados.forEach(exercicio => dados.append("exercicios", exercicio.value));
+        }
+        treinoManualPendente = {
+            url: montagemLivre ? "/api/treinos/personalizado-livre" : "/api/treinos/personalizado",
+            dados
+        };
         const feedbackConfirmacao = confirmarTreinoDialogo.querySelector("[data-confirm-feedback]");
         feedbackConfirmacao.textContent = "";
         confirmarTreinoDialogo.showModal();
@@ -311,10 +384,10 @@
         cancelar.disabled = true;
         feedback.textContent = "Criando seu treino…";
         try {
-            const resposta = await fetch("/api/treinos/personalizado", {
+            const resposta = await fetch(treinoManualPendente.url, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-                body: treinoManualPendente
+                body: treinoManualPendente.dados
             });
             const retorno = await resposta.json();
             if (resposta.status === 401) return location.href = "/login.html";

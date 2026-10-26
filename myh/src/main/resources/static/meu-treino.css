@@ -89,6 +89,14 @@
 .manual-exercise-option strong { color: var(--demo-text); font-size: 12px; line-height: 1.35; }
 .manual-exercise-option small { margin-top: 3px; color: var(--demo-muted); font-size: 11px; }
 .manual-workout-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.custom-exercise-list { display: grid; gap: 10px; }
+.custom-exercise-row { display: grid; grid-template-columns: minmax(150px, 2fr) repeat(3, minmax(72px, 1fr)) 34px; align-items: end; gap: 8px; }
+.custom-exercise-row label { min-width: 0; display: grid; gap: 5px; color: var(--demo-muted); font-size: 11px; font-weight: 700; }
+.custom-exercise-row input { width: 100%; min-width: 0; height: 38px; padding: 0 9px; border: 1px solid var(--demo-border); border-radius: 9px; color: var(--demo-text); background: var(--demo-bg); font: inherit; font-size: 12px; }
+.custom-exercise-remove { width: 34px; height: 38px; border: 1px solid var(--demo-border); border-radius: 9px; color: #f0a5a5; background: transparent; font-size: 21px; cursor: pointer; }
+.custom-exercise-remove:disabled { cursor: default; opacity: .4; }
+.custom-exercise-add { margin-top: 12px; }
+.manual-custom-note { margin: 0; padding: 11px 13px; border-radius: 11px; color: var(--demo-muted); background: var(--demo-card-soft); font-size: 12px; line-height: 1.5; }
 .manual-confirm-dialog { width: min(440px, calc(100% - 28px)); max-width: none; padding: 0; border: 1px solid var(--demo-border); border-radius: 20px; color: var(--demo-text); background: var(--demo-card); box-shadow: 0 24px 80px rgba(0, 0, 0, .5); }
 .manual-confirm-dialog::backdrop { background: rgba(0, 0, 0, .72); backdrop-filter: blur(4px); }
 .manual-confirm-content { padding: 24px; }
@@ -163,6 +171,9 @@
     .training-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
     .recommendation-list { grid-template-columns: 1fr; }
     .manual-exercise-list { grid-template-columns: 1fr; }
+    .custom-exercise-row { grid-template-columns: repeat(3, minmax(0, 1fr)) 34px; }
+    .custom-exercise-row label:first-child { grid-column: 1 / -1; }
+    .recommendations-heading-actions { flex-wrap: wrap; justify-content: flex-end; }
     .recommendations-content { padding: 18px; }
     .manual-confirm-content { padding: 20px; }
     .training-card, .empty-state { padding: 18px; }

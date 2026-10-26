@@ -95,6 +95,45 @@ public class AreaAlunoController {
             return erroBanco();
         }
     }
+    @PostMapping("/api/treinos/personalizado-livre")
+    public ResponseEntity<?> salvarTreinoLivre(@RequestParam String token, @RequestParam String nome,
+            @RequestParam int duracao, @RequestParam List<String> exercicios,
+            @RequestParam List<Integer> series, @RequestParam List<Integer> repeticoes,
+            @RequestParam List<Integer> descansos, HttpSession sessao) {
+        Object usuario = sessao.getAttribute("usuarioId");
+        if (!(usuario instanceof Integer usuarioId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Faça login para continuar."));
+        Object valor = sessao.getAttribute("recomendacoesTreino");
+        if (!(valor instanceof RecomendacaoSessao estado) || estado.usuarioId() != usuarioId || !estado.token().equals(token)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "As opções expiraram. Gere novas recomendações."));
+        }
+        String nomeFinal = nome == null ? "" : nome.trim();
+        if (nomeFinal.length() < 2 || nomeFinal.length() > 60 || duracao < 10 || duracao > 180
+                || exercicios == null || series == null || repeticoes == null || descansos == null
+                || exercicios.isEmpty() || exercicios.size() > 12
+                || series.size() != exercicios.size() || repeticoes.size() != exercicios.size()
+                || descansos.size() != exercicios.size()) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Confira o nome, duração e os dados dos exercícios (de 1 a 12)."));
+        }
+        List<GeradorTreinoQuestionario.ExercicioGerado> lista = new java.util.ArrayList<>();
+        for (int i = 0; i < exercicios.size(); i++) {
+            String exercicio = exercicios.get(i) == null ? "" : exercicios.get(i).trim();
+            int serie = series.get(i), repeticao = repeticoes.get(i), descanso = descansos.get(i);
+            if (exercicio.isEmpty() || exercicio.length() > 120 || serie < 1 || serie > 10
+                    || repeticao < 1 || repeticao > 100 || descanso < 0 || descanso > 300) {
+                return ResponseEntity.badRequest().body(Map.of("mensagem", "Confira o nome e a prescrição de cada exercício."));
+            }
+            lista.add(new GeradorTreinoQuestionario.ExercicioGerado(exercicio, serie, repeticao, descanso));
+        }
+        var treino = new GeradorTreinoQuestionario.TreinoGerado(nomeFinal,
+                "Treino criado pelo aluno. Confira os movimentos e a prescrição com um profissional qualificado.", duracao, lista);
+        try {
+            int novoId = areaAluno.adicionarTreinoPersonalizado(usuarioId, estado.recomendacoes(), treino);
+            sessao.removeAttribute("recomendacoesTreino");
+            return ResponseEntity.ok(Map.of("mensagem", "Seu treino foi adicionado ao plano.", "treinoId", novoId));
+        } catch (SQLException erro) {
+            return erroBanco();
+        }
+    }
     @PutMapping("/api/treinos/{treinoId}")
     public ResponseEntity<?> substituirTreino(@PathVariable int treinoId, @RequestParam String token,
             @RequestParam int indice, HttpSession sessao) {
