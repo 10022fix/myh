@@ -36,14 +36,12 @@
             const mensagem = document.getElementById("mensagem");
             const titulo = document.getElementById("tituloConfirmacao");
             const descricao = document.getElementById("descricaoConfirmacao");
-            const acao = document.getElementById("acaoConfirmacao");
             const aguardando = new URLSearchParams(location.search).get("aguardando") === "1";
 
             if (aguardando) {
                 titulo.textContent = "Aguardando confirmação do e-mail";
                 descricao.textContent = "Enviamos um link para o seu e-mail. Confirme por ele e volte a esta página para continuar seu cadastro.";
                 mensagem.textContent = "Estamos aguardando a confirmação do seu endereço de e-mail.";
-                acao.hidden = true;
                 let emailPendente = "";
                 try { emailPendente = (localStorage.getItem("myhPendingSignupEmail") || "").trim().toLowerCase(); } catch (_) {}
 
@@ -59,12 +57,10 @@
                         confirmado = true;
                         try { localStorage.removeItem("myhPendingSignupEmail"); } catch (_) {}
                         titulo.textContent = "E-mail cadastrado com sucesso";
-                        descricao.textContent = "Sua conta foi confirmada. Continue o cadastro respondendo ao questionário.";
-                        mensagem.textContent = "Confirmação aprovada. Agora você já pode completar seu cadastro.";
-                        acao.href = "/questionario.html";
-                        acao.textContent = "Continuar para o questionário";
-                        acao.hidden = false;
+                        descricao.textContent = "Sua conta foi confirmada. Vamos abrir o questionário para você continuar o cadastro.";
+                        mensagem.textContent = "Confirmação aprovada. Abrindo o questionário…";
                         clearInterval(intervalo);
+                        setTimeout(() => { location.assign("/questionario.html"); }, 1400);
                     } catch (_) {
                         // A tela continua aguardando e tenta novamente quando voltar a ficar visível.
                     }
@@ -81,16 +77,16 @@
                 titulo.textContent = "Confirme seu e-mail";
                 descricao.textContent = "Abra o link de confirmação que enviamos para ativar sua conta.";
                 mensagem.textContent = "Abra o link de confirmação que enviamos para seu e-mail. Se não encontrar, confira também o Spam.";
-                acao.href = "/cadastro.html";
-                acao.textContent = "Voltar ao cadastro";
                 return;
             }
             try {
                 const resposta = await fetch("/api/cadastro/confirmar-email", {
                     method: "POST",
-                    body: new URLSearchParams({ token })
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                    body: new URLSearchParams({ token }).toString()
                 });
-                const dados = await resposta.json();
+                const dados = await resposta.json().catch(() => ({}));
                 mensagem.textContent = dados.sucesso
                     ? "Confirmação aprovada. Volte ao site e continue o cadastro."
                     : (dados.mensagem || "Não foi possível confirmar seu e-mail.");
@@ -101,9 +97,9 @@
                     history.replaceState(null, "", location.pathname);
                     titulo.textContent = "Confirmação aprovada";
                     descricao.textContent = "Seu endereço de e-mail foi confirmado.";
-                    acao.href = "/confirmar-email.html?aguardando=1";
-                    acao.textContent = "Voltar ao site e continuar cadastro";
-                    acao.hidden = false;
+                } else if (!resposta.ok) {
+                    titulo.textContent = "Não foi possível confirmar";
+                    descricao.textContent = "O link pode ter expirado ou já ter sido utilizado. Volte ao site para solicitar outro.";
                 }
             } catch {
                 mensagem.textContent = "Falha de conexão. Abra o link novamente ou tente mais tarde.";
