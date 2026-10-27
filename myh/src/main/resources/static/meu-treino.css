@@ -216,3 +216,7 @@
     .dashboard-page .dashboard-links { gap: 2px; }
     .dashboard-page .dashboard-links a { min-height: 40px; padding: 0 10px; font-size: 13px; }
 }
+
+/* Destaque da sessão atribuída ao dia atual. */
+.training-card .section-heading .sample-tag { max-width: 46%; text-align: center; }
+.training-card .exercise input:disabled { cursor: not-allowed; }

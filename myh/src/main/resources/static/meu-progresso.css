@@ -68,6 +68,20 @@
 .progress-message { min-height: 0; margin: 0; color: var(--progress-green); font-size: 12px; }
 .progress-message:not(:empty) { margin-top: 10px; }
 .progress-message.erro { color: #e48080; }
+.progress-help { color: var(--progress-muted); font-size: 11px; line-height: 1.45; }
+.history-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; }
+.history-entry-details { min-width: 0; }
+.history-entry-date { color: var(--progress-muted); white-space: nowrap; }
+.history-delete { min-height: 32px; padding: 0 11px; border: 1px solid var(--progress-border); border-radius: 9px; color: #e88b8b; background: transparent; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.history-delete:hover { border-color: #e88b8b; background: color-mix(in srgb, #e88b8b 10%, transparent); }
+.history-delete:focus-visible { outline: 2px solid var(--progress-green); outline-offset: 2px; }
+.history-delete:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 500px) {
+    .history-entry { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
+    .history-entry-details { grid-column: 1; grid-row: 1; }
+    .history-entry-date { grid-column: 1; grid-row: 2; font-size: 11px; }
+    .history-delete { grid-column: 2; grid-row: 1 / 3; }
+}
 [hidden] { display: none!important; }
 :root[data-theme="light"] .progress-page { color: var(--progress-text)!important; background: var(--progress-bg)!important; }
 :root[data-theme="light"] .progress-page .weight-chart-card, :root[data-theme="light"] .progress-page .progress-form, :root[data-theme="light"] .progress-page .history-details { color: var(--progress-text)!important; border-color: var(--progress-border)!important; background: var(--progress-card)!important; box-shadow: 0 8px 24px rgba(32,54,42,.05)!important; }
@@ -127,4 +141,30 @@
     .progress-page .dashboard-nav .btn-sair { min-height: 38px; padding: 0 13px; font-size: 13px; }
     .progress-page .dashboard-links { gap: 2px; }
     .progress-page .dashboard-links a { min-height: 40px; padding: 0 10px; font-size: 13px; }
+}
+
+/* Registro opcional de carga por exercício. */
+.exercise-loads-card { display: grid; gap: 14px; }
+.exercise-loads-card > h2 { margin: 0; }
+.exercise-loads-card > h2 span { color: var(--progress-muted); font-size: .75em; font-weight: 600; }
+.exercise-loads-card > p { margin: -6px 0 2px; }
+.exercise-loads-card .progress-form-grid { margin-bottom: 14px; }
+.exercise-loads-card select { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--progress-border); border-radius: 11px; color: var(--progress-text); background: var(--progress-bg); font: inherit; }
+.exercise-loads-card select:disabled { opacity: .55; }
+.exercise-loads-card form > button { min-height: 42px; padding: 0 18px; border: 0; border-radius: 12px; color: #092014; background: var(--progress-green); font: inherit; font-weight: 800; cursor: pointer; }
+.load-history-heading { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 14px; border-top: 1px solid var(--progress-border); }
+.load-history-heading h3 { margin: 0 auto 0 0; font-size: 16px; }
+.load-history-heading label { color: var(--progress-muted); font-size: 13px; }
+.load-history-heading input { min-height: 36px; padding: 0 8px; border: 1px solid var(--progress-border); border-radius: 9px; color: var(--progress-text); background: var(--progress-bg); font: inherit; }
+.load-history-list { display: grid; gap: 8px; }
+.load-history-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 13px; background: var(--progress-soft); }
+.load-history-entry > div:first-child { display: grid; gap: 3px; }
+.load-history-entry span, .load-history-entry small { color: var(--progress-muted); font-size: 12px; }
+.load-history-value { display: grid; text-align: right; font-weight: 800; }
+.load-history-value small { font-weight: 500; }
+@media (max-width: 600px) {
+    .load-history-entry { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .load-history-value { text-align: left; }
+    .load-history-entry .history-delete { grid-column: 2; }
+    .load-history-heading { flex-wrap: wrap; }
 }

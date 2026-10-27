@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/stylealuno.css?v=20261026-2">
+    <link rel="stylesheet" href="/stylealuno.css?v=20261027-1">
     <title>Área do Aluno - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -42,13 +42,14 @@
                 <a id="comecarTreino" href="/meu-treino.html" class="today-action">Ver meu treino</a>
             </article>
 
-            <section class="week-card" aria-labelledby="semanaTitulo">
+            <section class="week-card" id="weekCard" aria-labelledby="semanaTitulo" role="button" tabindex="0" aria-label="Abrir calendário de treinos">
                 <h2 id="semanaTitulo">Sua semana</h2>
                 <div class="week-days" id="weekDays" aria-label="Dias da semana">
                     <span><b>S</b><i></i></span><span><b>T</b><i></i></span><span><b>Q</b><i></i></span>
                     <span><b>Q</b><i></i></span><span><b>S</b><i></i></span><span><b>S</b><i></i></span><span><b>D</b><i></i></span>
                 </div>
                 <p id="weekSummary">Conclua seus treinos para acompanhar sua semana.</p>
+                <span class="week-calendar-hint">Abrir calendário mensal e organizar dias →</span>
             </section>
         </section>
 
@@ -81,56 +82,101 @@
         </section>
     </main>
 
+    <dialog id="calendarDialog" class="calendar-dialog" aria-labelledby="calendarTitle">
+        <div class="calendar-dialog-content">
+            <header class="calendar-dialog-heading">
+                <div><span class="calendar-eyebrow">SEU HISTÓRICO</span><h2 id="calendarTitle">Calendário de treinos</h2></div>
+                <button type="button" class="calendar-close" data-fechar-calendario aria-label="Fechar calendário">×</button>
+            </header>
+            <div class="calendar-month-controls">
+                <button type="button" id="mesAnterior" aria-label="Mês anterior">‹</button>
+                <strong id="mesAtual"></strong>
+                <button type="button" id="mesSeguinte" aria-label="Próximo mês">›</button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
+            <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Calendário mensal"></div>
+            <div class="calendar-legend" aria-label="Legenda do calendário">
+                <span><i class="legend-done"></i>Concluído</span><span><i class="legend-pending"></i>Pendente</span><span><i class="legend-rest"></i>Descanso</span><span><i class="legend-future"></i>Futuro</span><span><i class="legend-unplanned"></i>Sem programação</span>
+            </div>
+            <section id="calendarDayDetail" class="calendar-day-detail" aria-live="polite"><p>Selecione um dia para ver os detalhes do treino e as cargas registradas.</p></section>
+            <footer class="calendar-dialog-actions"><button type="button" class="calendar-secondary" data-fechar-calendario>Fechar</button><button type="button" class="calendar-primary" id="editarAgenda">Organizar minha semana</button></footer>
+        </div>
+    </dialog>
+
+    <dialog id="agendaDialog" class="calendar-dialog agenda-dialog" aria-labelledby="agendaTitle">
+        <form id="agendaForm" class="calendar-dialog-content">
+            <header class="calendar-dialog-heading">
+                <div><span class="calendar-eyebrow">PLANEJAMENTO SEMANAL</span><h2 id="agendaTitle">Escolha seus dias de treino</h2><p id="agendaInstructions"></p></div>
+                <button type="button" class="calendar-close" data-fechar-agenda aria-label="Fechar programação">×</button>
+            </header>
+            <div id="agendaDaysFields" class="agenda-days-fields"></div>
+            <p id="agendaCount" class="agenda-count" aria-live="polite"></p>
+            <p id="agendaMessage" class="calendar-message" aria-live="polite"></p>
+            <footer class="calendar-dialog-actions"><button type="button" class="calendar-secondary" data-fechar-agenda>Cancelar</button><button type="submit" class="calendar-primary">Salvar programação</button></footer>
+        </form>
+    </dialog>
+
     <script>
         const formatarPeso = valor => valor == null ? "—" : Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " kg";
+        const nomesDias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+        const hojeLocal = new Date();
+        let periodoCalendario = new Date(hojeLocal.getFullYear(), hojeLocal.getMonth(), 1);
+        let agendaAtual = null;
+        let calendarioAtual = null;
+
+        function chaveDataLocal(data) {
+            return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+        }
+        function dataDoMes(data) { return new Date(data + "T12:00:00"); }
+        function escaparHTML(valor) { return String(valor ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+        function rotuloData(data) { return dataDoMes(data).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); }
 
         async function carregarPainel() {
             const sessaoResposta = await fetch("/api/sessao");
-            if (!sessaoResposta.ok) {
-                location.href = "/login.html";
-                return;
-            }
+            if (!sessaoResposta.ok) { location.href = "/login.html"; return; }
             const usuario = await sessaoResposta.json();
             document.getElementById("titulo").textContent = `Olá, ${usuario.nome}! 👋`;
-            const [resumoResposta, treinosResposta, conclusoesResposta] = await Promise.all([
-                fetch("/api/painel/resumo"),
-                fetch("/api/treinos"),
-                fetch("/api/treinos/conclusoes-semana")
+            const [resumoResposta, treinosResposta, conclusoesResposta, agendaResposta] = await Promise.all([
+                fetch("/api/painel/resumo"), fetch("/api/treinos"), fetch("/api/treinos/conclusoes-semana"), fetch("/api/agenda")
             ]);
-
             const conclusoes = conclusoesResposta.ok ? await conclusoesResposta.json() : [];
+            if (agendaResposta.ok) agendaAtual = await agendaResposta.json();
             atualizarSemana(conclusoes);
-
             if (treinosResposta.ok) {
                 const treinos = await treinosResposta.json();
-                if (treinos.length) {
-                    const treino = treinos[0];
+                const diaHoje = agendaAtual?.dias?.find(item => Number(item.diaSemana) === (new Date().getDay() || 7));
+                const configurada = Boolean(agendaAtual?.configurada);
+                const treino = diaHoje ? treinos.find(item => Number(item.id) === Number(diaHoje.treinoId)) : (!configurada ? treinos[0] : null);
+                if (!configurada) {
+                    document.getElementById("treinoHojeTitulo").textContent = "Organize sua semana";
+                    document.getElementById("treinoHojeResumo").textContent = `Seu plano já tem ${treinos.length} ${treinos.length === 1 ? "sessão" : "sessões"}. Escolha os dias e associe cada treino.`;
+                    document.getElementById("comecarTreino").textContent = "Planejar semana";
+                    document.getElementById("comecarTreino").dataset.abrirAgenda = "true";
+                } else if (treino && diaHoje) {
                     const quantidade = Array.isArray(treino.exercicios) ? treino.exercicios.length : 0;
                     document.getElementById("treinoHojeTitulo").textContent = treino.nome;
                     document.getElementById("treinoHojeResumo").textContent = `${treino.duracao} min · ${quantidade} exercícios`;
                     document.getElementById("comecarTreino").textContent = "Começar agora";
+                    document.getElementById("comecarTreino").removeAttribute("data-abrir-agenda");
                 } else {
-                    document.getElementById("treinoHojeTitulo").textContent = "Seu plano de treino";
-                    document.getElementById("treinoHojeResumo").textContent = "Seu treino aparecerá aqui assim que estiver disponível.";
+                    document.getElementById("treinoHojeTitulo").textContent = "Dia de descanso";
+                    document.getElementById("treinoHojeResumo").textContent = "Sua programação está organizada. Aproveite para recuperar.";
+                    document.getElementById("comecarTreino").textContent = "Ver programação";
+                    document.getElementById("comecarTreino").dataset.abrirAgenda = "true";
                 }
             }
-
             if (resumoResposta.ok) {
                 const resumo = await resumoResposta.json();
-                const inicial = Number(resumo.pesoInicial);
-                const atual = Number(resumo.pesoAtual);
+                const inicial = Number(resumo.pesoInicial), atual = Number(resumo.pesoAtual);
                 const meta = resumo.pesoMeta == null ? null : Number(resumo.pesoMeta);
                 document.getElementById("pesoInicial").textContent = formatarPeso(resumo.pesoInicial);
                 document.getElementById("pesoAtual").textContent = formatarPeso(resumo.pesoAtual);
                 document.getElementById("pesoMeta").textContent = formatarPeso(resumo.pesoMeta);
-
                 const objetivo = resumo.objetivo || "sua meta";
                 document.getElementById("goalTitle").textContent = `Rumo à meta · ${objetivo}`;
                 if (meta != null && Number.isFinite(inicial) && Number.isFinite(atual) && inicial !== meta) {
                     const emagrecer = /emagrecer/i.test(objetivo);
-                    const percentual = Math.max(0, Math.min(100, emagrecer
-                        ? (inicial - atual) / (inicial - meta) * 100
-                        : (atual - inicial) / (meta - inicial) * 100));
+                    const percentual = Math.max(0, Math.min(100, emagrecer ? (inicial - atual) / (inicial - meta) * 100 : (atual - inicial) / (meta - inicial) * 100));
                     document.getElementById("goalPercent").textContent = `${Math.round(percentual)}%`;
                     document.getElementById("goalFill").style.width = `${percentual}%`;
                     document.querySelector(".goal-track").setAttribute("aria-valuenow", String(Math.round(percentual)));
@@ -139,47 +185,142 @@
             }
         }
 
-        function chaveDataLocal(data) {
-            const ano = data.getFullYear();
-            const mes = String(data.getMonth() + 1).padStart(2, "0");
-            const dia = String(data.getDate()).padStart(2, "0");
-            return `${ano}-${mes}-${dia}`;
-        }
-
         function atualizarSemana(conclusoes) {
             const hoje = new Date();
             const indiceHoje = (hoje.getDay() + 6) % 7;
             const dias = document.querySelectorAll("#weekDays > span");
-            const nomes = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"];
             const inicioSemana = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - indiceHoje);
             const porData = new Map();
             conclusoes.forEach(item => porData.set(item.data, (porData.get(item.data) || 0) + 1));
             dias.forEach((dia, indice) => {
-                const atual = indice === indiceHoje;
                 const data = new Date(inicioSemana.getFullYear(), inicioSemana.getMonth(), inicioSemana.getDate() + indice);
-                const quantidade = porData.get(chaveDataLocal(data)) || 0;
-                const marcado = dia.querySelector("i");
-                dia.dataset.date = chaveDataLocal(data);
-                dia.classList.toggle("is-today", atual);
+                const chave = chaveDataLocal(data), quantidade = porData.get(chave) || 0;
+                const planejado = agendaAtual?.dias?.some(item => Number(item.diaSemana) === indice + 1);
+                dia.dataset.date = chave;
+                dia.classList.toggle("is-today", indice === indiceHoje);
                 dia.classList.toggle("is-done", quantidade > 0);
-                marcado.textContent = quantidade > 0 ? "✓" : "";
-                const descricao = quantidade > 0 ? `, ${quantidade} ${quantidade === 1 ? "treino concluído" : "treinos concluídos"}` : "";
-                dia.setAttribute("aria-label", `${nomes[indice]}${atual ? ", hoje" : ""}${descricao}`);
+                dia.classList.toggle("is-planned", Boolean(planejado));
+                dia.querySelector("i").textContent = quantidade > 0 ? "✓" : planejado ? "•" : "";
+                dia.setAttribute("aria-label", `${nomesDias[indice]}${indice === indiceHoje ? ", hoje" : ""}${quantidade ? ", treino concluído" : planejado ? ", treino programado" : ", descanso"}`);
             });
-            const total = conclusoes.length;
-            document.getElementById("weekSummary").textContent = total
-                ? `${total} ${total === 1 ? "treino concluído" : "treinos concluídos"} nesta semana`
-                : "Conclua seus treinos para acompanhar sua semana.";
+            document.getElementById("weekSummary").textContent = conclusoes.length
+                ? `${conclusoes.length} ${conclusoes.length === 1 ? "treino concluído" : "treinos concluídos"} nesta semana`
+                : "Clique para ver o calendário e organizar seus dias.";
         }
 
+        function obterDia(numero) { return calendarioAtual?.dias?.find(item => item.data === numero) || null; }
+        function renderizarCalendario() {
+            const grade = document.getElementById("calendarGrid");
+            const ano = periodoCalendario.getFullYear(), mes = periodoCalendario.getMonth();
+            document.getElementById("mesAtual").textContent = new Date(ano, mes, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+            grade.replaceChildren();
+            const deslocamento = (new Date(ano, mes, 1).getDay() + 6) % 7;
+            for (let indice = 0; indice < deslocamento; indice++) {
+                const vazio = document.createElement("span"); vazio.className = "calendar-day-empty"; vazio.setAttribute("aria-hidden", "true"); grade.append(vazio);
+            }
+            const quantidadeDias = new Date(ano, mes + 1, 0).getDate();
+            for (let numero = 1; numero <= quantidadeDias; numero++) {
+                const data = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(numero).padStart(2, "0")}`;
+                const registro = obterDia(data);
+                const botao = document.createElement("button");
+                botao.type = "button"; botao.className = `calendar-day status-${registro?.estado || "sem-plano"}`;
+                botao.textContent = String(numero); botao.dataset.date = data; botao.setAttribute("role", "gridcell");
+                if (data === chaveDataLocal(hojeLocal)) botao.classList.add("is-today");
+                botao.setAttribute("aria-label", `${rotuloData(data)}: ${registro?.estado || "sem plano"}`);
+                botao.addEventListener("click", () => selecionarDia(data));
+                grade.append(botao);
+            }
+        }
+        function selecionarDia(data) {
+            const registro = obterDia(data), detalhe = document.getElementById("calendarDayDetail");
+            if (!registro) { detalhe.innerHTML = `<p>${escaparHTML(rotuloData(data))}: não há programação registrada para este dia.</p>`; return; }
+            const nomesEstado = { concluido: "Treino concluído", pendente: "Treino pendente", hoje: "Treino programado para hoje", futuro: "Treino futuro", descanso: "Dia de descanso", "sem-plano": "Sem programação" };
+            const realizado = (registro.treinosConcluidos || []).map(item => `<p class="calendar-detail-workout">Concluído: <strong>${escaparHTML(item.treino)}</strong></p>`).join("");
+            const previsto = registro.treinoPrevisto ? `<p class="calendar-detail-workout">Programado: <strong>${escaparHTML(registro.treinoPrevisto.treino)}</strong></p>` : "";
+            const cargas = registro.cargas?.length ? `<div class="calendar-load-list"><strong>Cargas registradas</strong>${registro.cargas.map(carga => `<p>${escaparHTML(carga.exercicio)} · ${formatarPeso(carga.cargaKg)}${carga.series ? ` · ${carga.series} séries` : ""}${carga.repeticoes ? ` × ${carga.repeticoes}` : ""}</p>`).join("")}</div>` : "<p class=\"calendar-no-load\">Nenhuma carga registrada neste dia.</p>";
+            detalhe.innerHTML = `<div class="calendar-detail-heading"><strong>${escaparHTML(rotuloData(data))}</strong><span class="status-pill status-${escaparHTML(registro.estado)}">${nomesEstado[registro.estado] || "Sem programação"}</span></div>${previsto}${realizado}${cargas}`;
+            document.querySelectorAll(".calendar-day.is-selected").forEach(item => item.classList.remove("is-selected"));
+            document.querySelector(`.calendar-day[data-date="${data}"]`)?.classList.add("is-selected");
+        }
+        async function carregarCalendario(dataSelecionada) {
+            const ano = periodoCalendario.getFullYear(), mes = periodoCalendario.getMonth() + 1;
+            document.getElementById("calendarGrid").innerHTML = '<p class="calendar-loading">Carregando calendário…</p>';
+            const resposta = await fetch(`/api/agenda/calendario?ano=${ano}&mes=${mes}`);
+            if (!resposta.ok) throw new Error("Não foi possível carregar o calendário.");
+            calendarioAtual = await resposta.json();
+            renderizarCalendario();
+            if (dataSelecionada && dataSelecionada.startsWith(`${ano}-${String(mes).padStart(2, "0")}`)) selecionarDia(dataSelecionada);
+            else document.getElementById("calendarDayDetail").innerHTML = "<p>Selecione um dia para ver o treino, o status e as cargas registradas.</p>";
+        }
+        function abrirCalendario() {
+            document.getElementById("calendarDialog").showModal();
+            carregarCalendario(chaveDataLocal(hojeLocal)).catch(erro => { document.getElementById("calendarDayDetail").textContent = erro.message; });
+        }
+        function renderizarCamposAgenda() {
+            const contenedor = document.getElementById("agendaDaysFields"), frequencia = Number(agendaAtual?.frequencia || 0);
+            const treinos = agendaAtual?.treinos || [], atuais = new Map((agendaAtual?.dias || []).map(item => [Number(item.diaSemana), Number(item.treinoId)]));
+            document.getElementById("agendaInstructions").textContent = `Seu questionário indica ${frequencia} ${frequencia === 1 ? "treino por semana" : "treinos por semana"}. Escolha esses dias e associe uma sessão diferente a cada um.`;
+            contenedor.innerHTML = nomesDias.map((nome, indice) => {
+                const dia = indice + 1, marcado = atuais.has(dia) || (!agendaAtual?.configurada && indice < frequencia);
+                const treinoSelecionado = atuais.get(dia) || Number(treinos[indice]?.id || treinos[0]?.id || 0);
+                const opcoes = treinos.map(treino => `<option value="${Number(treino.id)}" ${Number(treino.id) === treinoSelecionado ? "selected" : ""}>${escaparHTML(treino.nome)}</option>`).join("");
+                return `<label class="agenda-day-row"><input type="checkbox" name="diaSemana" value="${dia}" ${marcado ? "checked" : ""}><span class="agenda-day-name">${nome}</span><select name="treinoDia" data-dia="${dia}" ${marcado ? "" : "disabled"} aria-label="Treino de ${nome}">${opcoes}</select></label>`;
+            }).join("");
+            contenedor.querySelectorAll('input[name="diaSemana"]').forEach(input => input.addEventListener("change", () => {
+                contenedor.querySelector(`select[data-dia="${input.value}"]`).disabled = !input.checked;
+                atualizarContagemAgenda();
+            }));
+            atualizarContagemAgenda();
+        }
+        function atualizarContagemAgenda() {
+            const marcados = document.querySelectorAll('#agendaDaysFields input[name="diaSemana"]:checked').length;
+            const frequencia = Number(agendaAtual?.frequencia || 0);
+            document.getElementById("agendaCount").textContent = `${marcados} de ${frequencia} dias selecionados`;
+            document.getElementById("agendaMessage").textContent = marcados === frequencia ? "Cada dia precisa ter um treino diferente." : `Selecione exatamente ${frequencia} dias.`;
+            document.getElementById("agendaMessage").classList.toggle("is-error", marcados > frequencia);
+        }
+        async function abrirAgenda() {
+            try {
+                const resposta = await fetch("/api/agenda");
+                if (!resposta.ok) throw new Error("Não foi possível carregar seus treinos.");
+                agendaAtual = await resposta.json();
+                if (!agendaAtual.frequencia || !agendaAtual.treinos?.length) throw new Error("Finalize o questionário para definir sua frequência e receber treinos.");
+                renderizarCamposAgenda();
+                document.getElementById("calendarDialog").close();
+                document.getElementById("agendaDialog").showModal();
+            } catch (erro) { alert(erro.message); }
+        }
+        document.getElementById("comecarTreino").addEventListener("click", evento => { if (evento.currentTarget.dataset.abrirAgenda === "true") { evento.preventDefault(); abrirAgenda(); } });
+        document.getElementById("weekCard").addEventListener("click", abrirCalendario);
+        document.getElementById("weekCard").addEventListener("keydown", evento => { if (evento.key === "Enter" || evento.key === " ") { evento.preventDefault(); abrirCalendario(); } });
+        document.getElementById("mesAnterior").addEventListener("click", () => { periodoCalendario = new Date(periodoCalendario.getFullYear(), periodoCalendario.getMonth() - 1, 1); carregarCalendario().catch(console.error); });
+        document.getElementById("mesSeguinte").addEventListener("click", () => { periodoCalendario = new Date(periodoCalendario.getFullYear(), periodoCalendario.getMonth() + 1, 1); carregarCalendario().catch(console.error); });
+        document.getElementById("editarAgenda").addEventListener("click", abrirAgenda);
+        document.querySelectorAll("[data-fechar-calendario]").forEach(botao => botao.addEventListener("click", () => document.getElementById("calendarDialog").close()));
+        document.querySelectorAll("[data-fechar-agenda]").forEach(botao => botao.addEventListener("click", () => document.getElementById("agendaDialog").close()));
+        document.getElementById("agendaForm").addEventListener("submit", async evento => {
+            evento.preventDefault();
+            const dias = [...document.querySelectorAll('#agendaDaysFields input[name="diaSemana"]:checked')].map(item => Number(item.value));
+            const treinos = dias.map(dia => Number(document.querySelector(`#agendaDaysFields select[data-dia="${dia}"]`).value));
+            const frequencia = Number(agendaAtual?.frequencia || 0), mensagem = document.getElementById("agendaMessage");
+            if (dias.length !== frequencia || new Set(treinos).size !== treinos.length) { mensagem.textContent = "Selecione a quantidade correta de dias e associe um treino diferente a cada um."; mensagem.classList.add("is-error"); return; }
+            const parametros = new URLSearchParams(); dias.forEach(dia => parametros.append("dias", String(dia))); treinos.forEach(id => parametros.append("treinos", String(id)));
+            const botao = evento.currentTarget.querySelector('[type="submit"]'); botao.disabled = true; mensagem.textContent = "Salvando programação…";
+            try {
+                const resposta = await fetch("/api/agenda", { method: "PUT", body: parametros });
+                const retorno = await resposta.json(); if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível salvar a programação.");
+                agendaAtual = await (await fetch("/api/agenda")).json();
+                document.getElementById("agendaDialog").close();
+                periodoCalendario = new Date(hojeLocal.getFullYear(), hojeLocal.getMonth(), 1);
+                document.getElementById("calendarDialog").showModal();
+                await carregarCalendario(chaveDataLocal(hojeLocal)); await carregarPainel();
+            } catch (erro) { mensagem.textContent = erro.message; mensagem.classList.add("is-error"); }
+            finally { botao.disabled = false; }
+        });
+        document.getElementById("sair").addEventListener("click", async () => { await fetch("/api/logout", { method: "POST" }); location.href = "/"; });
         carregarPainel().catch(() => {
             document.getElementById("treinoHojeTitulo").textContent = "Não foi possível carregar seu painel";
             document.getElementById("treinoHojeResumo").textContent = "Atualize a página para tentar novamente.";
-        });
-
-        document.getElementById("sair").addEventListener("click", async () => {
-            await fetch("/api/logout", { method: "POST" });
-            location.href = "/";
         });
     </script>
 </body>

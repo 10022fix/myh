@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,37 @@ public class AreaAlunoController {
         LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
         LocalDate inicio = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         return executar(sessao, id -> areaAluno.listarTreinosConcluidos(id, inicio, inicio.plusDays(6)));
+    }
+    @GetMapping("/api/agenda")
+    public ResponseEntity<?> agendaSemanal(HttpSession sessao) {
+        return executar(sessao, areaAluno::obterAgendaSemanal);
+    }
+    @PutMapping("/api/agenda")
+    public ResponseEntity<?> salvarAgenda(@RequestParam List<Integer> dias, @RequestParam List<Integer> treinos,
+            HttpSession sessao) {
+        return executar(sessao, id -> {
+            Map<String, Object> atual = areaAluno.obterAgendaSemanal(id);
+            int frequencia = ((Number) atual.getOrDefault("frequencia", 0)).intValue();
+            if (frequencia < 1 || frequencia > 7 || dias == null || treinos == null
+                    || dias.size() != frequencia || treinos.size() != frequencia
+                    || new java.util.HashSet<>(dias).size() != frequencia
+                    || new java.util.HashSet<>(treinos).size() != frequencia
+                    || dias.stream().anyMatch(dia -> dia == null || dia < 1 || dia > 7)) {
+                return ResponseEntity.badRequest().body(Map.of("mensagem", "Selecione exatamente " + frequencia + " dias e associe um treino diferente a cada dia."));
+            }
+            LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+            if (!areaAluno.salvarAgendaSemanal(id, dias, treinos, hoje)) {
+                return ResponseEntity.badRequest().body(Map.of("mensagem", "Escolha treinos ativos do seu plano para todos os dias selecionados."));
+            }
+            return Map.of("mensagem", "Sua programação semanal foi salva.");
+        });
+    }
+    @GetMapping("/api/agenda/calendario")
+    public ResponseEntity<?> calendarioTreinos(@RequestParam int ano, @RequestParam int mes, HttpSession sessao) {
+        final YearMonth periodo;
+        try { periodo = YearMonth.of(ano, mes); }
+        catch (java.time.DateTimeException erro) { return ResponseEntity.badRequest().body(Map.of("mensagem", "Mês ou ano inválido.")); }
+        return executar(sessao, id -> areaAluno.calendarioTreinos(id, periodo));
     }
     @PostMapping("/api/treinos/{treinoId}/concluir")
     public ResponseEntity<?> concluirTreino(@PathVariable int treinoId, HttpSession sessao) {
@@ -145,12 +177,49 @@ public class AreaAlunoController {
         if (treinoId <= 0) return ResponseEntity.badRequest().body(Map.of("mensagem", "Treino inválido."));
         return executar(sessao, id -> areaAluno.excluirTreino(id, treinoId)
                 ? Map.of("mensagem", "Treino removido do seu plano.")
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Treino não encontrado no seu plano.")));
+                : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "Este treino está associado a um dia da sua programação. Troque a sessão na sua semana antes de excluí-lo.")));
     }
     @GetMapping("/api/objetivos")
     public ResponseEntity<?> objetivos(HttpSession sessao) { return executar(sessao, areaAluno::listarObjetivos); }
     @GetMapping("/api/progresso")
     public ResponseEntity<?> progresso(HttpSession sessao) { return executar(sessao, areaAluno::listarProgresso); }
+    @GetMapping("/api/progresso/cargas")
+    public ResponseEntity<?> cargasMes(@RequestParam int ano, @RequestParam int mes, HttpSession sessao) {
+        final YearMonth periodo;
+        try { periodo = YearMonth.of(ano, mes); }
+        catch (java.time.DateTimeException erro) { return ResponseEntity.badRequest().body(Map.of("mensagem", "Mês ou ano inválido.")); }
+        return executar(sessao, id -> areaAluno.listarCargasMes(id, periodo));
+    }
+    @GetMapping("/api/progresso/cargas/opcoes")
+    public ResponseEntity<?> opcoesCarga(@RequestParam String data, HttpSession sessao) {
+        LocalDate dia = data(data);
+        if (dia == null || dia.isAfter(LocalDate.now(ZoneId.of("America/Sao_Paulo")))) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Escolha uma data válida, até hoje."));
+        }
+        return executar(sessao, id -> areaAluno.opcoesCarga(id, dia));
+    }
+    @PostMapping("/api/progresso/cargas")
+    public ResponseEntity<?> salvarCarga(@RequestParam int treinoId, @RequestParam int exercicioId,
+            @RequestParam String data, @RequestParam float cargaKg, @RequestParam(required = false) Integer series,
+            @RequestParam(required = false) Integer repeticoes, HttpSession sessao) {
+        LocalDate dia = data(data);
+        if (treinoId <= 0 || exercicioId <= 0 || dia == null || dia.isAfter(LocalDate.now(ZoneId.of("America/Sao_Paulo")))
+                || !Float.isFinite(cargaKg) || cargaKg < 0 || cargaKg > 2000
+                || (series != null && (series < 1 || series > 20))
+                || (repeticoes != null && (repeticoes < 1 || repeticoes > 500))) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Confira a data, a carga, as séries e as repetições."));
+        }
+        return executar(sessao, id -> areaAluno.salvarCarga(id, treinoId, exercicioId, dia, cargaKg, series, repeticoes)
+                ? Map.of("mensagem", "Carga salva para este exercício.")
+                : ResponseEntity.badRequest().body(Map.of("mensagem", "Esse exercício não pertence a um treino programado ou concluído nessa data.")));
+    }
+    @DeleteMapping("/api/progresso/cargas/{cargaId}")
+    public ResponseEntity<?> excluirCarga(@PathVariable long cargaId, HttpSession sessao) {
+        if (cargaId <= 0) return ResponseEntity.badRequest().body(Map.of("mensagem", "Registro de carga inválido."));
+        return executar(sessao, id -> areaAluno.excluirCarga(id, cargaId)
+                ? Map.of("mensagem", "Registro de carga removido.")
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Registro de carga não encontrado.")));
+    }
     @GetMapping("/api/painel/resumo")
     public ResponseEntity<?> resumo(HttpSession sessao) { return executar(sessao, areaAluno::resumoPainel); }
 
@@ -195,7 +264,17 @@ public class AreaAlunoController {
                 || !numeroEntre(peito, 0, 300) || !numeroEntre(quadril, 0, 300) || !numeroEntre(coxa, 0, 200) || !numeroEntre(panturrilha, 0, 200)) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Confira peso, data e medidas informados."));
         }
-        return executar(sessao, id -> { areaAluno.cadastrarProgresso(id, peso, gordura, registro, braco, antebraco, cintura, peito, quadril, coxa, panturrilha); return Map.of("mensagem", "Progresso registrado com sucesso."); });
+        return executar(sessao, id -> areaAluno.cadastrarProgresso(id, peso, gordura, registro, braco, antebraco, cintura, peito, quadril, coxa, panturrilha)
+                ? Map.of("mensagem", "Progresso registrado com sucesso.")
+                : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "Você já tem um registro de progresso nesta data. Exclua o registro existente se precisar corrigi-lo.")));
+    }
+
+    @DeleteMapping("/api/progresso/{progressoId}")
+    public ResponseEntity<?> excluirProgresso(@PathVariable int progressoId, HttpSession sessao) {
+        if (progressoId <= 0) return ResponseEntity.badRequest().body(Map.of("mensagem", "Registro inválido."));
+        return executar(sessao, id -> areaAluno.excluirProgresso(id, progressoId)
+                ? Map.of("mensagem", "Registro de progresso excluído.")
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Registro não encontrado.")));
     }
 
     private LocalDate data(String valor) { return valor == null || valor.isBlank() ? null : LocalDate.parse(valor); }

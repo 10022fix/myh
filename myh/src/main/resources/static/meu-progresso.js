@@ -4,6 +4,7 @@
     const peso = $("pesoRegistro");
     const data = $("dataRegistro");
     const svgNS = "http://www.w3.org/2000/svg";
+    let datasRegistradas = new Set();
 
     function dataLocalISO() {
         const hoje = new Date();
@@ -63,6 +64,7 @@
 
     function renderizar(registros) {
         const itens = Array.isArray(registros) ? registros : [];
+        datasRegistradas = new Set(itens.map(item => item.data));
         const maisRecente = itens[0];
         const maisAntigo = itens[itens.length - 1];
         $("ultimoPeso").textContent = maisRecente ? formatarPeso(maisRecente.peso) : "—";
@@ -82,9 +84,33 @@
             const medidas = [["Gordura", item.gordura, "%"], ["Braço", item.braco, " cm"], ["Antebraço", item.antebraco, " cm"], ["Cintura", item.cintura, " cm"], ["Peito", item.peito, " cm"], ["Quadril", item.quadril, " cm"], ["Coxa", item.coxa, " cm"], ["Panturrilha", item.panturrilha, " cm"]]
                 .filter(([, valor]) => valor != null)
                 .map(([nome, valor, unidade]) => `${nome}: ${valor}${unidade}`).join(" · ");
-            return `<div class="history-entry"><div><strong>${formatarPeso(item.peso)}</strong>${medidas ? `<small>${medidas}</small>` : ""}</div><span>${formatarData(item.data)}</span></div>`;
+            return `<div class="history-entry"><div class="history-entry-details"><strong>${formatarPeso(item.peso)}</strong>${medidas ? `<small>${medidas}</small>` : ""}</div><span class="history-entry-date">${formatarData(item.data)}</span><button class="history-delete" type="button" data-excluir-registro="${Number(item.id)}" aria-label="Excluir registro de ${formatarData(item.data)}">Excluir</button></div>`;
         }).join("");
     }
+
+    $("registros").addEventListener("click", async event => {
+        const botao = event.target.closest("[data-excluir-registro]");
+        if (!botao) return;
+        const registroId = Number(botao.dataset.excluirRegistro);
+        if (!Number.isInteger(registroId) || registroId <= 0) return;
+        if (!window.confirm("Tem certeza de que deseja excluir este registro de progresso?")) return;
+
+        botao.disabled = true;
+        $("mensagem").textContent = "Excluindo registro…";
+        $("mensagem").classList.remove("erro");
+        try {
+            const resposta = await fetch(`/api/progresso/${registroId}`, { method: "DELETE" });
+            const retorno = await resposta.json().catch(() => ({}));
+            if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível excluir o registro.");
+            $("mensagem").textContent = retorno.mensagem || "Registro de progresso excluído.";
+            await carregar();
+        } catch (erro) {
+            $("mensagem").textContent = erro.message || "Falha de conexão ao excluir o registro.";
+            $("mensagem").classList.add("erro");
+        } finally {
+            botao.disabled = false;
+        }
+    });
 
     async function carregar() {
         try {
@@ -107,6 +133,11 @@
     data.max = dataLocalISO();
     form.addEventListener("submit", async event => {
         event.preventDefault();
+        if (datasRegistradas.has(data.value)) {
+            $("mensagem").textContent = "Você já tem um registro nesta data. Exclua-o no histórico se quiser corrigir o peso.";
+            $("mensagem").classList.add("erro");
+            return;
+        }
         const botao = form.querySelector('button[type="submit"]');
         botao.disabled = true;
         $("mensagem").textContent = "Salvando registro…";
@@ -122,7 +153,6 @@
             form.reset();
             data.value = dataLocalISO();
             data.max = dataLocalISO();
-    data.max = dataLocalISO();
             await carregar();
         } catch (erro) {
             $("mensagem").textContent = erro.message || "Falha de conexão ao salvar o registro.";
@@ -131,6 +161,104 @@
             botao.disabled = false;
         }
     });
+
+    const formularioCarga = $("formularioCarga");
+    const dataCarga = $("dataCarga");
+    const treinoCarga = $("treinoCarga");
+    const exercicioCarga = $("exercicioCarga");
+    const historicoCargas = $("historicoCargas");
+    const mensagemCarga = $("mensagemCarga");
+    const hojeISO = dataLocalISO();
+    dataCarga.max = hojeISO;
+    dataCarga.value = hojeISO;
+    $("mesCargas").value = hojeISO.slice(0, 7);
+
+    function escaparHTML(valor) {
+        return String(valor ?? "").replace(/[&<>"']/g, caractere => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[caractere]));
+    }
+    async function carregarOpcoesCarga() {
+        treinoCarga.disabled = true;
+        exercicioCarga.disabled = true;
+        treinoCarga.innerHTML = '<option value="">Carregando treinos…</option>';
+        exercicioCarga.innerHTML = '<option value="">Selecione o treino</option>';
+        if (!dataCarga.value || dataCarga.value > hojeISO) return;
+        try {
+            const resposta = await fetch(`/api/progresso/cargas/opcoes?data=${encodeURIComponent(dataCarga.value)}`);
+            const opcoes = await resposta.json();
+            if (!resposta.ok) throw new Error(opcoes.mensagem || "Não foi possível localizar treinos nessa data.");
+            treinoCarga.innerHTML = opcoes.length
+                ? '<option value="">Selecione um treino</option>' + opcoes.map(treino => `<option value="${Number(treino.treinoId)}">${escaparHTML(treino.treino)}</option>`).join("")
+                : '<option value="">Nenhum treino nessa data</option>';
+            treinoCarga.disabled = opcoes.length === 0;
+            treinoCarga.dataset.opcoes = JSON.stringify(opcoes);
+        } catch (erro) {
+            treinoCarga.innerHTML = '<option value="">Erro ao carregar</option>';
+            mensagemCarga.textContent = erro.message;
+            mensagemCarga.classList.add("erro");
+        }
+    }
+    function selecionarExerciciosCarga() {
+        const opcoes = JSON.parse(treinoCarga.dataset.opcoes || "[]");
+        const treino = opcoes.find(item => Number(item.treinoId) === Number(treinoCarga.value));
+        const exercicios = treino?.exercicios || [];
+        exercicioCarga.innerHTML = exercicios.length
+            ? '<option value="">Selecione um exercício</option>' + exercicios.map(item => `<option value="${Number(item.exercicioId)}">${escaparHTML(item.exercicio)}</option>`).join("")
+            : '<option value="">Nenhum exercício disponível</option>';
+        exercicioCarga.disabled = exercicios.length === 0;
+    }
+    async function carregarHistoricoCargas() {
+        const [ano, mes] = $("mesCargas").value.split("-").map(Number);
+        if (!ano || !mes) return;
+        historicoCargas.innerHTML = '<p class="progress-help">Carregando cargas…</p>';
+        try {
+            const resposta = await fetch(`/api/progresso/cargas?ano=${ano}&mes=${mes}`);
+            const cargas = await resposta.json();
+            if (!resposta.ok) throw new Error(cargas.mensagem || "Não foi possível carregar as cargas.");
+            historicoCargas.innerHTML = cargas.length ? cargas.map(item => `<article class="load-history-entry">
+                <div><strong>${escaparHTML(item.exercicio)}</strong><span>${escaparHTML(item.treino)} · ${formatarData(item.data)}</span></div>
+                <div class="load-history-value">${formatarPeso(item.cargaKg)}${item.series ? `<small>${Number(item.series)} séries${item.repeticoes ? ` × ${Number(item.repeticoes)} reps` : ""}</small>` : ""}</div>
+                <button type="button" class="history-delete" data-excluir-carga="${Number(item.id)}">Excluir</button>
+            </article>`).join("") : '<p class="progress-help">Nenhuma carga registrada neste mês.</p>';
+        } catch (erro) { historicoCargas.innerHTML = `<p class="progress-message erro">${escaparHTML(erro.message)}</p>`; }
+    }
+    dataCarga.addEventListener("change", carregarOpcoesCarga);
+    treinoCarga.addEventListener("change", selecionarExerciciosCarga);
+    $("mesCargas").addEventListener("change", carregarHistoricoCargas);
+    formularioCarga.addEventListener("submit", async evento => {
+        evento.preventDefault();
+        const botao = formularioCarga.querySelector('[type="submit"]');
+        const dados = new URLSearchParams();
+        ["data", "treinoId", "exercicioId", "cargaKg", "series", "repeticoes"].forEach(nome => {
+            const valor = formularioCarga.elements[nome]?.value;
+            if (valor !== undefined && valor !== "") dados.set(nome, valor);
+        });
+        botao.disabled = true; mensagemCarga.textContent = "Salvando carga…"; mensagemCarga.classList.remove("erro");
+        try {
+            const resposta = await fetch("/api/progresso/cargas", { method: "POST", body: dados });
+            const retorno = await resposta.json();
+            if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível salvar a carga.");
+            mensagemCarga.textContent = retorno.mensagem || "Carga salva para este exercício.";
+            formularioCarga.elements.cargaKg.value = "";
+            formularioCarga.elements.series.value = "";
+            formularioCarga.elements.repeticoes.value = "";
+            await carregarHistoricoCargas();
+        } catch (erro) { mensagemCarga.textContent = erro.message; mensagemCarga.classList.add("erro"); }
+        finally { botao.disabled = false; }
+    });
+    historicoCargas.addEventListener("click", async evento => {
+        const botao = evento.target.closest("[data-excluir-carga]");
+        if (!botao || !window.confirm("Excluir este registro de carga?")) return;
+        botao.disabled = true;
+        try {
+            const resposta = await fetch(`/api/progresso/cargas/${Number(botao.dataset.excluirCarga)}`, { method: "DELETE" });
+            const retorno = await resposta.json();
+            if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível excluir a carga.");
+            mensagemCarga.textContent = retorno.mensagem || "Carga removida.";
+            await carregarHistoricoCargas();
+        } catch (erro) { mensagemCarga.textContent = erro.message; mensagemCarga.classList.add("erro"); botao.disabled = false; }
+    });
+    carregarOpcoesCarga();
+    carregarHistoricoCargas();
 
     carregar();
 })();

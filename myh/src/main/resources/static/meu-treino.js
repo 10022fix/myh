@@ -11,6 +11,8 @@
     let acaoRecomendacao = { tipo: "adicionar", treinoId: null };
     const marcados = {};
     let concluidosHoje = new Set();
+    let agendaAtual = null;
+    let treinoDeHojeId = null;
 
     const escapar = valor => String(valor ?? "").replace(/[&<>"']/g, caractere => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -28,6 +30,8 @@
         const titulo = escapar(treino.nome || `Treino ${indiceTreino + 1}`);
         const treinoId = Number(treino.id);
         const concluidoHoje = concluidosHoje.has(treinoId);
+        const podeTreinarHoje = !agendaAtual?.configurada || treinoDeHojeId === treinoId;
+        const agendaItem = agendaAtual?.dias?.find(item => Number(item.treinoId) === treinoId);
         const detalhes = exercicios.map((exercicio, indice) => {
             const chave = chaveExercicio(treino, exercicio, indice);
             const idCheckbox = `exercicio-${indiceTreino}-${indice}`;
@@ -38,7 +42,7 @@
                 : `${Number(exercicio.series) || 0} séries · ${repeticoes || 0} repetições · ${Number(exercicio.descanso) || 0}s descanso`;
             const grupo = exercicio.grupoMuscular || exercicio.grupo || exercicio.musculo || "";
             return `<div class="exercise${marcado ? " is-complete" : ""}">
-                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
+                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
                 <span class="exercise-number">${String(indice + 1).padStart(2, "0")}</span>
                 <label class="exercise-copy" for="${idCheckbox}"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></label>
                 ${grupo ? `<b>${escapar(grupo)}</b>` : ""}
@@ -57,14 +61,14 @@
         return `<article class="training-card demo-content-card" data-training-id="${treinoIdCard}">
             <div class="section-heading">
                 <div><h2>${titulo}</h2><p>${total} ${total === 1 ? "exercício" : "exercícios"} · ${duracaoTexto}</p></div>
-                <span class="sample-tag">${nivel}</span>
+                <span class="sample-tag">${agendaItem ? `Dia ${Number(agendaItem.ordem)} · ${["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][Number(agendaItem.diaSemana)]}` : nivel}</span>
             </div>
             <div class="exercise-list">${detalhes || `<p class="empty-exercises">Este treino ainda não tem exercícios cadastrados.</p>`}</div>
             <div class="workout-progress" role="progressbar" aria-label="Progresso de ${titulo}" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${completo}">
                 <span style="width:${percentual}%"></span>
             </div>
             <p class="demo-feedback" data-workout-feedback>${totalConcluidos} de ${total} exercícios concluídos</p>
-            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados ? "" : "hidden"} ${concluidoHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
+            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados && podeTreinarHoje ? "" : "hidden"} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
             <div class="training-actions">
                 <button type="button" class="training-action" data-alterar-treino="${treinoIdCard}">Alterar por recomendação</button>
                 <button type="button" class="training-action training-action--delete" data-excluir-treino="${treinoIdCard}">Excluir treino</button>
@@ -91,9 +95,10 @@
 
     async function carregar() {
         try {
-            const [resposta, conclusoesResposta] = await Promise.all([
+            const [resposta, conclusoesResposta, agendaResposta] = await Promise.all([
                 fetch("/api/treinos?busca=" + encodeURIComponent(busca.value)),
-                fetch("/api/treinos/conclusoes-semana")
+                fetch("/api/treinos/conclusoes-semana"),
+                fetch("/api/agenda")
             ]);
             if (resposta.status === 401) {
                 location.href = "/login.html";
@@ -103,16 +108,27 @@
                 lista.innerHTML = `<section class="empty-state"><h2>Não foi possível carregar os treinos.</h2><p>O servidor retornou o erro ${resposta.status}. Tente novamente mais tarde.</p></section>`;
                 return;
             }
+            if (agendaResposta.ok) {
+                agendaAtual = await agendaResposta.json();
+                const hoje = new Date();
+                const diaSemana = hoje.getDay() || 7;
+                treinoDeHojeId = Number(agendaAtual.dias?.find(item => Number(item.diaSemana) === diaSemana)?.treinoId) || null;
+            }
             if (conclusoesResposta.ok) {
                 const conclusoes = await conclusoesResposta.json();
                 const hoje = new Date();
                 const hojeLocal = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
                 concluidosHoje = new Set(conclusoes.filter(item => item.data === hojeLocal).map(item => Number(item.treinoId)));
             }
-            const treinos = await resposta.json();
+            const treinosDisponiveis = await resposta.json();
+            const treinos = agendaAtual?.configurada
+                ? (treinoDeHojeId ? treinosDisponiveis.filter(treino => Number(treino.id) === treinoDeHojeId) : [])
+                : treinosDisponiveis;
             lista.innerHTML = treinos.length
                 ? treinos.map(renderizarTreino).join("")
-                : `<section class="empty-state"><h2>Nenhum treino encontrado</h2><p>Experimente buscar outro termo ou aguarde a liberação de um treino pelo profissional.</p></section>`;
+                : agendaAtual?.configurada && !treinoDeHojeId
+                    ? `<section class="empty-state"><h2>Hoje é dia de descanso</h2><p>Seu próximo treino aparece aqui no dia programado. Você pode alterar seus dias no calendário da área do aluno.</p><a class="training-action" href="/areadoaluno.html">Abrir minha semana</a></section>`
+                    : `<section class="empty-state"><h2>Nenhum treino encontrado</h2><p>Experimente buscar outro termo ou aguarde a liberação de um treino pelo profissional.</p></section>`;
         } catch (_) {
             lista.innerHTML = '<section class="empty-state"><h2>Falha de conexão.</h2><p>Não foi possível falar com o servidor. Atualize a página para tentar novamente.</p></section>';
         }

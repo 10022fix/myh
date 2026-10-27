@@ -75,6 +75,15 @@ public final class GeradorTreinoQuestionario {
     /** Favorece opções diferentes das sessões ativas, mantendo os filtros e prioridades do questionário. */
     public static List<TreinoGerado> gerar(String respostasJson, String objetivo, String local, int duracao,
             Set<String> exerciciosAtivos) {
+        return gerar(respostasJson, objetivo, local, duracao, 2, exerciciosAtivos);
+    }
+
+    /** Cria uma sessão personalizada para cada dia semanal escolhido no questionário. */
+    public static List<TreinoGerado> gerar(String respostasJson, String objetivo, String local, int duracao,
+            int quantidadeSessoes, Set<String> exerciciosAtivos) {
+        if (quantidadeSessoes < 1 || quantidadeSessoes > 7) {
+            throw new IllegalArgumentException("A frequência semanal deve estar entre 1 e 7 dias.");
+        }
         final JsonNode respostas;
         try {
             respostas = JSON.readTree(respostasJson);
@@ -100,16 +109,20 @@ public final class GeradorTreinoQuestionario {
                 podeTreinarNaAcademia, restricoes, prioridades, duracao,
                 exerciciosAtivos == null ? Set.of() : Set.copyOf(exerciciosAtivos));
 
-        // Evita repetir o mesmo exercício nos dois dias do plano.
-        Set<String> usados = new HashSet<>();
-        List<ExercicioGerado> treinoA = montarSessao(contexto, usados, false);
-        List<ExercicioGerado> treinoB = montarSessao(contexto, usados, true);
+        // As duas primeiras sessões evitam repetir exercícios. As demais mantêm
+        // variações próprias para que planos de maior frequência também tenham N dias.
+        Set<String> usadosNasPrimeirasSessoes = new HashSet<>();
         String descricao = descricao(contexto, idade);
-
-        return List.of(
-                new TreinoGerado("Treino A" + identificacaoGenero, descricao, duracao, treinoA),
-                new TreinoGerado("Treino B" + identificacaoGenero, descricao, duracao, treinoB)
-        );
+        List<TreinoGerado> sessoes = new ArrayList<>();
+        for (int indice = 0; indice < quantidadeSessoes; indice++) {
+            Set<String> usados = indice < 2 ? usadosNasPrimeirasSessoes : new HashSet<>();
+            List<ExercicioGerado> exercicios = montarSessao(contexto, usados, indice % 2 == 1);
+            String nome = quantidadeSessoes == 2
+                    ? (indice == 0 ? "Treino A" : "Treino B") + identificacaoGenero
+                    : "Dia " + (indice + 1) + identificacaoGenero;
+            sessoes.add(new TreinoGerado(nome, descricao, duracao, exercicios));
+        }
+        return List.copyOf(sessoes);
     }
 
     /** Lista o catálogo compatível com o questionário para a montagem manual do aluno. */
