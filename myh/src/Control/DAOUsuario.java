@@ -118,6 +118,22 @@ public class DAOUsuario {
         }
     }
 
+    /** Registra a versão dos termos/política e o consentimento específico informado no cadastro. */
+    public void registrarAceiteLegal(int usuarioId, String versaoTermos, String versaoPrivacidade,
+            boolean consentimentoSaude) throws SQLException {
+        String sql = "INSERT INTO usuario_aceite_legal "
+                + "(usuario_id, versao_termos, versao_privacidade, consentimento_dados_saude) "
+                + "VALUES (?, ?, ?, ?)";
+        try (Connection conexao = consultas.abreConexao();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, usuarioId);
+            comando.setString(2, versaoTermos);
+            comando.setString(3, versaoPrivacidade);
+            comando.setBoolean(4, consentimentoSaude);
+            comando.executeUpdate();
+        }
+    }
+
     /** Confirma o e-mail e consome o token uma única vez. Retorna o ID da conta ou zero. */
     public int verificarEmail(String tokenHash) throws SQLException {
         try (Connection conexao = consultas.abreConexao()) {

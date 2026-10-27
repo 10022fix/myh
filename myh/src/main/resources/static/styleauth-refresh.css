@@ -451,6 +451,51 @@
 .auth-page .password-strength[data-strength="3"] .password-strength-bars i.is-active { background: #c4d96a; }
 .auth-page .password-strength[data-strength="4"] .password-strength-bars i.is-active { background: var(--auth-accent); }
 
+.auth-page .cadastro-consentimentos {
+    width: 100%;
+    margin: 2px 0 4px;
+    padding: 12px;
+    border: 1px solid var(--auth-border);
+    border-radius: 12px;
+    color: var(--auth-text);
+    background: color-mix(in srgb, var(--auth-card) 72%, var(--auth-field));
+}
+.auth-page .cadastro-consentimentos legend {
+    padding: 0 6px;
+    color: var(--auth-text);
+    font-size: 13px;
+    font-weight: 800;
+}
+.auth-page .consentimento-item {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    align-items: start;
+    gap: 9px;
+    margin: 8px 0;
+    color: var(--auth-text);
+    font-size: 12px;
+    line-height: 1.55;
+    cursor: pointer;
+}
+.auth-page .consentimento-item input {
+    width: 17px;
+    height: 17px;
+    margin: 1px 0 0;
+    accent-color: var(--auth-accent);
+}
+.auth-page .consentimento-item a {
+    color: var(--auth-accent);
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.auth-page .cadastro-consentimentos > p {
+    margin: 8px 0 0;
+    color: var(--auth-muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
 /* Link de recuperação destacado apenas na tela de login. */
 .login-page .link-recuperacao {
     margin: 12px 0 0;

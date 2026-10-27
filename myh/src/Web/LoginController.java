@@ -30,6 +30,8 @@ public class LoginController {
     private final String urlBase;
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final Pattern APELIDO_ACESSO = Pattern.compile("^[A-Za-z0-9._-]{3,30}$");
+    private static final String VERSAO_TERMOS = "2026-10-26-v1";
+    private static final String VERSAO_PRIVACIDADE = "2026-10-26-v1";
 
     public LoginController(ServicoEmailBrevo emailBrevo,
             @Value("${app.base-url:https://myh-j47a.onrender.com}") String urlBase) {
@@ -94,9 +96,15 @@ public class LoginController {
             @RequestParam String apelidoAcesso,
             @RequestParam String email,
             @RequestParam String senha,
+            @RequestParam(required = false) Boolean aceiteTermos,
+            @RequestParam(required = false) Boolean consentimentoSaude,
             HttpServletRequest requisicao) {
         int usuarioPendenteId = 0;
         try {
+            if (!Boolean.TRUE.equals(aceiteTermos) || !Boolean.TRUE.equals(consentimentoSaude)) {
+                return ResponseEntity.badRequest().body(Map.of("sucesso", false,
+                        "mensagem", "Leia e aceite os termos e autorize o uso das respostas de saúde para criar sua conta."));
+            }
             nome = nome == null ? "" : nome.trim();
             apelidoAcesso = apelidoAcesso == null ? "" : apelidoAcesso.trim().toLowerCase(java.util.Locale.ROOT);
             email = email == null ? "" : email.trim().toLowerCase();
@@ -129,6 +137,8 @@ public class LoginController {
                         "sucesso", false,
                         "mensagem", "Não foi possível cadastrar. Confira os dados; o e-mail ou apelido talvez já esteja cadastrado."));
             }
+
+            usuarios.registrarAceiteLegal(usuarioPendenteId, VERSAO_TERMOS, VERSAO_PRIVACIDADE, true);
 
             String token = novoToken();
             usuarios.criarTokenVerificacaoEmail(usuarioPendenteId, hashToken(token), Instant.now().plusSeconds(86400));
