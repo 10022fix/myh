@@ -77,6 +77,12 @@
             <p id="mensagemRedefinir" class="recovery-message" aria-live="polite" role="status"></p>
         </section>
 
+        <section class="recovery-step" id="stepEmailConfirmado" aria-labelledby="tituloEmailConfirmado" hidden>
+            <h1 id="tituloEmailConfirmado">Confirmação aprovada</h1>
+            <p class="recovery-description">A solicitação foi confirmada. Volte ao site para criar sua nova senha.</p>
+            <a class="back-to-login" href="/esqueci-senha.html?continuar=1">Voltar ao site e redefinir senha</a>
+        </section>
+
         <section class="recovery-step" id="stepInvalido" aria-labelledby="tituloInvalido" hidden>
             <h1 id="tituloInvalido">Link inválido ou expirado</h1>
             <p id="mensagemInvalido" class="recovery-description">Este link pode ter expirado ou já ter sido usado. Solicite um novo link para continuar.</p>
@@ -95,15 +101,17 @@
     <script src="/redefinir-senha-page.js?v=20261027-1" defer></script>
     <script>
         (() => {
-            const etapas = ["stepSolicitar", "stepAguardando", "stepNovaSenha", "stepInvalido", "stepConcluido"]
+            const etapas = ["stepSolicitar", "stepAguardando", "stepNovaSenha", "stepEmailConfirmado", "stepInvalido", "stepConcluido"]
                 .map(id => document.getElementById(id));
             const mostrarEtapa = etapa => etapas.forEach(item => { item.hidden = item !== etapa; });
             const etapaSolicitar = etapas[0];
             const etapaAguardando = etapas[1];
             const etapaNovaSenha = etapas[2];
-            const etapaInvalido = etapas[3];
-            const etapaConcluido = etapas[4];
+            const etapaEmailConfirmado = etapas[3];
+            const etapaInvalido = etapas[4];
+            const etapaConcluido = etapas[5];
             const token = new URLSearchParams(location.hash.slice(1)).get("token") || "";
+            const continuarNoSite = new URLSearchParams(location.search).get("continuar") === "1";
             const linkLoginGlobal = document.querySelector(".recovery-global-login");
             let pollingEstado = null;
             let redirecionando = false;
@@ -245,7 +253,7 @@
             if (!token) {
                 let aguardandoSalvo = false;
                 try { aguardandoSalvo = sessionStorage.getItem("myhSenhaAguardandoConfirmacao") === "1"; } catch (_) {}
-                if (aguardandoSalvo) {
+                if (aguardandoSalvo || continuarNoSite) {
                     mostrarEtapa(etapaAguardando);
                     linkLoginGlobal.hidden = false;
                     iniciarAcompanhamento();
@@ -270,12 +278,10 @@
                     linkLoginGlobal.hidden = false;
                     return;
                 }
-                mostrarEtapa(etapaNovaSenha);
+                // O link do e-mail confirma apenas a solicitação. A senha é criada
+                // na página do site que está aguardando a confirmação.
+                mostrarEtapa(etapaEmailConfirmado);
                 linkLoginGlobal.hidden = true;
-                formularioSenhaLiberado = true;
-                document.getElementById("mensagemAprovada").textContent = dados.mensagem || "Confirmação aprovada. Defina sua nova senha nesta página.";
-                iniciarAcompanhamento();
-                document.getElementById("novaSenha").focus();
             }).catch(() => {
                 document.getElementById("tituloAguardando").textContent = "Não foi possível confirmar";
                 document.getElementById("mensagemAguardando").textContent = "Falha de conexão. Reabra o link recebido por e-mail ou tente novamente.";
