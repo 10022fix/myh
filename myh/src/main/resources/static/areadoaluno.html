@@ -313,15 +313,29 @@
             document.getElementById("agendaMessage").classList.toggle("is-error", marcados > frequencia);
         }
         async function abrirAgenda() {
+            const dialogo = document.getElementById("agendaDialog");
+            const campos = document.getElementById("agendaDaysFields");
+            const mensagem = document.getElementById("agendaMessage");
+            const contagem = document.getElementById("agendaCount");
+            const salvar = document.querySelector('#agendaForm [type="submit"]');
+            document.getElementById("calendarDialog").close();
+            campos.innerHTML = "";
+            contagem.textContent = "";
+            mensagem.textContent = "Carregando seus treinos…";
+            mensagem.classList.remove("is-error");
+            salvar.disabled = true;
+            if (!dialogo.open) dialogo.showModal();
             try {
                 const resposta = await fetch("/api/agenda");
                 if (!resposta.ok) throw new Error("Não foi possível carregar seus treinos.");
                 agendaAtual = await resposta.json();
                 if (!agendaAtual.frequencia || !agendaAtual.treinos?.length) throw new Error("Finalize o questionário para definir sua frequência e receber treinos.");
                 renderizarCamposAgenda();
-                document.getElementById("calendarDialog").close();
-                document.getElementById("agendaDialog").showModal();
-            } catch (erro) { alert(erro.message); }
+                salvar.disabled = false;
+            } catch (erro) {
+                mensagem.textContent = erro.message;
+                mensagem.classList.add("is-error");
+            }
         }
         function abrirFrequencia() {
             const frequencia = Number(agendaAtual?.frequencia || 2);

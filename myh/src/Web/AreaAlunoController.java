@@ -243,7 +243,7 @@ public class AreaAlunoController {
         if (meta == null && dataMeta != null && !dataMeta.isBlank() || !objetivoValido(objetivo) || !numeroEntre(pesoMeta, 25, 400)) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe objetivo, peso e data válidos."));
         }
-        return executar(sessao, id -> { areaAluno.cadastrarObjetivo(id, objetivo, pesoMeta, meta); return Map.of("mensagem", "Meta cadastrada. Os treinos recomendados foram atualizados com base no seu perfil."); });
+        return executar(sessao, id -> { areaAluno.cadastrarObjetivo(id, objetivo, pesoMeta, meta); return Map.of("mensagem", "Meta cadastrada. O plano foi ajustado ao objetivo e ao seu perfil."); });
     }
 
     @PutMapping("/api/objetivos/{objetivoId}")
@@ -256,7 +256,7 @@ public class AreaAlunoController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe objetivo, peso e data válidos."));
         }
         return executar(sessao, id -> areaAluno.atualizarObjetivo(id, objetivoId, objetivo, pesoMeta, meta)
-                ? Map.of("mensagem", "Meta atualizada e treinos recomendados refeitos com base no seu perfil.") : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Meta não encontrada.")));
+                ? Map.of("mensagem", "Meta atualizada. Se você mudou o objetivo, novos treinos foram gerados; se mudou apenas o peso, os exercícios foram mantidos e a intensidade ajustada.") : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Meta não encontrada.")));
     }
 
     @DeleteMapping("/api/objetivos/{objetivoId}")

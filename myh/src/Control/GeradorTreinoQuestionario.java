@@ -160,6 +160,8 @@ public final class GeradorTreinoQuestionario {
     private static String chaveObjetivo(String objetivo) {
         if ("Ganhar Massa".equalsIgnoreCase(objetivo)) return "ganhar_musculo";
         if ("Emagrecer".equalsIgnoreCase(objetivo)) return "perder_peso";
+        if ("Condicionamento".equalsIgnoreCase(objetivo)) return "condicionamento";
+        if ("Definicao".equalsIgnoreCase(objetivo) || "Definição".equalsIgnoreCase(objetivo)) return "definicao";
         return "saude";
     }
 
@@ -198,7 +200,8 @@ public final class GeradorTreinoQuestionario {
         // A ordem muda entre as recomendações para que uma nova sugestão não pareça apenas uma cópia.
         Collections.shuffle(sessao);
 
-        if ("perder_peso".equals(contexto.objetivo)) {
+        if ("perder_peso".equals(contexto.objetivo) || "condicionamento".equals(contexto.objetivo)
+                || "definicao".equals(contexto.objetivo)) {
             sessao.add(ExercicioGerado.tempo(cardio(contexto, usados), minutosCardio(contexto.duracao)));
         }
         return sessao;
@@ -214,18 +217,18 @@ public final class GeradorTreinoQuestionario {
                 .toList();
         if (candidatos.isEmpty()) return;
 
+        List<ExercicioCatalogo> diferentesDoPlano = candidatos.stream()
+                .filter(exercicio -> !contexto.exerciciosAtivos.contains(exercicio.nome))
+                .toList();
+        if (diferentesDoPlano.isEmpty()) return;
+        candidatos = diferentesDoPlano;
+
         List<ExercicioCatalogo> priorizados = candidatos.stream()
                 .filter(e -> contexto.prioridades.contains(e.grupo))
                 .toList();
         List<ExercicioCatalogo> opcoes = usarPrioridade && !priorizados.isEmpty()
                 ? priorizados
                 : (!priorizados.isEmpty() && ThreadLocalRandom.current().nextInt(100) < 65 ? priorizados : candidatos);
-        List<ExercicioCatalogo> diferentesDoPlano = opcoes.stream()
-                .filter(exercicio -> !contexto.exerciciosAtivos.contains(exercicio.nome))
-                .toList();
-        if (!diferentesDoPlano.isEmpty() && ThreadLocalRandom.current().nextInt(100) < 75) {
-            opcoes = diferentesDoPlano;
-        }
         ExercicioCatalogo escolhido = opcoes.get(ThreadLocalRandom.current().nextInt(opcoes.size()));
         escolhidos.add(escolhido);
         usados.add(escolhido.nome);
@@ -241,11 +244,18 @@ public final class GeradorTreinoQuestionario {
     private static ExercicioGerado prescrever(ExercicioCatalogo exercicio, Contexto contexto) {
         int series = contexto.senior || contexto.iniciante ? 2
                 : "ganhar_musculo".equals(contexto.objetivo) ? 4 : 3;
-        int repeticoes = "ganhar_musculo".equals(contexto.objetivo)
-                ? 8 + ThreadLocalRandom.current().nextInt(5)
-                : contexto.senior ? 8 + ThreadLocalRandom.current().nextInt(5)
-                : 10 + ThreadLocalRandom.current().nextInt(5);
-        int descanso = contexto.senior ? 90 : "ganhar_musculo".equals(contexto.objetivo) ? 90 : 60;
+        int repeticoes;
+        if ("ganhar_musculo".equals(contexto.objetivo)) {
+            repeticoes = 8 + ThreadLocalRandom.current().nextInt(5);
+        } else if ("condicionamento".equals(contexto.objetivo) || "definicao".equals(contexto.objetivo)) {
+            repeticoes = 12 + ThreadLocalRandom.current().nextInt(4);
+        } else {
+            repeticoes = contexto.senior ? 8 + ThreadLocalRandom.current().nextInt(5)
+                    : 10 + ThreadLocalRandom.current().nextInt(5);
+        }
+        int descanso = contexto.senior ? 90
+                : "ganhar_musculo".equals(contexto.objetivo) ? 90
+                : "condicionamento".equals(contexto.objetivo) || "definicao".equals(contexto.objetivo) ? 45 : 60;
         if (contexto.iniciante && !contexto.senior) descanso = 75;
         return new ExercicioGerado(exercicio.nome, series, repeticoes, descanso);
     }
@@ -268,7 +278,11 @@ public final class GeradorTreinoQuestionario {
         } else {
             opcoes = List.of("Caminhada em ritmo confortável", "Marcha estacionária leve", "Caminhada intervalada leve");
         }
-        List<String> novas = opcoes.stream().filter(nome -> !usados.contains(nome)).toList();
+        List<String> novas = opcoes.stream()
+                .filter(nome -> !usados.contains(nome))
+                .filter(nome -> contexto.exerciciosAtivos.stream()
+                        .noneMatch(antigo -> antigo.equals(nome) || antigo.startsWith(nome + " (")))
+                .toList();
         List<String> disponiveis = novas.isEmpty() ? opcoes : novas;
         String escolhido = disponiveis.get(ThreadLocalRandom.current().nextInt(disponiveis.size()));
         usados.add(escolhido);
@@ -286,8 +300,12 @@ public final class GeradorTreinoQuestionario {
         String foco;
         if ("ganhar_musculo".equals(contexto.objetivo)) {
             foco = "Foco em força e hipertrofia, com volume ajustado ao nível informado.";
+        } else if ("condicionamento".equals(contexto.objetivo)) {
+            foco = "Foco em condicionamento físico, com exercícios de força e complemento aeróbico.";
+        } else if ("definicao".equals(contexto.objetivo)) {
+            foco = "Foco em definição e composição corporal, com volume e ritmo ajustados ao nível informado.";
         } else if ("saude".equals(contexto.objetivo)) {
-            foco = "Foco em saúde geral e condicionamento, com volume ajustado ao nível informado.";
+            foco = "Foco em saúde geral, força funcional e movimentos controlados.";
         } else {
             foco = "Foco em força e condicionamento; o cardio complementa o objetivo de emagrecimento.";
         }

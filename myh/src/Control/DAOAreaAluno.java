@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -315,14 +316,18 @@ public class DAOAreaAluno {
     public void cadastrarObjetivo(int usuarioId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
-            try (PreparedStatement comando = conexao.prepareStatement(
-                    "INSERT INTO objetivos (usuario_id, objetivo, peso_meta, data_meta) VALUES (?, ?, ?, ?)")) {
-                comando.setInt(1, usuarioId);
-                comando.setString(2, objetivo);
-                if (pesoMeta == null) comando.setNull(3, java.sql.Types.DECIMAL); else comando.setFloat(3, pesoMeta);
-                if (dataMeta == null) comando.setNull(4, java.sql.Types.DATE); else comando.setDate(4, Date.valueOf(dataMeta));
-                comando.executeUpdate();
-                regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+            try {
+                MetaObjetivo anterior = buscarMetaObjetivo(conexao, usuarioId, null);
+                try (PreparedStatement comando = conexao.prepareStatement(
+                        "INSERT INTO objetivos (usuario_id, objetivo, peso_meta, data_meta) VALUES (?, ?, ?, ?)")) {
+                    comando.setInt(1, usuarioId);
+                    comando.setString(2, objetivo);
+                    if (pesoMeta == null) comando.setNull(3, java.sql.Types.DECIMAL); else comando.setFloat(3, pesoMeta);
+                    if (dataMeta == null) comando.setNull(4, java.sql.Types.DATE); else comando.setDate(4, Date.valueOf(dataMeta));
+                    comando.executeUpdate();
+                }
+                MetaObjetivo atual = buscarMetaObjetivo(conexao, usuarioId, null);
+                ajustarTreinosAposMudancaMeta(conexao, usuarioId, anterior, atual);
                 conexao.commit();
             } catch (SQLException | RuntimeException erro) {
                 conexao.rollback();
@@ -334,15 +339,23 @@ public class DAOAreaAluno {
     public boolean atualizarObjetivo(int usuarioId, int objetivoId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
-            try (PreparedStatement comando = conexao.prepareStatement(
-                    "UPDATE objetivos SET objetivo=?, peso_meta=?, data_meta=? WHERE id=? AND usuario_id=?")) {
-                comando.setString(1, objetivo);
-                if (pesoMeta == null) comando.setNull(2, java.sql.Types.DECIMAL); else comando.setFloat(2, pesoMeta);
-                if (dataMeta == null) comando.setNull(3, java.sql.Types.DATE); else comando.setDate(3, Date.valueOf(dataMeta));
-                comando.setInt(4, objetivoId);
-                comando.setInt(5, usuarioId);
-                if (comando.executeUpdate() != 1) { conexao.rollback(); return false; }
-                regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+            try {
+                MetaObjetivo anterior = buscarMetaObjetivo(conexao, usuarioId, objetivoId);
+                if (anterior == null) { conexao.rollback(); return false; }
+                MetaObjetivo objetivoAtivoAntes = buscarMetaObjetivo(conexao, usuarioId, null);
+                try (PreparedStatement comando = conexao.prepareStatement(
+                        "UPDATE objetivos SET objetivo=?, peso_meta=?, data_meta=? WHERE id=? AND usuario_id=?")) {
+                    comando.setString(1, objetivo);
+                    if (pesoMeta == null) comando.setNull(2, java.sql.Types.DECIMAL); else comando.setFloat(2, pesoMeta);
+                    if (dataMeta == null) comando.setNull(3, java.sql.Types.DATE); else comando.setDate(3, Date.valueOf(dataMeta));
+                    comando.setInt(4, objetivoId);
+                    comando.setInt(5, usuarioId);
+                    if (comando.executeUpdate() != 1) { conexao.rollback(); return false; }
+                }
+                if (objetivoAtivoAntes != null && objetivoAtivoAntes.id() == objetivoId) {
+                    MetaObjetivo atual = buscarMetaObjetivo(conexao, usuarioId, null);
+                    ajustarTreinosAposMudancaMeta(conexao, usuarioId, anterior, atual);
+                }
                 conexao.commit();
                 return true;
             } catch (SQLException | RuntimeException erro) {
@@ -355,12 +368,18 @@ public class DAOAreaAluno {
     public boolean excluirObjetivo(int usuarioId, int objetivoId) throws SQLException {
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
-            try (PreparedStatement comando = conexao.prepareStatement(
-                    "DELETE FROM objetivos WHERE id=? AND usuario_id=?")) {
-                comando.setInt(1, objetivoId);
-                comando.setInt(2, usuarioId);
-                if (comando.executeUpdate() != 1) { conexao.rollback(); return false; }
-                regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+            try {
+                MetaObjetivo anterior = buscarMetaObjetivo(conexao, usuarioId, null);
+                try (PreparedStatement comando = conexao.prepareStatement(
+                        "DELETE FROM objetivos WHERE id=? AND usuario_id=?")) {
+                    comando.setInt(1, objetivoId);
+                    comando.setInt(2, usuarioId);
+                    if (comando.executeUpdate() != 1) { conexao.rollback(); return false; }
+                }
+                if (anterior != null && anterior.id() == objetivoId) {
+                    MetaObjetivo atual = buscarMetaObjetivo(conexao, usuarioId, null);
+                    ajustarTreinosAposMudancaMeta(conexao, usuarioId, anterior, atual);
+                }
                 conexao.commit();
                 return true;
             } catch (SQLException | RuntimeException erro) {
@@ -368,6 +387,76 @@ public class DAOAreaAluno {
                 throw erro;
             }
         }
+    }
+
+    private MetaObjetivo buscarMetaObjetivo(Connection conexao, int usuarioId, Integer objetivoId) throws SQLException {
+        String sql = "SELECT id,objetivo,peso_meta FROM objetivos WHERE usuario_id=?"
+                + (objetivoId == null ? " ORDER BY id DESC LIMIT 1" : " AND id=?") + " FOR UPDATE";
+        try (PreparedStatement consulta = conexao.prepareStatement(sql)) {
+            consulta.setInt(1, usuarioId);
+            if (objetivoId != null) consulta.setInt(2, objetivoId);
+            try (ResultSet rs = consulta.executeQuery()) {
+                if (!rs.next()) return null;
+                Number peso = (Number) rs.getObject("peso_meta");
+                return new MetaObjetivo(rs.getInt("id"), rs.getString("objetivo"),
+                        peso == null ? null : peso.floatValue());
+            }
+        }
+    }
+
+    private void ajustarTreinosAposMudancaMeta(Connection conexao, int usuarioId,
+            MetaObjetivo anterior, MetaObjetivo atual) throws SQLException {
+        if (atual == null) {
+            regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+            return;
+        }
+        if (anterior == null || !categoriaObjetivo(anterior.objetivo()).equals(categoriaObjetivo(atual.objetivo()))) {
+            regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+            return;
+        }
+        boolean mudouPesoAlvo = atual.pesoMeta() != null
+                && (anterior.pesoMeta() == null || Float.compare(anterior.pesoMeta(), atual.pesoMeta()) != 0);
+        if (mudouPesoAlvo && !intensificarTreinosRecomendados(conexao, usuarioId)) {
+            regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+        }
+    }
+
+    private String categoriaObjetivo(String objetivo) {
+        if (objetivo == null) return "";
+        return Normalizer.normalize(objetivo.trim().toLowerCase(java.util.Locale.ROOT), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+    }
+
+    /** Mantém os exercícios e sobe o volume em um passo, com limite de 4 séries e 15 repetições. */
+    private boolean intensificarTreinosRecomendados(Connection conexao, int usuarioId) throws SQLException {
+        int ativos;
+        try (PreparedStatement consulta = conexao.prepareStatement(
+                "SELECT COUNT(DISTINCT ut.treino_id) FROM usuario_treinos ut "
+                        + "JOIN treinos t ON t.id=ut.treino_id "
+                        + "WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'")) {
+            consulta.setInt(1, usuarioId);
+            try (ResultSet rs = consulta.executeQuery()) { rs.next(); ativos = rs.getInt(1); }
+        }
+        if (ativos == 0) return false;
+        try (PreparedStatement atualizarRepeticoes = conexao.prepareStatement(
+                "UPDATE treino_exercicios te "
+                        + "JOIN usuario_treinos ut ON ut.treino_id=te.treino_id AND ut.usuario_id=? AND ut.ativo=TRUE "
+                        + "JOIN treinos t ON t.id=te.treino_id "
+                        + "SET te.repeticoes=LEAST(te.repeticoes+1,15) "
+                        + "WHERE t.origem='RECOMENDADO' AND te.repeticoes>0 AND te.series>=4")) {
+            atualizarRepeticoes.setInt(1, usuarioId);
+            atualizarRepeticoes.executeUpdate();
+        }
+        try (PreparedStatement atualizarSeries = conexao.prepareStatement(
+                "UPDATE treino_exercicios te "
+                        + "JOIN usuario_treinos ut ON ut.treino_id=te.treino_id AND ut.usuario_id=? AND ut.ativo=TRUE "
+                        + "JOIN treinos t ON t.id=te.treino_id "
+                        + "SET te.series=LEAST(te.series+1,4) "
+                        + "WHERE t.origem='RECOMENDADO' AND te.repeticoes>0")) {
+            atualizarSeries.setInt(1, usuarioId);
+            atualizarSeries.executeUpdate();
+        }
+        return true;
     }
     public List<Map<String, Object>> listarProgresso(int usuarioId) throws SQLException {
         String sql = "SELECT p.id, p.peso_atual, p.percentual_gordura, p.data_registro, m.braco, m.antebraco, m.cintura, m.peito, m.quadril, m.coxa, m.panturrilha "
@@ -1154,4 +1243,5 @@ public class DAOAreaAluno {
     private void definirNumero(PreparedStatement comando, int indice, Float valor) throws SQLException {
         if (valor == null) comando.setNull(indice, java.sql.Types.DECIMAL); else comando.setFloat(indice, valor);
     }
+    private record MetaObjetivo(int id, String objetivo, Float pesoMeta) { }
 }
