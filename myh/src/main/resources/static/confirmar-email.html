@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
     <link rel="stylesheet" href="/tema.css">
-    <link rel="stylesheet" href="/confirmar-email.css?v=20261026-3">
+    <link rel="stylesheet" href="/confirmar-email.css?v=20261026-4">
     <title>Confirmar e-mail - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -27,17 +27,63 @@
         <a class="recovery-brand" href="/login.html" aria-label="Make Your Health - voltar ao login">
             <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
         </a>
-        <h1>Confirme seu e-mail</h1>
-        <p class="recovery-description">Estamos verificando o link de confirmação da sua conta.</p>
+        <h1 id="tituloConfirmacao">Confirme seu e-mail</h1>
+        <p id="descricaoConfirmacao" class="recovery-description">Estamos verificando o link de confirmação da sua conta.</p>
         <p id="mensagem" class="recovery-message" aria-live="polite" role="status">Estamos verificando seu link...</p>
-        <a class="back-to-login" href="/login.html">Voltar ao login</a>
+        <a id="acaoConfirmacao" class="back-to-login" href="/login.html" hidden>Voltar ao login</a>
     </main>
     <script>
         (async () => {
             const mensagem = document.getElementById("mensagem");
+            const titulo = document.getElementById("tituloConfirmacao");
+            const descricao = document.getElementById("descricaoConfirmacao");
+            const acao = document.getElementById("acaoConfirmacao");
+            const aguardando = new URLSearchParams(location.search).get("aguardando") === "1";
+
+            if (aguardando) {
+                titulo.textContent = "Aguardando confirmação do e-mail";
+                descricao.textContent = "Enviamos um link para o seu e-mail. Confirme por ele e volte a esta página para continuar seu cadastro.";
+                mensagem.textContent = "Estamos aguardando a confirmação do seu endereço de e-mail.";
+                acao.hidden = true;
+                let emailPendente = "";
+                try { emailPendente = (localStorage.getItem("myhPendingSignupEmail") || "").trim().toLowerCase(); } catch (_) {}
+
+                let confirmado = false;
+                const verificarSessao = async () => {
+                    if (confirmado || !emailPendente || document.visibilityState === "hidden") return;
+                    try {
+                        const resposta = await fetch("/api/sessao", { cache: "no-store", credentials: "same-origin" });
+                        if (!resposta.ok) return;
+                        const dadosSessao = await resposta.json();
+                        if (!dadosSessao.sucesso || (dadosSessao.email || "").trim().toLowerCase() !== emailPendente) return;
+
+                        confirmado = true;
+                        try { localStorage.removeItem("myhPendingSignupEmail"); } catch (_) {}
+                        titulo.textContent = "E-mail cadastrado com sucesso";
+                        descricao.textContent = "Sua conta foi confirmada. Continue o cadastro respondendo ao questionário.";
+                        mensagem.textContent = "Confirmação aprovada. Agora você já pode completar seu cadastro.";
+                        acao.href = "/questionario.html";
+                        acao.textContent = "Continuar para o questionário";
+                        acao.hidden = false;
+                        clearInterval(intervalo);
+                    } catch (_) {
+                        // A tela continua aguardando e tenta novamente quando voltar a ficar visível.
+                    }
+                };
+                const intervalo = setInterval(verificarSessao, 2500);
+                document.addEventListener("visibilitychange", verificarSessao);
+                window.addEventListener("focus", verificarSessao);
+                verificarSessao();
+                return;
+            }
+
             const token = new URLSearchParams(location.hash.slice(1)).get("token");
             if (!token) {
+                titulo.textContent = "Confirme seu e-mail";
+                descricao.textContent = "Abra o link de confirmação que enviamos para ativar sua conta.";
                 mensagem.textContent = "Abra o link de confirmação que enviamos para seu e-mail. Se não encontrar, confira também o Spam.";
+                acao.href = "/cadastro.html";
+                acao.textContent = "Voltar ao cadastro";
                 return;
             }
             try {
@@ -46,10 +92,19 @@
                     body: new URLSearchParams({ token })
                 });
                 const dados = await resposta.json();
-                mensagem.textContent = dados.mensagem || "Não foi possível confirmar seu e-mail.";
+                mensagem.textContent = dados.sucesso
+                    ? "Confirmação aprovada. Volte ao site e continue o cadastro."
+                    : (dados.mensagem || "Não foi possível confirmar seu e-mail.");
                 if (resposta.ok && dados.sucesso) {
+                    if (dados.email) {
+                        try { localStorage.setItem("myhPendingSignupEmail", String(dados.email).trim().toLowerCase()); } catch (_) {}
+                    }
                     history.replaceState(null, "", location.pathname);
-                    setTimeout(() => location.href = dados.redirecionar || "/questionario.html", 1500);
+                    titulo.textContent = "Confirmação aprovada";
+                    descricao.textContent = "Seu endereço de e-mail foi confirmado.";
+                    acao.href = "/confirmar-email.html?aguardando=1";
+                    acao.textContent = "Voltar ao site e continuar cadastro";
+                    acao.hidden = false;
                 }
             } catch {
                 mensagem.textContent = "Falha de conexão. Abra o link novamente ou tente mais tarde.";

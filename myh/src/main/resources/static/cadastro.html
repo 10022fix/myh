@@ -112,7 +112,11 @@
                     mensagem.textContent = dados.mensagem;
 
                     if (dados.sucesso && dados.aguardandoConfirmacao) {
-                        formulario.reset();
+                        const emailPendente = new FormData(formulario).get("email");
+                        if (emailPendente) {
+                            try { localStorage.setItem("myhPendingSignupEmail", String(emailPendente).trim().toLowerCase()); } catch (_) {}
+                        }
+                        location.href = "/confirmar-email.html?aguardando=1";
                     } else if (dados.sucesso) {
                         setTimeout(() => {
                             location.href = dados.redirecionar || "/questionario.html";

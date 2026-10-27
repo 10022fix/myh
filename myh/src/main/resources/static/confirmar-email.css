@@ -162,6 +162,7 @@ body.recovery-page {
     transition: background .18s ease;
 }
 .back-to-login:hover { background: color-mix(in srgb, var(--recovery-accent) 20%, var(--recovery-card)); }
+.back-to-login[hidden] { display: none; }
 .back-to-login:focus-visible { outline: 2px solid var(--recovery-accent); outline-offset: 3px; }
 
 @media (max-width: 480px) {

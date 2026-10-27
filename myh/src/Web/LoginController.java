@@ -68,10 +68,18 @@ public class LoginController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("sucesso", false, "mensagem", "Nenhum usuario autenticado."));
         }
+        Object email = sessao.getAttribute("usuarioEmail");
+        if (email == null) {
+            return ResponseEntity.ok(Map.of(
+                    "sucesso", true,
+                    "id", usuarioId,
+                    "nome", sessao.getAttribute("usuarioNome")));
+        }
         return ResponseEntity.ok(Map.of(
                 "sucesso", true,
                 "id", usuarioId,
-                "nome", sessao.getAttribute("usuarioNome")));
+                "nome", sessao.getAttribute("usuarioNome"),
+                "email", email));
     }
 
     @PostMapping("/api/logout")
@@ -175,8 +183,8 @@ public class LoginController {
             }
             iniciarSessao(requisicao, usuario);
             return ResponseEntity.ok(Map.of("sucesso", true,
-                    "mensagem", "E-mail confirmado! Vamos completar seu cadastro.",
-                    "redirecionar", "/questionario.html"));
+                    "mensagem", "Confirmação aprovada. Volte ao site e continue o cadastro.",
+                    "email", usuario.getEmail()));
         } catch (SQLException e) {
             System.err.println("Falha ao confirmar e-mail: " + e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("sucesso", false,
@@ -206,6 +214,7 @@ public class LoginController {
         HttpSession nova = requisicao.getSession(true);
         nova.setAttribute("usuarioId", usuario.getId());
         nova.setAttribute("usuarioNome", usuario.getNome());
+        nova.setAttribute("usuarioEmail", usuario.getEmail());
         nova.setAttribute("csrf", java.util.UUID.randomUUID().toString());
         nova.setMaxInactiveInterval(30 * 60);
     }
