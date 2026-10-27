@@ -4,17 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/stylelogin.css">
-    <link rel="stylesheet" href="/tema.css">
+    <link rel="stylesheet" href="/confirmar-email.css?v=20261026-1">
     <title>Confirmar e-mail - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
-<body>
-    <main class="cadastro">
-            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health" class="logo-cadastro">
+<body class="recovery-page">
+    <header class="recovery-header">
+        <nav class="navbar" aria-label="Controles de aparência">
+            <button class="theme-toggle" type="button" aria-label="Alternar tema"></button>
+        </nav>
+    </header>
+    <main class="recovery-card">
+        <a class="recovery-brand" href="/login.html" aria-label="Make Your Health - voltar ao login">
+            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
         </a>
-        <h1 class="titulo-cadastro">Confirme seu e-mail</h1>
-        <p id="mensagem" aria-live="polite">Estamos verificando seu link...</p>
+        <h1>Confirme seu e-mail</h1>
+        <p class="recovery-description">Estamos verificando o link de confirmação da sua conta.</p>
+        <p id="mensagem" class="recovery-message" aria-live="polite" role="status">Estamos verificando seu link...</p>
+        <a class="back-to-login" href="/login.html">Voltar ao login</a>
     </main>
     <script>
         (async () => {
