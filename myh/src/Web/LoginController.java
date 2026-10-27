@@ -218,7 +218,7 @@ public class LoginController {
     }
 
     /** Troca o identificador de sessao depois da autenticacao e evita session fixation. */
-    private void iniciarSessao(HttpServletRequest requisicao, Usuario usuario) {
+    static void iniciarSessao(HttpServletRequest requisicao, Usuario usuario) {
         HttpSession anterior = requisicao.getSession(false);
         if (anterior != null) anterior.invalidate();
         HttpSession nova = requisicao.getSession(true);

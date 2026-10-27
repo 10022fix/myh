@@ -220,6 +220,7 @@ body.recovery-page {
 
 /* Estados do fluxo de recuperação, mantidos dentro de esqueci-senha.html. */
 .recovery-card .recovery-step[hidden] { display: none !important; }
+.recovery-card [hidden] { display: none !important; }
 .recovery-card .recovery-step:not([hidden]) { display: block; }
 .recovery-card .recovery-global-login { display: flex; width: fit-content; margin: 12px auto 0; }
 .recovery-card .recovery-secondary { border: 0; font: inherit; cursor: pointer; }

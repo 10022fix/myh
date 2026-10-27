@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/esqueci-senha.css?v=20261027-1">
+    <link rel="stylesheet" href="/esqueci-senha.css?v=20261027-2">
     <link rel="stylesheet" href="/senha-toggle.css">
     <title>Recuperar senha - Make Your Health</title>
     <script src="/tema.js"></script>
@@ -83,9 +83,9 @@
         </section>
 
         <section class="recovery-step" id="stepConcluido" aria-labelledby="tituloConcluido" hidden>
-            <h1 id="tituloConcluido">Senha alterada</h1>
-            <p id="mensagemConcluida" class="recovery-description" aria-live="polite">Sua senha foi alterada. Agora você já pode entrar com a nova senha.</p>
-            <a class="back-to-login" href="/login.html">Voltar ao login</a>
+            <h1 id="tituloConcluido">Senha trocada com sucesso!</h1>
+            <p id="mensagemConcluida" class="recovery-description" aria-live="polite">Bem-vindo! Estamos levando você para a área do aluno.</p>
+            <a id="linkAreaAluno" class="back-to-login" href="/areadoaluno.html">Ir para a área do aluno</a>
         </section>
 
         <a class="back-to-login recovery-global-login" href="/login.html">Voltar ao login</a>
@@ -173,6 +173,11 @@
                     history.replaceState(null, "", location.pathname);
                     mostrarEtapa(etapaConcluido);
                     linkLoginGlobal.hidden = true;
+                    document.getElementById("tituloConcluido").textContent = "Senha trocada com sucesso!";
+                    document.getElementById("mensagemConcluida").textContent = dados.mensagem || "Bem-vindo! Estamos levando você para a área do aluno.";
+                    const destino = dados.redirecionar || "/areadoaluno.html";
+                    document.getElementById("linkAreaAluno").href = destino;
+                    window.setTimeout(() => location.assign(destino), 2200);
                 } catch (_) {
                     mensagem.textContent = "Falha de conexão. Tente novamente.";
                 } finally {

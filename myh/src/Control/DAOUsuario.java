@@ -316,7 +316,7 @@ public class DAOUsuario {
     }
 
     /** Valida e consome o link em uma transação; cada token só pode ser usado uma vez. */
-    public boolean redefinirSenha(String tokenHash, String novaSenha) throws SQLException, GeneralSecurityException {
+    public Usuario redefinirSenha(String tokenHash, String novaSenha) throws SQLException, GeneralSecurityException {
         try (Connection conexao = consultas.abreConexao()) {
             boolean autoCommitAnterior = conexao.getAutoCommit();
             conexao.setAutoCommit(false);
@@ -329,9 +329,24 @@ public class DAOUsuario {
                     try (ResultSet resultado = buscar.executeQuery()) {
                         if (!resultado.next()) {
                             conexao.rollback();
-                            return false;
+                            return null;
                         }
                         usuarioId = resultado.getInt("usuario_id");
+                    }
+                }
+                Usuario usuario;
+                try (PreparedStatement buscarUsuario = conexao.prepareStatement(
+                        "SELECT id, nome, email FROM usuario WHERE id = ?")) {
+                    buscarUsuario.setInt(1, usuarioId);
+                    try (ResultSet resultado = buscarUsuario.executeQuery()) {
+                        if (!resultado.next()) {
+                            conexao.rollback();
+                            return null;
+                        }
+                        usuario = new Usuario();
+                        usuario.setId(resultado.getInt("id"));
+                        usuario.setNome(resultado.getString("nome"));
+                        usuario.setEmail(resultado.getString("email"));
                     }
                 }
                 String senhaHash = gerarHashSenha(novaSenha);
@@ -341,7 +356,7 @@ public class DAOUsuario {
                     atualizar.setInt(2, usuarioId);
                     if (atualizar.executeUpdate() != 1) {
                         conexao.rollback();
-                        return false;
+                        return null;
                     }
                 }
                 try (PreparedStatement consumir = conexao.prepareStatement(
@@ -350,7 +365,7 @@ public class DAOUsuario {
                     consumir.executeUpdate();
                 }
                 conexao.commit();
-                return true;
+                return usuario;
             } catch (SQLException | GeneralSecurityException | RuntimeException e) {
                 conexao.rollback();
                 throw e;

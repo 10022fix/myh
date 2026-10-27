@@ -1,6 +1,8 @@
 package Web;
 
 import Control.DAOUsuario;
+import Model.Usuario;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -99,7 +101,8 @@ public class RecuperacaoSenhaController {
 
     @PostMapping("/api/senha/redefinir")
     public ResponseEntity<Map<String, String>> redefinir(@RequestParam String token,
-            @RequestParam String novaSenha, @RequestParam String confirmarSenha) {
+            @RequestParam String novaSenha, @RequestParam String confirmarSenha,
+            HttpServletRequest requisicao) {
         if (token == null || token.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "O link de redefinição é inválido ou expirou."));
         }
@@ -110,10 +113,14 @@ public class RecuperacaoSenhaController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "As senhas não são iguais."));
         }
         try {
-            if (!usuarios.redefinirSenha(hashToken(token), novaSenha)) {
+            Usuario usuario = usuarios.redefinirSenha(hashToken(token), novaSenha);
+            if (usuario == null) {
                 return ResponseEntity.badRequest().body(Map.of("mensagem", "O link de redefinição é inválido ou expirou."));
             }
-            return ResponseEntity.ok(Map.of("mensagem", "Senha alterada. Você já pode entrar com a nova senha."));
+            LoginController.iniciarSessao(requisicao, usuario);
+            return ResponseEntity.ok(Map.of(
+                    "mensagem", "Senha trocada com sucesso. Bem-vindo, " + usuario.getNome() + "! Estamos levando você para a área do aluno.",
+                    "redirecionar", "/areadoaluno.html"));
         } catch (Exception e) {
             System.err.println("Falha ao redefinir senha: " + e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
