@@ -27,9 +27,9 @@ public class QuestionarioController {
         Object usuario = sessao.getAttribute("usuarioId");
         if (!(usuario instanceof Integer)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Sua sessao expirou. Faca login novamente."));
         try {
-            validar(opcao(objetivo, "ganhar_musculo", "perder_peso"), "objetivo");
-            validar(opcao(formaAtual, "magro", "media", "pesado", "muito_pesado"), "forma atual");
-            validar(opcao(formaDesejada, "esbelto", "em_forma", "musculoso", "fisiculturismo"), "forma desejada");
+            validar(opcao(objetivo, "ganhar_musculo", "perder_peso", "saude"), "objetivo");
+            validar(opcao(formaAtual, "magro", "media", "pesado", "muito_pesado", "nao_informado"), "forma atual");
+            validar(opcao(formaDesejada, "esbelto", "em_forma", "musculoso", "fisiculturismo", "nao_informado"), "forma desejada");
             int vezes = inteiro(frequencia, 1, 6, "frequência de treino");
             int minutos = inteiro(duracao, 30, 120, "duração do treino");
             float peso = decimal(pesoAlvo, 1, 400, "peso-meta");
@@ -42,12 +42,16 @@ public class QuestionarioController {
             float pesoInformado = decimal(pesoInicial, 25.0f, 400.0f, "peso atual");
             if ("perder_peso".equals(objetivo)) {
                 validar(peso < pesoInformado, "peso-meta (precisa ser menor que o peso atual)");
-            } else {
+            } else if ("ganhar_musculo".equals(objetivo)) {
                 validar(peso >= pesoInformado, "peso-meta (precisa ser igual ou maior que o peso atual para ganhar músculo)");
             }
             validar(opcao(local, "casa", "academia", "hibrido"), "local de treino");
             if (respostas.length() > 8000 || !respostas.startsWith("{") || !respostas.endsWith("}")) throw new IllegalArgumentException("respostas do questionário");
-            String meta = objetivo.equals("ganhar_musculo") ? "Ganhar Massa" : "Emagrecer";
+            String meta = switch (objetivo) {
+                case "ganhar_musculo" -> "Ganhar Massa";
+                case "perder_peso" -> "Emagrecer";
+                default -> "Saúde e disposição";
+            };
             boolean treino = areaAluno.finalizarQuestionario((Integer) usuario, meta, peso, minutos, formaAtual, formaDesejada,
                     String.valueOf(vezes), local, respostas, nascimento, sexo, alturaInformada, pesoInformado);
             sessao.setAttribute("questionarioConcluido", true);

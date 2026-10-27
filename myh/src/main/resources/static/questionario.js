@@ -2,207 +2,41 @@
 // Cada objeto dentro do array representa uma pergunta.
 const PERGUNTAS = [
     {
-        id: "dados_pessoais",
-        tipo: "dados",
-        titulo: "Conte um pouco sobre você",
-        subtitulo: "Esses dados ajudam a registrar seu ponto de partida.",
-        layout: "dados",
-    },
-    {
-        id: "sexo",
-        tipo: "single",
-        titulo: "A que gênero biológico pertence?",
-        layout: "grid-imagem",
+        id: "objetivo", tipo: "single", titulo: "Qual é o seu principal objetivo?", layout: "lista",
         opcoes: [
-            { valor: "Masculino", label: "Masculino", imagem: "/images/genero-masculino.png" },
-            { valor: "Feminino", label: "Feminino", imagem: "/images/genero-feminino.png" },
-        ],
-    },
-
-    {
-        // Identificador único da pergunta.
-        // É usado pelo JavaScript para guardar e recuperar a resposta.
-        id: "objetivo",
-
-        // Define o tipo de pergunta.
-        // "single" = o usuário pode escolher apenas uma opção.
-        tipo: "single",
-
-        // Texto que será mostrado como título da pergunta.
-        titulo: "Qual é seu principal objetivo?",
-        subtitulo: "Escolha entre ganhar músculo ou perder peso e gordura.",
-
-        // Define como as opções serão organizadas visualmente.
-        layout: "lista",
-
-        // Lista de opções disponíveis para o usuário.
-        opcoes: [
-            // "valor" é o valor que será salvo no objeto respostas.
-            // "label" é o texto mostrado para o usuário.
-            // "icone" é o emoji mostrado ao lado da opção.
             { valor: "ganhar_musculo", label: "Ganhar músculo", icone: "💪" },
-            { valor: "perder_peso", label: "Perder peso & gordura", icone: "🔥" },
+            { valor: "perder_peso", label: "Perder peso e gordura", icone: "🔥" },
+            { valor: "saude", label: "Ter mais saúde e disposição", icone: "🌿" },
         ],
     },
-
     {
-        id: "forma_atual",
-        tipo: "single",
-        titulo: "Escolha sua forma corporal atual",
-
-        // Usa imagens em uma grade.
-        layout: "grid-imagem",
-
+        id: "frequencia_atual", tipo: "single", titulo: "Como é a sua rotina de treino hoje?", layout: "lista",
         opcoes: [
-            // "imagem" indica o caminho da imagem que será exibida.
-            { valor: "magro", label: "1", imagem: "/images/1-atual.png" },
-            { valor: "media", label: "2", imagem: "/images/2-atual.png" },
-            { valor: "pesado", label: "3", imagem: "/images/3-atual.png" },
-            { valor: "muito_pesado", label: "4", imagem: "/images/4-atual.png" },
+            { valor: "nunca", label: "Nunca treinei", icone: "🌱" },
+            { valor: "ocasional", label: "Treino de vez em quando", icone: "🚶" },
+            { valor: "semanal", label: "Treino toda semana", icone: "🏆" },
         ],
     },
-
     {
-        id: "forma_desejada",
-        tipo: "single",
-        titulo: "Escolha o corpo que você deseja",
-        layout: "grid-imagem",
-
+        id: "frequencia_desejada", tipo: "single", titulo: "Quantos dias por semana quer treinar?",
+        subtitulo: "Seja realista: é melhor começar leve e manter o ritmo.", layout: "lista-grade",
+        opcoes: ["2", "3", "4", "5"].map((valor) => ({ valor, label: valor })),
+    },
+    {
+        id: "duracao_treino", tipo: "single", titulo: "Quanto tempo você tem por treino?", layout: "lista-grade",
+        opcoes: ["30", "45", "60"].map((valor) => ({ valor, label: `${valor} min` })),
+    },
+    {
+        id: "local_treino", tipo: "single", titulo: "Onde você vai treinar?", layout: "lista",
         opcoes: [
-            { valor: "esbelto", label: "Esbelto", imagem: "/images/1-alvo.png" },
-            { valor: "em_forma", label: "Em forma", imagem: "/images/2-alvo.png" },
-            { valor: "musculoso", label: "Musculoso", imagem: "/images/3-alvo.png" },
-            { valor: "fisiculturismo", label: "Fisiculturismo", imagem: "/images/4-alvo.png" },
+            { valor: "casa", label: "Em casa", desc: "Equipamentos mínimos ou nenhum", icone: "🏠" },
+            { valor: "academia", label: "Academia", desc: "Máquinas, polias e pesos livres", icone: "🏋️" },
+            { valor: "hibrido", label: "Híbrido", desc: "Um pouco de cada", icone: "🔄" },
         ],
     },
-
     {
-        id: "frequencia_atual",
-        tipo: "single",
-        titulo: "Com que frequência você se exercita?",
-        layout: "lista",
-
-        opcoes: [
-            { valor: "quase_todos_dias", label: "Quase todos os dias", icone: "🏆" },
-            { valor: "varias_semana", label: "Várias vezes por semana", icone: "💪💪" },
-            { valor: "varias_mes", label: "Várias vezes por mês", icone: "💪" },
-            { valor: "no_passado", label: "No passado", icone: "😔" },
-            { valor: "nunca", label: "Nunca", icone: "❌" },
-        ],
-    },
-
-    {
-        id: "variacao_peso",
-        tipo: "single",
-        titulo: "Como seu peso normalmente muda?",
-        layout: "lista",
-
-        opcoes: [
-            { valor: "ganha_rapido_perde_lento", label: "Eu ganho peso rapidamente, mas perco lentamente", icone: "📈" },
-            { valor: "ganha_perde_facil", label: "Eu ganho e perco peso facilmente", icone: "📊" },
-            { valor: "dificil_ganhar", label: "Tenho dificuldade em ganhar peso ou músculo", icone: "📉" },
-        ],
-    },
-
-    {
-        id: "frequencia_desejada",
-        tipo: "single",
-        titulo: "Com que frequência você quer treinar?",
-        layout: "lista-centralizada",
-
-        opcoes: [
-            { valor: "1", label: "1x por semana" },
-            { valor: "2", label: "2x por semana" },
-            { valor: "3", label: "3x por semana" },
-            { valor: "4", label: "4x por semana" },
-            { valor: "5", label: "5x por semana" },
-            { valor: "6", label: "6x por semana" },
-        ],
-    },
-
-    {
-        id: "duracao_treino",
-        tipo: "single",
-        titulo: "Quanto tempo você quer que seus treinos durem?",
-        layout: "lista-centralizada",
-
-        opcoes: [
-            { valor: "30", label: "30 min" },
-            { valor: "45", label: "45 min" },
-            { valor: "60", label: "60 min" },
-            { valor: "75", label: "75 min" },
-            { valor: "90", label: "90 min" },
-            { valor: "120", label: "120 min" },
-        ],
-    },
-
-    {
-        id: "local_treino",
-        tipo: "single",
-        titulo: "Onde você quer treinar?",
-        layout: "card",
-
-        opcoes: [
-            // "desc" é uma descrição adicional que aparece no card.
-            { valor: "casa", label: "Em Casa", desc: "Treinamento com equipamentos mínimos ou sem equipamentos", icone: "🏠" },
-            { valor: "academia", label: "Academia", desc: "Treinamento com máquinas, polias de cabo e pesos livres", icone: "🏋️" },
-            { valor: "hibrido", label: "Híbrido", desc: "Combinação de treinos na academia e em casa", icone: "🔄" },
-        ],
-    },
-
-    {
-        id: "tipo_academia",
-        tipo: "single",
-        titulo: "Qual tipo de academia você treina?",
-        layout: "card",
-
-        // Função que determina se essa pergunta deve aparecer.
-        // Híbrido segue direto para a escolha de músculos importantes.
-        mostrarSe: (r) => r.local_treino === "academia",
-
-        opcoes: [
-            { valor: "grande", label: "Academia Grande", desc: "Clube de fitness totalmente equipado como Smart Fit, BlueFit, Fitness Hut, Bodytech, Bio Ritmo, etc.", icone: "🏢" },
-            { valor: "pequena", label: "Academia Pequena", desc: "Academia pública compacta com equipamentos limitados", icone: "🏘️" },
-            { valor: "em_casa", label: "Academia em Casa", desc: "Barra, rack de agachamento, banco, halteres & barra de puxar", icone: "🏠" },
-        ],
-    },
-
-    {
-        id: "musculos_importantes",
-
-        // "multi" significa que o usuário pode selecionar várias opções.
-        tipo: "multi",
-
-        titulo: "Quais músculos são mais importantes para você?",
-        subtitulo: "Escolha todas as que se aplicam",
-        layout: "lista",
-
-        // Define uma opção que possui comportamento especial.
-        // Nesse caso, "todos" não pode ficar selecionado junto com outras opções.
-        exclusivo: "todos",
-
-        opcoes: [
-            { valor: "peitoral", label: "Peitoral", icone: "🫁" },
-            { valor: "ombros", label: "Ombros", icone: "🤸" },
-            { valor: "bracos", label: "Braços", icone: "💪" },
-            { valor: "abdominais", label: "Abdominais", icone: "🎯" },
-            { valor: "costas", label: "Costas", icone: "🔙" },
-            { valor: "pernas", label: "Pernas", icone: "🦵" },
-            { valor: "todos", label: "Todos igualmente importantes", icone: "⚖️" },
-        ],
-    },
-
-    {
-        id: "areas_sensiveis",
-        tipo: "multi",
-        titulo: "Alguma região precisa de cuidado?",
-        subtitulo: "Escolha todas que se aplicam.",
-        layout: "lista",
-
-        // "nenhum" também é uma opção exclusiva.
-        // Se "nenhum" for selecionado, as outras opções serão removidas.
-        exclusivo: "nenhum",
-
+        id: "areas_sensiveis", tipo: "multi", titulo: "Alguma região precisa de cuidado?",
+        subtitulo: "Escolha todas que se aplicam.", layout: "lista", exclusivo: "nenhum",
         opcoes: [
             { valor: "nenhum", label: "Nenhuma", icone: "✅" },
             { valor: "costas", label: "Costas", icone: "🔴" },
@@ -210,62 +44,13 @@ const PERGUNTAS = [
             { valor: "ombros", label: "Ombros", icone: "🔴" },
         ],
     },
-
     {
-        id: "dia_tipico",
-        tipo: "single",
-        titulo: "Como você descreveria seu dia típico?",
-        layout: "lista",
-
-        opcoes: [
-            { valor: "sentado", label: "Passo a maior parte do dia sentado", icone: "💻" },
-            { valor: "ativo_intervalos", label: "Sou ativo durante meus intervalos", icone: "🚶" },
-            { valor: "em_pe", label: "Fico em pé o dia todo", icone: "🏃" },
-        ],
+        id: "peso_alvo", tipo: "numero", titulo: "Seu peso atual e a sua meta",
+        subtitulo: "Você pode ajustar isso depois em “Metas”.", layout: "numero", min: 1, max: 400, padrao: 60,
     },
-
     {
-        id: "horas_sono",
-        tipo: "single",
-        titulo: "Quanto tempo você costuma dormir?",
-        layout: "lista",
-
-        opcoes: [
-            { valor: "menos_6", label: "Menos de 6 horas", icone: "😴" },
-            { valor: "6_7", label: "6-7 horas", icone: "😴" },
-            { valor: "7_8", label: "7-8 horas", icone: "😴" },
-            { valor: "mais_8", label: "Mais de 8 horas", icone: "😴" },
-        ],
-    },
-
-    {
-        id: "agua_dia",
-        tipo: "single",
-        titulo: "Quanto de água você bebe por dia?",
-        layout: "lista",
-
-        opcoes: [
-            { valor: "menos_1", label: "Menos de 1 litro", desc: "Menos de 4 copos", icone: "💧" },
-            { valor: "1_2", label: "1-2 litros", desc: "4-8 copos", icone: "💧💧" },
-            { valor: "2_3", label: "2-3 litros", desc: "8-12 copos", icone: "💧💧💧" },
-            { valor: "mais_3", label: "Mais de 3 litros", desc: "Mais de 12 copos", icone: "🐳" },
-        ],
-    },
-
-    {
-        id: "peso_alvo",
-        tipo: "numero",
-        titulo: "Qual é o seu peso alvo?",
-
-        // Layout especial para perguntas numéricas.
-        layout: "numero",
-
-        // Valores mínimo e máximo permitidos pelo slider.
-        min: 1,
-        max: 400,
-
-        // Valor utilizado inicialmente pelo slider.
-        padrao: 60,
+        id: "altura", tipo: "altura", titulo: "Qual é sua altura?",
+        subtitulo: "Arraste o controle e veja a altura representada pelo boneco.", layout: "altura",
     },
 ];
 
@@ -397,6 +182,7 @@ function renderLista(pergunta, centralizada) {
     // Cria uma div que irá conter todas as opções.
     const wrap = document.createElement("div");
     wrap.className = "opcoes";
+    if (centralizada) wrap.classList.add("opcoes-centralizadas");
 
     // Percorre cada opção da pergunta.
     pergunta.opcoes.forEach((op) => {
@@ -435,12 +221,11 @@ function renderLista(pergunta, centralizada) {
 
         // Em perguntas múltiplas mostra um check.
         // Em perguntas simples mostra o ícone definido na opção.
-        const direita = pergunta.tipo === "multi"
-            ? iconeCheck()
-            : (op.icone ? `<span class="opcao-icone">${op.icone}</span>` : "");
+        const icone = op.icone ? `<span class="opcao-icone">${op.icone}</span>` : "";
+        const check = pergunta.tipo === "multi" ? iconeCheck() : "";
 
         // Coloca o conteúdo dentro do botão.
-        btn.innerHTML = `${miolo}${direita}`;
+        btn.innerHTML = `${icone}${miolo}${check}`;
 
         // Quando o botão for clicado, registra a opção escolhida.
         btn.addEventListener("click", () => selecionarOpcao(pergunta, op.valor));
@@ -528,148 +313,174 @@ function renderCard(pergunta) {
 // Cria o layout utilizado para perguntas numéricas.
 function renderNumero(pergunta) {
     const wrap = document.createElement("div");
-    wrap.className = "passo-numero";
+    wrap.className = "passo-numero passo-peso-completo";
 
-    // Recupera a resposta anterior, caso exista.
-    // Se não existir, utiliza o valor padrão da pergunta.
-    // O peso atual foi informado em kg; o slider acompanha a unidade selecionada.
-    const pesoAtualKg = Number(respostas.dados_pessoais?.pesoInicial);
-    const respostaAnterior = respostas[pergunta.id];
-    unidadePeso = respostaAnterior?.unidade || "kg";
+    const anterior = respostas[pergunta.id] || {};
+    const dadosAtuais = respostas.dados_pessoais || {};
+    const pesoInicial = Number(dadosAtuais.pesoInicial) || 70;
+    unidadePeso = anterior.unidade || "kg";
     const paraUnidade = (kg, unidade) => unidade === "lbs" ? kg * 2.2046226218 : kg;
     const paraKg = (valor, unidade) => unidade === "lbs" ? valor / 2.2046226218 : valor;
-    const arredondarDecimo = (valor) => Math.round(valor * 10) / 10;
-    const ganharMusculo = respostas.objetivo === "ganhar_musculo";
-    const minimo = ganharMusculo
-        ? Math.ceil(paraUnidade(pesoAtualKg, unidadePeso) * 10) / 10
-        : arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
-    const maximo = ganharMusculo
-        ? arredondarDecimo(paraUnidade(400, unidadePeso))
-        : Math.max(minimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
-    const valorSalvo = respostaAnterior
-        ? arredondarDecimo(paraUnidade(paraKg(Number(respostaAnterior.valor), respostaAnterior.unidade), unidadePeso))
-        : Math.min(ganharMusculo ? paraUnidade(pesoAtualKg + 5, unidadePeso) : pergunta.padrao, maximo);
-    const valorAtual = Math.min(maximo, Math.max(minimo, valorSalvo));
+    const arredondar = (valor) => Math.round(valor * 10) / 10;
+    const objetivo = respostas.objetivo;
+    const ganharMusculo = objetivo === "ganhar_musculo";
+    const perderPeso = objetivo === "perder_peso";
+    const minimo = ganharMusculo ? Math.ceil(paraUnidade(pesoInicial, unidadePeso) * 10) / 10 : arredondar(paraUnidade(pergunta.min, unidadePeso));
+    const maximo = perderPeso ? Math.max(minimo, Math.floor((paraUnidade(pesoInicial, unidadePeso) - 0.1) * 10) / 10) : arredondar(paraUnidade(pergunta.max, unidadePeso));
+    const padraoKg = ganharMusculo ? Math.min(400, pesoInicial + 5) : perderPeso ? Math.max(1, pesoInicial - 5) : pesoInicial;
+    const valorSalvo = anterior.valor != null ? arredondar(paraUnidade(paraKg(Number(anterior.valor), anterior.unidade || "kg"), unidadePeso)) : arredondar(paraUnidade(padraoKg, unidadePeso));
+    const valorInicial = Math.min(maximo, Math.max(minimo, valorSalvo));
 
-    // Cria os botões de unidade, valor, slider e botão continuar.
     wrap.innerHTML = `
+        <label class="peso-atual-campo" for="pesoAtualQuiz">Peso atual (kg)
+            <input id="pesoAtualQuiz" type="number" min="25" max="400" step="0.1" inputmode="decimal" value="${pesoInicial}" required>
+        </label>
+        <p class="peso-meta-legenda">Peso-alvo</p>
         <div class="unidade-toggle">
             <button type="button" data-unidade="lbs" class="${unidadePeso === "lbs" ? "ativa" : ""}">lbs</button>
             <button type="button" data-unidade="kg" class="${unidadePeso === "kg" ? "ativa" : ""}">kg</button>
         </div>
-        <div class="valor-peso"><span id="valorPesoNum">${valorAtual}</span><span>${unidadePeso}</span></div>
-        <input type="range" class="slider-peso" id="sliderPeso"
-            min="${minimo}" max="${maximo}" step="0.1" value="${valorAtual}"
-            aria-label="Peso desejado, de acordo com seu objetivo">
-        <p class="aviso-peso">${ganharMusculo
-            ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${pesoAtualKg} kg).`
-            : `Para emagrecer, a meta precisa ser menor que seu peso atual (${pesoAtualKg} kg).`}</p>
+        <div class="valor-peso"><span id="valorPesoNum">${valorInicial}</span><span>${unidadePeso}</span></div>
+        <input type="range" class="slider-peso" id="sliderPeso" min="${minimo}" max="${maximo}" step="0.1" value="${valorInicial}" aria-label="Peso-alvo, de acordo com seu objetivo">
+        <p class="aviso-peso" id="avisoPeso">${ganharMusculo
+            ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${pesoInicial} kg).`
+            : perderPeso
+                ? `Para emagrecer, a meta precisa ser menor que seu peso atual (${pesoInicial} kg).`
+                : "Para saúde e disposição, escolha a meta de peso que deseja alcançar."}</p>
+        <p class="erro-peso" id="erroPeso" role="alert"></p>
         <button type="button" class="btn-continuar" id="btnContinuarNumero">Continuar</button>
     `;
 
-    // Pega o slider criado acima.
     const inputRange = wrap.querySelector("#sliderPeso");
-
-    // Pega o elemento que mostra o número do peso.
     const valorTexto = wrap.querySelector("#valorPesoNum");
-
-    // Pega os botões de kg e lbs.
+    const inputPesoAtual = wrap.querySelector("#pesoAtualQuiz");
     const botoesUnidade = wrap.querySelectorAll(".unidade-toggle button");
-
-    // Executado enquanto o usuário movimenta o slider.
-    inputRange.addEventListener("input", () => {
-
-        // Atualiza o número mostrado na tela.
+    const atualizarLimites = (manterPesoAlvo = true) => {
+        const atualKg = Number(inputPesoAtual.value);
+        if (!Number.isFinite(atualKg) || atualKg < 25 || atualKg > 400) return;
+        const novoMinimo = ganharMusculo ? Math.ceil(paraUnidade(atualKg, unidadePeso) * 10) / 10 : arredondar(paraUnidade(pergunta.min, unidadePeso));
+        const novoMaximo = perderPeso ? Math.max(novoMinimo, Math.floor((paraUnidade(atualKg, unidadePeso) - 0.1) * 10) / 10) : arredondar(paraUnidade(pergunta.max, unidadePeso));
+        const metaAnteriorKg = paraKg(Number(inputRange.value), unidadePeso);
+        inputRange.min = String(novoMinimo);
+        inputRange.max = String(novoMaximo);
+        const sugeridoKg = ganharMusculo ? atualKg + 5 : perderPeso ? atualKg - 5 : atualKg;
+        const novoValor = manterPesoAlvo ? paraUnidade(metaAnteriorKg, unidadePeso) : paraUnidade(sugeridoKg, unidadePeso);
+        inputRange.value = String(Math.min(novoMaximo, Math.max(novoMinimo, arredondar(novoValor))));
         valorTexto.textContent = inputRange.value;
-    });
+        wrap.querySelector("#avisoPeso").textContent = ganharMusculo
+            ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${atualKg} kg).`
+            : perderPeso
+                ? `Para emagrecer, a meta precisa ser menor que seu peso atual (${atualKg} kg).`
+                : "Para saúde e disposição, escolha a meta de peso que deseja alcançar.";
+    };
 
-    // Adiciona evento aos botões kg/lbs.
-    botoesUnidade.forEach((b) => {
-        b.addEventListener("click", () => {
+    inputRange.addEventListener("input", () => { valorTexto.textContent = inputRange.value; });
+    inputPesoAtual.addEventListener("input", () => atualizarLimites(true));
+    botoesUnidade.forEach((botao) => botao.addEventListener("click", () => {
+        const pesoMetaKg = paraKg(Number(inputRange.value), unidadePeso);
+        unidadePeso = botao.dataset.unidade;
+        botoesUnidade.forEach((item) => item.classList.toggle("ativa", item === botao));
+        atualizarLimites(true);
+        inputRange.value = String(Math.min(Number(inputRange.max), Math.max(Number(inputRange.min), arredondar(paraUnidade(pesoMetaKg, unidadePeso)))));
+        valorTexto.textContent = inputRange.value;
+        wrap.querySelector(".valor-peso span:last-child").textContent = unidadePeso;
+    }));
 
-            // Remove a classe "ativa" de todos os botões.
-            botoesUnidade.forEach((x) => x.classList.remove("ativa"));
-
-            // Marca o botão clicado como ativo.
-            b.classList.add("ativa");
-
-            // Preserva o mesmo peso real ao alternar entre kg e lbs.
-            const pesoAtualKgNaTroca = paraKg(Number(inputRange.value), unidadePeso);
-            unidadePeso = b.dataset.unidade;
-
-            const novoMinimo = ganharMusculo
-                ? Math.ceil(paraUnidade(pesoAtualKg, unidadePeso) * 10) / 10
-                : arredondarDecimo(paraUnidade(pergunta.min, unidadePeso));
-            const novoMaximo = ganharMusculo
-                ? arredondarDecimo(paraUnidade(400, unidadePeso))
-                : Math.max(novoMinimo, Math.floor((paraUnidade(pesoAtualKg, unidadePeso) - 0.1) * 10) / 10);
-            inputRange.min = String(novoMinimo);
-            inputRange.max = String(novoMaximo);
-            inputRange.value = String(Math.min(novoMaximo, Math.max(novoMinimo, arredondarDecimo(paraUnidade(pesoAtualKgNaTroca, unidadePeso)))));
-            valorTexto.textContent = inputRange.value;
-
-            // Atualiza a unidade mostrada ao lado do peso.
-            wrap.querySelector(".valor-peso span:last-child").textContent = unidadePeso;
-        });
-    });
-
-    // Evento do botão "Continuar".
     wrap.querySelector("#btnContinuarNumero").addEventListener("click", () => {
-
-        // Salva o peso como número e também salva a unidade utilizada.
-        const pesoAlvoKg = paraKg(Number(inputRange.value), unidadePeso);
-        if (!Number.isFinite(pesoAtualKg) || (!ganharMusculo && pesoAlvoKg >= pesoAtualKg)
-                || (ganharMusculo && pesoAlvoKg < pesoAtualKg)) {
-            alert(ganharMusculo
-                ? "O peso-meta precisa ser igual ou maior que seu peso atual para esse objetivo."
-                : "O peso-meta precisa ser menor que seu peso atual para criar um plano de emagrecimento.");
+        const atualKg = Number(inputPesoAtual.value);
+        const metaKg = paraKg(Number(inputRange.value), unidadePeso);
+        if (!Number.isFinite(atualKg) || atualKg < 25 || atualKg > 400) {
+            wrap.querySelector("#erroPeso").textContent = "Informe seu peso atual entre 25 e 400 kg.";
+            inputPesoAtual.focus();
             return;
         }
-        respostas[pergunta.id] = {
-            valor: Number(inputRange.value),
-            unidade: unidadePeso
-        };
-
-        // Avança para a próxima pergunta.
+        if ((perderPeso && metaKg >= atualKg) || (ganharMusculo && metaKg < atualKg)) {
+            wrap.querySelector("#erroPeso").textContent = perderPeso
+                ? "Para perder peso, a meta precisa ser menor que o peso atual."
+                : "Para ganhar músculo, a meta precisa ser igual ou maior que o peso atual.";
+            return;
+        }
+        respostas.dados_pessoais = { ...(respostas.dados_pessoais || {}), pesoInicial: atualKg };
+        respostas.peso_alvo = { valor: Number(inputRange.value), unidade: unidadePeso };
         irParaProxima();
     });
-
     return wrap;
 }
 
-// Cria a etapa que reúne os dados pessoais que antes ficavam no cadastro.
-function renderDados(pergunta) {
-    const atual = respostas[pergunta.id] || {};
+// Cria a etapa final de altura e coleta os dados de perfil que continuam necessários ao gerador de treinos.
+function renderAltura(pergunta) {
+    const atual = respostas.dados_pessoais || {};
+    const alturaCmInicial = Math.min(220, Math.max(130, Math.round((Number(atual.altura) || 1.7) * 100)));
+    const sexoInicial = respostas.sexo || atual.sexo || "";
+    const nascimentoInicial = atual.dataNascimento || "";
+    const pesoInicial = Number(atual.pesoInicial) || 70;
+    const escalaInicial = alturaCmInicial / 170;
+    const deslocamentoInicial = 260 - 260 * escalaInicial;
+    const hoje = new Date().toISOString().slice(0, 10);
     const wrap = document.createElement("div");
-    wrap.className = "dados-pessoais";
+    wrap.className = "altura-interativa";
     wrap.innerHTML = `
-        <label class="campo-nascimento">Data de nascimento<input id="nascimento" type="date" value="${atual.dataNascimento || ""}" required></label>
-        <label class="campo-altura">Altura (m)<input id="altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 170 ou 1,70" value="${atual.altura || ""}" required></label>
-        <label class="campo-peso">Peso atual (kg)<input id="pesoInicial" type="number" min="25" max="400" step="0.1" value="${atual.pesoInicial || ""}" required></label>
-        <button type="button" class="btn-continuar" id="btnContinuarDados">Continuar</button>`;
-    wrap.querySelector("#btnContinuarDados").addEventListener("click", () => {
-        const nascimento = wrap.querySelector("#nascimento").value;
-        const alturaTexto = wrap.querySelector("#altura").value.trim().replace(",", ".");
-        const pesoTexto = wrap.querySelector("#pesoInicial").value.trim();
-        if (!nascimento || !alturaTexto || !pesoTexto) {
-            alert("Preencha data de nascimento, altura e peso atual para continuar.");
+        <div class="altura-visual" role="img" aria-label="Representação ajustável da altura">
+            <svg viewBox="0 0 120 280" aria-hidden="true" focusable="false">
+                <line x1="14" y1="266" x2="106" y2="266" class="altura-chao" />
+                <g id="personagemAltura" transform="translate(0 ${deslocamentoInicial}) scale(1 ${escalaInicial})">
+                    <circle cx="60" cy="34" r="16" class="altura-figura" />
+                    <path d="M60 54 L60 150 M60 78 L28 125 M60 78 L92 125 M60 150 L34 258 M60 150 L86 258" class="altura-figura-traco" />
+                </g>
+            </svg>
+        </div>
+        <output class="altura-valor" id="alturaValor">${(alturaCmInicial / 100).toFixed(2).replace(".", ",")} m</output>
+        <label class="altura-slider-label" for="alturaSlider">Altura: <span id="alturaCmTexto">${alturaCmInicial} cm</span></label>
+        <input id="alturaSlider" class="altura-slider" type="range" min="130" max="220" step="1" value="${alturaCmInicial}" aria-label="Ajustar altura em centímetros">
+        <div class="altura-dados-adicionais">
+            <label for="nascimentoAltura">Data de nascimento
+                <input id="nascimentoAltura" type="date" max="${hoje}" value="${nascimentoInicial}" required>
+            </label>
+            <fieldset class="sexo-altura">
+                <legend>Sexo</legend>
+                <div class="sexo-altura-opcoes" role="radiogroup" aria-label="Sexo para personalizar a identificação do treino">
+                    <button type="button" class="sexo-altura-opcao ${sexoInicial === "Masculino" ? "selecionada" : ""}" data-sexo="Masculino" role="radio" aria-checked="${sexoInicial === "Masculino"}">Masculino</button>
+                    <button type="button" class="sexo-altura-opcao ${sexoInicial === "Feminino" ? "selecionada" : ""}" data-sexo="Feminino" role="radio" aria-checked="${sexoInicial === "Feminino"}">Feminino</button>
+                </div>
+            </fieldset>
+        </div>
+        <p class="erro-altura" id="erroAltura" role="alert"></p>
+        <button type="button" class="btn-continuar" id="btnContinuarAltura">Continuar</button>`;
+
+    const slider = wrap.querySelector("#alturaSlider");
+    const grupoPersonagem = wrap.querySelector("#personagemAltura");
+    const atualizarAltura = () => {
+        const centimetros = Number(slider.value);
+        const escala = centimetros / 170;
+        grupoPersonagem.setAttribute("transform", `translate(0 ${260 - 260 * escala}) scale(1 ${escala})`);
+        wrap.querySelector("#alturaValor").textContent = `${(centimetros / 100).toFixed(2).replace(".", ",")} m`;
+        wrap.querySelector("#alturaCmTexto").textContent = `${centimetros} cm`;
+    };
+    slider.addEventListener("input", atualizarAltura);
+    wrap.querySelectorAll("[data-sexo]").forEach((botao) => botao.addEventListener("click", () => {
+        respostas.sexo = botao.dataset.sexo;
+        wrap.querySelectorAll("[data-sexo]").forEach((opcao) => {
+            const selecionada = opcao === botao;
+            opcao.classList.toggle("selecionada", selecionada);
+            opcao.setAttribute("aria-checked", String(selecionada));
+        });
+    }));
+    wrap.querySelector("#btnContinuarAltura").addEventListener("click", () => {
+        const nascimento = wrap.querySelector("#nascimentoAltura").value;
+        const sexo = respostas.sexo || sexoInicial;
+        const altura = Number(slider.value) / 100;
+        if (!nascimento || !sexo) {
+            wrap.querySelector("#erroAltura").textContent = "Informe sua data de nascimento e selecione o sexo para personalizarmos o treino.";
             return;
         }
-        let altura = Number(alturaTexto);
-        // Aceita centímetros (170) ou metros (1,70 / 1.70), convertendo para metros.
-        if (Number.isFinite(altura) && altura >= 100 && altura <= 250) altura /= 100;
-        const dados = {
-            dataNascimento: nascimento,
-            sexo: respostas.sexo || atual.sexo || "",
-            altura,
-            pesoInicial: Number(pesoTexto)
-        };
-        if (!Number.isFinite(dados.altura) || dados.altura < 1 || dados.altura > 2.5
-                || !Number.isFinite(dados.pesoInicial) || dados.pesoInicial < 25 || dados.pesoInicial > 400) {
-            alert("Confira a altura (de 1 a 2,5 m) e o peso atual (de 25 a 400 kg).");
+        const dataNascimento = new Date(`${nascimento}T00:00:00`);
+        const idade = (Date.now() - dataNascimento.getTime()) / 31557600000;
+        if (!Number.isFinite(dataNascimento.getTime()) || idade < 0 || idade > 120) {
+            wrap.querySelector("#erroAltura").textContent = "Confira sua data de nascimento.";
             return;
         }
-        respostas[pergunta.id] = { ...atual, ...dados };
+        respostas.sexo = sexo;
+        respostas.dados_pessoais = { ...atual, dataNascimento: nascimento, sexo, altura, pesoInicial };
         irParaProxima();
     });
     return wrap;
@@ -792,13 +603,18 @@ function render() {
             corpo = renderLista(pergunta, true);
             break;
 
+        case "lista-grade":
+            corpo = renderLista(pergunta, true);
+            corpo.classList.add("opcoes-grade");
+            break;
+
         // Pergunta numérica com slider.
         case "numero":
             corpo = renderNumero(pergunta);
             break;
 
-        case "dados":
-            corpo = renderDados(pergunta);
+        case "altura":
+            corpo = renderAltura(pergunta);
             break;
 
         // Caso não tenha nenhum layout especial,
@@ -879,8 +695,8 @@ async function finalizarQuestionario() {
     const pesoAlvoKg = peso?.unidade === "lbs" ? Number(peso.valor) / 2.2046226218 : Number(peso?.valor);
     const formulario = new URLSearchParams({
         objetivo: respostas.objetivo,
-        formaAtual: respostas.forma_atual,
-        formaDesejada: respostas.forma_desejada,
+        formaAtual: "nao_informado",
+        formaDesejada: "nao_informado",
         frequencia: respostas.frequencia_desejada,
         duracao: respostas.duracao_treino,
         local: respostas.local_treino,

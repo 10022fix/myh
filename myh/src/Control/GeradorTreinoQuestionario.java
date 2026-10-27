@@ -84,19 +84,18 @@ public final class GeradorTreinoQuestionario {
 
         int idade = idade(respostas.path("dados_pessoais").path("dataNascimento"));
         String identificacaoGenero = identificacaoGenero(respostas.path("sexo").asText());
-        boolean iniciante = List.of("nunca", "no_passado", "varias_mes")
+        boolean iniciante = List.of("nunca", "ocasional", "no_passado", "varias_mes")
                 .contains(respostas.path("frequencia_atual").asText());
         boolean senior = idade >= 60;
-        String objetivoQuiz = "Ganhar Massa".equalsIgnoreCase(objetivo) ? "ganhar_musculo" : "perder_peso";
+        String objetivoQuiz = chaveObjetivo(objetivo);
         Set<String> restricoes = valores(respostas.path("areas_sensiveis"));
         if (restricoes.contains("nenhum")) restricoes.clear();
         Set<String> prioridades = valores(respostas.path("musculos_importantes"));
         if (prioridades.contains("todos")) prioridades.clear();
 
         String tipoAcademia = respostas.path("tipo_academia").asText();
-        boolean podeTreinarEmCasa = "casa".equals(local) || "em_casa".equals(tipoAcademia);
-        boolean podeTreinarNaAcademia = "academia".equals(local)
-                || ("hibrido".equals(local) && !"em_casa".equals(tipoAcademia));
+        boolean podeTreinarEmCasa = "casa".equals(local) || "hibrido".equals(local) || "em_casa".equals(tipoAcademia);
+        boolean podeTreinarNaAcademia = "academia".equals(local) || "hibrido".equals(local);
         Contexto contexto = new Contexto(objetivoQuiz, iniciante, senior, podeTreinarEmCasa,
                 podeTreinarNaAcademia, restricoes, prioridades, duracao,
                 exerciciosAtivos == null ? Set.of() : Set.copyOf(exerciciosAtivos));
@@ -123,15 +122,15 @@ public final class GeradorTreinoQuestionario {
             throw new IllegalArgumentException("Não foi possível interpretar as respostas do questionário.", erro);
         }
         int idade = idade(respostas.path("dados_pessoais").path("dataNascimento"));
-        boolean iniciante = List.of("nunca", "no_passado", "varias_mes").contains(respostas.path("frequencia_atual").asText());
+        boolean iniciante = List.of("nunca", "ocasional", "no_passado", "varias_mes").contains(respostas.path("frequencia_atual").asText());
         Set<String> restricoes = valores(respostas.path("areas_sensiveis"));
         if (restricoes.contains("nenhum")) restricoes.clear();
         Set<String> prioridades = valores(respostas.path("musculos_importantes"));
         if (prioridades.contains("todos")) prioridades.clear();
         String tipoAcademia = respostas.path("tipo_academia").asText();
-        boolean casa = "casa".equals(local) || "em_casa".equals(tipoAcademia);
-        boolean academia = "academia".equals(local) || ("hibrido".equals(local) && !"em_casa".equals(tipoAcademia));
-        String objetivoQuiz = "Ganhar Massa".equalsIgnoreCase(objetivo) ? "ganhar_musculo" : "perder_peso";
+        boolean casa = "casa".equals(local) || "hibrido".equals(local) || "em_casa".equals(tipoAcademia);
+        boolean academia = "academia".equals(local) || "hibrido".equals(local);
+        String objetivoQuiz = chaveObjetivo(objetivo);
         Contexto contexto = new Contexto(objetivoQuiz, iniciante, idade >= 60, casa, academia,
                 restricoes, prioridades, duracao, Set.of());
         return CATALOGO.stream().filter(exercicio -> elegivel(exercicio, contexto))
@@ -143,6 +142,12 @@ public final class GeradorTreinoQuestionario {
         if ("Feminino".equalsIgnoreCase(sexo)) return " (Feminino)";
         if ("Masculino".equalsIgnoreCase(sexo)) return " (Masculino)";
         return "";
+    }
+
+    private static String chaveObjetivo(String objetivo) {
+        if ("Ganhar Massa".equalsIgnoreCase(objetivo)) return "ganhar_musculo";
+        if ("Emagrecer".equalsIgnoreCase(objetivo)) return "perder_peso";
+        return "saude";
     }
 
     private static List<ExercicioGerado> montarSessao(Contexto contexto, Set<String> usados, boolean variacaoB) {
@@ -268,6 +273,8 @@ public final class GeradorTreinoQuestionario {
         String foco;
         if ("ganhar_musculo".equals(contexto.objetivo)) {
             foco = "Foco em força e hipertrofia, com volume ajustado ao nível informado.";
+        } else if ("saude".equals(contexto.objetivo)) {
+            foco = "Foco em saúde geral e condicionamento, com volume ajustado ao nível informado.";
         } else {
             foco = "Foco em força e condicionamento; o cardio complementa o objetivo de emagrecimento.";
         }

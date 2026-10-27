@@ -708,6 +708,8 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .questionario-page .pergunta-titulo { margin-bottom: 8px; color: var(--ui-text) !important; font-size: clamp(1.6rem, 4.4vw, 2.2rem); line-height: 1.12; letter-spacing: -.035em; }
 .questionario-page .pergunta-subtitulo { margin-bottom: 20px; color: var(--ui-muted) !important; font-size: 14px; }
 .questionario-page .opcoes { display: grid; gap: 12px; margin: 24px 0; }
+.questionario-page .opcoes-grade { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.questionario-page .opcoes-centralizadas .opcao { justify-content: center; text-align: center; }
 .questionario-page .opcao { min-height: 64px; width: 100%; padding: 14px 18px; border: 1.5px solid var(--ui-border); border-radius: 16px; background: var(--ui-surface) !important; color: var(--ui-text) !important; box-shadow: none; text-align: left; font-size: 16px; }
 .questionario-page .opcao:hover { border-color: var(--ui-primary); background: var(--ui-surface-2) !important; transform: none; }
 .questionario-page .opcao.selecionada { border-color: var(--ui-primary); background: var(--ui-surface-2) !important; box-shadow: inset 0 0 0 1px var(--ui-primary); }
@@ -760,5 +762,55 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
     .questionario-page .opcoes-grid { gap: 10px; }
     .questionario-page .dados-pessoais { grid-template-columns: 1fr; }
     .questionario-page .dados-pessoais .campo-nascimento { width: 100%; }
+}
+
+/* Etapa combinada de peso: mantém o controle visual do peso-alvo e acrescenta o peso atual. */
+.questionario-page .passo-peso-completo { text-align: center; }
+.questionario-page .peso-atual-campo {
+    width: 100%;
+    margin: 0 0 22px;
+    display: grid;
+    gap: 7px;
+    color: var(--ui-text);
+    text-align: left;
+    font-size: 14px;
+    font-weight: 700;
+}
+.questionario-page .peso-atual-campo input {
+    min-height: 48px;
+    padding: 0 14px;
+    border: 1.5px solid var(--ui-border) !important;
+    border-radius: 12px;
+    color: var(--ui-text) !important;
+    background: var(--ui-bg) !important;
+}
+.questionario-page .peso-meta-legenda { margin: 0 0 4px; color: var(--ui-muted); font-size: 14px; font-weight: 700; }
+.questionario-page .erro-peso, .questionario-page .erro-altura { min-height: 20px; margin: 8px 0 0; color: #e57373; font-size: 13px; text-align: left; }
+
+/* Altura interativa e dados que o perfil/gerador ainda precisam salvar. */
+.questionario-page .altura-interativa { display: grid; gap: 12px; }
+.questionario-page .altura-visual { width: 150px; height: 220px; margin: 4px auto 0; }
+.questionario-page .altura-visual svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.questionario-page .altura-chao { stroke: var(--ui-border); stroke-width: 2; stroke-linecap: round; }
+.questionario-page .altura-figura { fill: var(--ui-primary); }
+.questionario-page .altura-figura-traco { fill: none; stroke: var(--ui-primary); stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; }
+.questionario-page .altura-valor { display: block; color: var(--ui-text); font-size: 32px; font-weight: 800; text-align: center; }
+.questionario-page .altura-slider-label { color: var(--ui-text); font-size: 14px; font-weight: 700; }
+.questionario-page .altura-slider-label span { color: var(--ui-primary); }
+.questionario-page .altura-slider { width: 100%; accent-color: var(--ui-primary); cursor: grab; touch-action: pan-y; }
+.questionario-page .altura-slider:active { cursor: grabbing; }
+.questionario-page .altura-dados-adicionais { display: grid; gap: 16px; margin-top: 10px; }
+.questionario-page .altura-dados-adicionais > label,
+.questionario-page .sexo-altura legend { display: grid; gap: 7px; color: var(--ui-text); font-size: 14px; font-weight: 700; }
+.questionario-page .altura-dados-adicionais input { min-height: 48px; padding: 0 14px; border: 1.5px solid var(--ui-border) !important; border-radius: 12px; color: var(--ui-text) !important; background: var(--ui-bg) !important; }
+.questionario-page .sexo-altura { min-width: 0; margin: 0; padding: 0; border: 0; }
+.questionario-page .sexo-altura-opcoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 7px; }
+.questionario-page .sexo-altura-opcao { min-height: 52px; padding: 10px 14px; border: 1.5px solid var(--ui-border); border-radius: 14px; color: var(--ui-text); background: var(--ui-surface); font: inherit; font-weight: 700; cursor: pointer; }
+.questionario-page .sexo-altura-opcao:hover { border-color: var(--ui-primary); background: var(--ui-surface-2); }
+.questionario-page .sexo-altura-opcao.selecionada { border-color: var(--ui-primary); background: var(--ui-surface-2); box-shadow: inset 0 0 0 1px var(--ui-primary); }
+.questionario-page .sexo-altura-opcao:focus-visible { outline: 3px solid var(--ui-primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .questionario-page .altura-slider { scroll-behavior: auto; }
 }
 
