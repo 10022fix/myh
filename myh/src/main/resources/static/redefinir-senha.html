@@ -3,104 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/stylelogin.css">
-    <link rel="stylesheet" href="/esqueci-senha.css?v=20261026-4">
-    <link rel="stylesheet" href="/senha-toggle.css">
-    <link rel="stylesheet" href="/tema.css">
-    <title>Nova senha - Make Your Health</title>
-    <script src="/tema.js"></script>
+    <title>Redefinir senha - Make Your Health</title>
+    <script>location.replace("/esqueci-senha.html" + location.hash);</script>
 </head>
-<body class="recovery-page">
-    <header class="recovery-header">
-        <nav class="navbar" aria-label="Controles de aparência">
-            <button class="theme-toggle" type="button" aria-label="Alternar tema"></button>
-        </nav>
-    </header>
-    <main class="recovery-card reset-card">
-        <a class="recovery-brand" href="/login.html" aria-label="Make Your Health - voltar ao login">
-            <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
-        </a>
-        <h1>Crie uma nova senha</h1>
-        <p class="recovery-description">Use pelo menos 8 caracteres. O link expira em 30 minutos e só pode ser usado uma vez.</p>
-        <form id="formNovaSenha">
-            <div class="campo">
-                <label for="novaSenha">Nova senha:</label>
-                <div class="campo-senha">
-                    <input id="novaSenha" name="novaSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="strengthTextNova" required>
-                    <button class="alternar-senha" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="novaSenha">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path class="risco-olho" d="M3 3 21 21"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="password-strength" role="meter" aria-label="Força da nova senha" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" data-strength="0">
-                    <div class="password-strength-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-                    <p id="strengthTextNova" class="password-strength-text" aria-live="polite">Use 8 ou mais caracteres, misturando letras e números.</p>
-                </div>
-            </div>
-            <div class="campo">
-                <label for="confirmarSenha">Confirmar senha:</label>
-                <div class="campo-senha">
-                    <input id="confirmarSenha" name="confirmarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="strengthTextConfirmar" required>
-                    <button class="alternar-senha" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="confirmarSenha">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path class="risco-olho" d="M3 3 21 21"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="password-strength" role="meter" aria-label="Força da confirmação de senha" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" data-strength="0">
-                    <div class="password-strength-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-                    <p id="strengthTextConfirmar" class="password-strength-text" aria-live="polite">Digite novamente a senha para avaliar.</p>
-                </div>
-                <p id="matchText" class="password-match" aria-live="polite"></p>
-            </div>
-            <button type="submit" class="recovery-submit">Alterar senha</button>
-        </form>
-        <p id="mensagem" class="recovery-message" aria-live="polite" role="status"></p>
-        <a class="back-to-login" href="/login.html">Voltar ao login</a>
-    </main>
-    <script src="/senha-toggle.js" defer></script>
-    <script src="/redefinir-senha-page.js?v=20261026-1" defer></script>
-    <script>
-        document.getElementById("formNovaSenha").addEventListener("submit", async e => {
-            e.preventDefault();
-            const form = e.currentTarget;
-            const mensagem = document.getElementById("mensagem");
-            const novaSenha = form.elements.novaSenha.value;
-            const confirmarSenha = form.elements.confirmarSenha.value;
-            if (novaSenha !== confirmarSenha) {
-                mensagem.textContent = "As senhas não são iguais.";
-                document.getElementById("confirmarSenha").focus();
-                return;
-            }
-            const botao = form.querySelector("button[type=submit]");
-            botao.disabled = true;
-            try {
-                const resposta = await fetch("/api/senha/redefinir", {
-                    method: "POST",
-                    body: new URLSearchParams({
-                        token: new URLSearchParams(location.hash.slice(1)).get("token") || "",
-                        novaSenha,
-                        confirmarSenha
-                    })
-                });
-                const dados = await resposta.json();
-                mensagem.textContent = dados.mensagem || "Não foi possível alterar a senha.";
-                if (resposta.ok) {
-                    form.reset();
-                    setTimeout(() => location.href = "/login.html", 1800);
-                }
-            } catch {
-                mensagem.textContent = "Falha de conexão. Tente novamente.";
-            } finally {
-                botao.disabled = false;
-            }
-        });
-    </script>
+<body>
+    <p>Continuando para a recuperação de senha…</p>
+    <p><a href="/esqueci-senha.html">Abrir a página de recuperação</a></p>
 </body>
 </html>

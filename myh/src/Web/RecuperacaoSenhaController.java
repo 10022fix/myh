@@ -61,7 +61,7 @@ public class RecuperacaoSenhaController {
         try {
             boolean criado = usuarios.criarTokenRedefinicao(emailNormalizado, hashToken(token), Instant.now().plusSeconds(1800));
             if (criado) {
-                String link = urlBase.replaceAll("/+$", "") + "/redefinir-senha.html#token="
+                String link = urlBase.replaceAll("/+$", "") + "/esqueci-senha.html#token="
                         + URLEncoder.encode(token, StandardCharsets.UTF_8);
                 String texto = "Recebemos um pedido para redefinir a senha da sua conta.\n\n"
                         + "Use o link abaixo em até 30 minutos:\n" + link + "\n\n"
@@ -74,6 +74,26 @@ public class RecuperacaoSenhaController {
             System.err.println("Falha ao processar pedido de redefinição de senha: " + e.getClass().getSimpleName()
                     + (e.getMessage() == null ? "" : " - " + e.getMessage()));
             return ResponseEntity.ok(Map.of("mensagem", RESPOSTA_GENERICA));
+        }
+    }
+
+    @PostMapping("/api/senha/validar-token")
+    public ResponseEntity<Map<String, Object>> validarToken(@RequestParam(required = false) String token) {
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("sucesso", false,
+                    "mensagem", "O link de redefinição é inválido ou expirou."));
+        }
+        try {
+            if (!usuarios.tokenRedefinicaoValido(hashToken(token))) {
+                return ResponseEntity.badRequest().body(Map.of("sucesso", false,
+                        "mensagem", "O link de redefinição é inválido ou expirou."));
+            }
+            return ResponseEntity.ok(Map.of("sucesso", true,
+                    "mensagem", "Confirmação aprovada. Agora crie uma nova senha."));
+        } catch (Exception e) {
+            System.err.println("Falha ao validar link de redefinição de senha: " + e.getClass().getSimpleName());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("sucesso", false,
+                    "mensagem", "Não foi possível confirmar o link agora."));
         }
     }
 

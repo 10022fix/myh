@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/esqueci-senha.css?v=20261026-2">
+    <link rel="stylesheet" href="/esqueci-senha.css?v=20261027-1">
+    <link rel="stylesheet" href="/senha-toggle.css">
     <title>Recuperar senha - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -14,46 +15,201 @@
             <button class="theme-toggle" type="button" aria-label="Alternar tema"></button>
         </nav>
     </header>
-    <main class="recovery-card">
+    <main class="recovery-card" id="recoveryCard">
         <a class="recovery-brand" href="/login.html" aria-label="Make Your Health - voltar ao login">
             <img src="/logo-myh-completa-removebg-preview.png" alt="Make Your Health">
         </a>
-        <h1>Esqueci minha senha</h1>
-        <p class="recovery-description">Informe o e-mail da sua conta. Enviaremos um link temporário para criar uma nova senha.</p>
-        <form id="formRecuperacao">
-            <div class="campo">
-                <label for="email">E-mail:</label>
-                <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required>
-            </div>
-            <button type="submit" class="recovery-submit">Enviar link</button>
-        </form>
-        <p id="mensagem" class="recovery-message" aria-live="polite" role="status"></p>
-        <a class="back-to-login" href="/login.html">Voltar ao login</a>
+
+        <section class="recovery-step" id="stepSolicitar" aria-labelledby="tituloSolicitar">
+            <h1 id="tituloSolicitar">Esqueci minha senha</h1>
+            <p class="recovery-description">Informe o e-mail da sua conta. Enviaremos um link temporário para criar uma nova senha.</p>
+            <form id="formRecuperacao">
+                <div class="campo">
+                    <label for="email">E-mail:</label>
+                    <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required>
+                </div>
+                <button type="submit" class="recovery-submit">Enviar link</button>
+            </form>
+            <p id="mensagemSolicitar" class="recovery-message" aria-live="polite" role="status"></p>
+        </section>
+
+        <section class="recovery-step" id="stepAguardando" aria-labelledby="tituloAguardando" hidden>
+            <h1 id="tituloAguardando">Aguardando confirmação</h1>
+            <p class="recovery-description">Se o endereço estiver cadastrado, enviaremos um link para ele. Abra o e-mail e clique no link para confirmar a solicitação e continuar nesta página.</p>
+            <p id="mensagemAguardando" class="recovery-message" aria-live="polite" role="status">Aguardando a confirmação pelo link enviado ao seu e-mail.</p>
+            <button class="back-to-login recovery-secondary" type="button" data-voltar-solicitacao>Usar outro e-mail</button>
+        </section>
+
+        <section class="recovery-step reset-content" id="stepNovaSenha" aria-labelledby="tituloNovaSenha" hidden>
+            <h1 id="tituloNovaSenha">Confirmação aprovada</h1>
+            <p class="recovery-description">Seu e-mail foi confirmado. Agora crie uma nova senha para sua conta.</p>
+            <form id="formNovaSenha">
+                <div class="campo">
+                    <label for="novaSenha">Nova senha:</label>
+                    <div class="campo-senha">
+                        <input id="novaSenha" name="novaSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="strengthTextNova" required>
+                        <button class="alternar-senha" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="novaSenha">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="risco-olho" d="M3 3 21 21"></path></svg>
+                        </button>
+                    </div>
+                    <div class="password-strength" role="meter" aria-label="Força da nova senha" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" data-strength="0">
+                        <div class="password-strength-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                        <p id="strengthTextNova" class="password-strength-text" aria-live="polite">Use 8 ou mais caracteres, misturando letras e números.</p>
+                    </div>
+                </div>
+                <div class="campo">
+                    <label for="confirmarSenha">Confirmar senha:</label>
+                    <div class="campo-senha">
+                        <input id="confirmarSenha" name="confirmarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="strengthTextConfirmar" required>
+                        <button class="alternar-senha" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="confirmarSenha">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="risco-olho" d="M3 3 21 21"></path></svg>
+                        </button>
+                    </div>
+                    <div class="password-strength" role="meter" aria-label="Força da confirmação de senha" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" data-strength="0">
+                        <div class="password-strength-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                        <p id="strengthTextConfirmar" class="password-strength-text" aria-live="polite">Digite novamente a senha para avaliar.</p>
+                    </div>
+                    <p id="matchText" class="password-match" aria-live="polite"></p>
+                </div>
+                <button type="submit" class="recovery-submit">Alterar senha</button>
+            </form>
+            <p id="mensagemRedefinir" class="recovery-message" aria-live="polite" role="status"></p>
+        </section>
+
+        <section class="recovery-step" id="stepInvalido" aria-labelledby="tituloInvalido" hidden>
+            <h1 id="tituloInvalido">Link inválido ou expirado</h1>
+            <p id="mensagemInvalido" class="recovery-description">Este link pode ter expirado ou já ter sido usado. Solicite um novo link para continuar.</p>
+            <button class="back-to-login recovery-secondary" type="button" data-voltar-solicitacao>Solicitar novo link</button>
+        </section>
+
+        <section class="recovery-step" id="stepConcluido" aria-labelledby="tituloConcluido" hidden>
+            <h1 id="tituloConcluido">Senha alterada</h1>
+            <p id="mensagemConcluida" class="recovery-description" aria-live="polite">Sua senha foi alterada. Agora você já pode entrar com a nova senha.</p>
+            <a class="back-to-login" href="/login.html">Voltar ao login</a>
+        </section>
+
+        <a class="back-to-login recovery-global-login" href="/login.html">Voltar ao login</a>
     </main>
-    
+    <script src="/senha-toggle.js" defer></script>
+    <script src="/redefinir-senha-page.js?v=20261027-1" defer></script>
     <script>
-        document.getElementById("formRecuperacao").addEventListener("submit", async e => {
-            e.preventDefault();
-            const formulario = e.currentTarget;
-            const botao = formulario.querySelector("button[type=submit]");
-            const mensagem = document.getElementById("mensagem");
-            botao.disabled = true;
-            formulario.setAttribute("aria-busy", "true");
-            mensagem.textContent = "Enviando...";
-            try {
-                const resposta = await fetch("/api/senha/esqueci", {
-                    method: "POST",
-                    body: new URLSearchParams(new FormData(formulario))
-                });
-                const dados = await resposta.json();
-                mensagem.textContent = dados.mensagem || "Não foi possível solicitar o link.";
-            } catch {
-                mensagem.textContent = "Falha de conexão. Tente novamente.";
-            } finally {
-                botao.disabled = false;
-                formulario.removeAttribute("aria-busy");
+        (() => {
+            const etapas = ["stepSolicitar", "stepAguardando", "stepNovaSenha", "stepInvalido", "stepConcluido"]
+                .map(id => document.getElementById(id));
+            const mostrarEtapa = etapa => etapas.forEach(item => { item.hidden = item !== etapa; });
+            const etapaSolicitar = etapas[0];
+            const etapaAguardando = etapas[1];
+            const etapaNovaSenha = etapas[2];
+            const etapaInvalido = etapas[3];
+            const etapaConcluido = etapas[4];
+            const token = new URLSearchParams(location.hash.slice(1)).get("token") || "";
+            const linkLoginGlobal = document.querySelector(".recovery-global-login");
+
+            document.querySelectorAll("[data-voltar-solicitacao]").forEach(botao => botao.addEventListener("click", () => {
+                history.replaceState(null, "", location.pathname);
+                document.getElementById("formRecuperacao").reset();
+                mostrarEtapa(etapaSolicitar);
+                linkLoginGlobal.hidden = false;
+                document.getElementById("email").focus();
+            }));
+
+            document.getElementById("formRecuperacao").addEventListener("submit", async evento => {
+                evento.preventDefault();
+                const form = evento.currentTarget;
+                const botao = form.querySelector("button[type=submit]");
+                const mensagem = document.getElementById("mensagemSolicitar");
+                botao.disabled = true;
+                form.setAttribute("aria-busy", "true");
+                mensagem.textContent = "Enviando o link de confirmação…";
+                try {
+                    const resposta = await fetch("/api/senha/esqueci", {
+                        method: "POST",
+                        credentials: "same-origin",
+                        body: new URLSearchParams(new FormData(form))
+                    });
+                    const dados = await resposta.json().catch(() => ({}));
+                    if (!resposta.ok) {
+                        mensagem.textContent = dados.mensagem || "Não foi possível solicitar o link. Tente novamente.";
+                        return;
+                    }
+                    mostrarEtapa(etapaAguardando);
+                    linkLoginGlobal.hidden = false;
+                    document.getElementById("mensagemAguardando").textContent = dados.mensagem || "Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.";
+                } catch (_) {
+                    mensagem.textContent = "Falha de conexão. Tente novamente.";
+                } finally {
+                    botao.disabled = false;
+                    form.removeAttribute("aria-busy");
+                }
+            });
+
+            document.getElementById("formNovaSenha").addEventListener("submit", async evento => {
+                evento.preventDefault();
+                const form = evento.currentTarget;
+                const mensagem = document.getElementById("mensagemRedefinir");
+                const novaSenha = form.elements.novaSenha.value;
+                const confirmarSenha = form.elements.confirmarSenha.value;
+                if (novaSenha !== confirmarSenha) {
+                    mensagem.textContent = "As senhas não são iguais.";
+                    document.getElementById("confirmarSenha").focus();
+                    return;
+                }
+                const botao = form.querySelector("button[type=submit]");
+                botao.disabled = true;
+                form.setAttribute("aria-busy", "true");
+                mensagem.textContent = "Alterando senha…";
+                try {
+                    const resposta = await fetch("/api/senha/redefinir", {
+                        method: "POST",
+                        credentials: "same-origin",
+                        body: new URLSearchParams({ token, novaSenha, confirmarSenha })
+                    });
+                    const dados = await resposta.json().catch(() => ({}));
+                    if (!resposta.ok) {
+                        mensagem.textContent = dados.mensagem || "Não foi possível alterar a senha.";
+                        return;
+                    }
+                    form.reset();
+                    history.replaceState(null, "", location.pathname);
+                    mostrarEtapa(etapaConcluido);
+                    linkLoginGlobal.hidden = true;
+                } catch (_) {
+                    mensagem.textContent = "Falha de conexão. Tente novamente.";
+                } finally {
+                    botao.disabled = false;
+                    form.removeAttribute("aria-busy");
+                }
+            });
+
+            if (!token) {
+                mostrarEtapa(etapaSolicitar);
+                return;
             }
-        });
+            mostrarEtapa(etapaAguardando);
+            document.getElementById("tituloAguardando").textContent = "Confirmando solicitação";
+            document.getElementById("mensagemAguardando").textContent = "Validando o link enviado ao seu e-mail…";
+            linkLoginGlobal.hidden = true;
+            fetch("/api/senha/validar-token", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body: new URLSearchParams({ token }).toString()
+            }).then(async resposta => {
+                const dados = await resposta.json().catch(() => ({}));
+                if (!resposta.ok || !dados.sucesso) {
+                    mostrarEtapa(etapaInvalido);
+                    linkLoginGlobal.hidden = false;
+                    return;
+                }
+                mostrarEtapa(etapaNovaSenha);
+                linkLoginGlobal.hidden = true;
+                document.getElementById("novaSenha").focus();
+            }).catch(() => {
+                document.getElementById("tituloAguardando").textContent = "Não foi possível confirmar";
+                document.getElementById("mensagemAguardando").textContent = "Falha de conexão. Reabra o link recebido por e-mail ou tente novamente.";
+                linkLoginGlobal.hidden = false;
+            });
+        })();
     </script>
 </body>
 </html>

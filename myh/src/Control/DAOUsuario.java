@@ -303,6 +303,18 @@ public class DAOUsuario {
         }
     }
 
+    /** Confere se o token continua válido sem consumi-lo; a troca da senha o consome depois. */
+    public boolean tokenRedefinicaoValido(String tokenHash) throws SQLException {
+        String sql = "SELECT 1 FROM senha_redefinicao WHERE token_hash = ? AND expira_em > CURRENT_TIMESTAMP";
+        try (Connection conexao = consultas.abreConexao();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setString(1, tokenHash);
+            try (ResultSet resultado = comando.executeQuery()) {
+                return resultado.next();
+            }
+        }
+    }
+
     /** Valida e consome o link em uma transação; cada token só pode ser usado uma vez. */
     public boolean redefinirSenha(String tokenHash, String novaSenha) throws SQLException, GeneralSecurityException {
         try (Connection conexao = consultas.abreConexao()) {
