@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS treinos (
     objetivo VARCHAR(40) NOT NULL,
     local_treino VARCHAR(20) NOT NULL,
     frequencia_semanal TINYINT NOT NULL,
+    origem VARCHAR(20) NOT NULL DEFAULT 'RECOMENDADO',
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

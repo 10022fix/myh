@@ -85,7 +85,7 @@ public class DAOAreaAluno {
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
             try {
-                int id = persistirTreino(conexao, usuarioId, recomendacoes, treino);
+                int id = persistirTreino(conexao, usuarioId, recomendacoes, treino, "PROPRIO");
                 conexao.commit();
                 return id;
             } catch (SQLException | RuntimeException erro) {
@@ -150,12 +150,12 @@ public class DAOAreaAluno {
 
     private int persistirRecomendacao(Connection conexao, int usuarioId, Recomendacoes recomendacoes, int indice) throws SQLException {
         if (indice < 0 || indice >= recomendacoes.treinos().size()) throw new SQLException("Recomendação inválida.");
-        return persistirTreino(conexao, usuarioId, recomendacoes, recomendacoes.treinos().get(indice));
+        return persistirTreino(conexao, usuarioId, recomendacoes, recomendacoes.treinos().get(indice), "RECOMENDADO");
     }
 
     private int persistirTreino(Connection conexao, int usuarioId, Recomendacoes recomendacoes,
-            GeradorTreinoQuestionario.TreinoGerado treino) throws SQLException {
-        int treinoId = inserirTreino(conexao, treino, recomendacoes.objetivo(), recomendacoes.local(), recomendacoes.frequencia());
+            GeradorTreinoQuestionario.TreinoGerado treino, String origem) throws SQLException {
+        int treinoId = inserirTreino(conexao, treino, recomendacoes.objetivo(), recomendacoes.local(), recomendacoes.frequencia(), origem);
         for (GeradorTreinoQuestionario.ExercicioGerado exercicio : treino.exercicios()) {
             int exercicioId = obterOuCriarExercicio(conexao, exercicio.nome());
             try (PreparedStatement associar = conexao.prepareStatement(
@@ -313,37 +313,62 @@ public class DAOAreaAluno {
     }
 
     public void cadastrarObjetivo(int usuarioId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
-        String sql = "INSERT INTO objetivos (usuario_id, objetivo, peso_meta, data_meta) VALUES (?, ?, ?, ?)";
-        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setInt(1, usuarioId);
-            comando.setString(2, objetivo);
-            if (pesoMeta == null) comando.setNull(3, java.sql.Types.DECIMAL); else comando.setFloat(3, pesoMeta);
-            if (dataMeta == null) comando.setNull(4, java.sql.Types.DATE); else comando.setDate(4, Date.valueOf(dataMeta));
-            comando.executeUpdate();
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try (PreparedStatement comando = conexao.prepareStatement(
+                    "INSERT INTO objetivos (usuario_id, objetivo, peso_meta, data_meta) VALUES (?, ?, ?, ?)")) {
+                comando.setInt(1, usuarioId);
+                comando.setString(2, objetivo);
+                if (pesoMeta == null) comando.setNull(3, java.sql.Types.DECIMAL); else comando.setFloat(3, pesoMeta);
+                if (dataMeta == null) comando.setNull(4, java.sql.Types.DATE); else comando.setDate(4, Date.valueOf(dataMeta));
+                comando.executeUpdate();
+                regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+                conexao.commit();
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
         }
     }
 
     public boolean atualizarObjetivo(int usuarioId, int objetivoId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
-        String sql = "UPDATE objetivos SET objetivo = ?, peso_meta = ?, data_meta = ? WHERE id = ? AND usuario_id = ?";
-        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setString(1, objetivo);
-            if (pesoMeta == null) comando.setNull(2, java.sql.Types.DECIMAL); else comando.setFloat(2, pesoMeta);
-            if (dataMeta == null) comando.setNull(3, java.sql.Types.DATE); else comando.setDate(3, Date.valueOf(dataMeta));
-            comando.setInt(4, objetivoId);
-            comando.setInt(5, usuarioId);
-            return comando.executeUpdate() == 1;
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try (PreparedStatement comando = conexao.prepareStatement(
+                    "UPDATE objetivos SET objetivo=?, peso_meta=?, data_meta=? WHERE id=? AND usuario_id=?")) {
+                comando.setString(1, objetivo);
+                if (pesoMeta == null) comando.setNull(2, java.sql.Types.DECIMAL); else comando.setFloat(2, pesoMeta);
+                if (dataMeta == null) comando.setNull(3, java.sql.Types.DATE); else comando.setDate(3, Date.valueOf(dataMeta));
+                comando.setInt(4, objetivoId);
+                comando.setInt(5, usuarioId);
+                if (comando.executeUpdate() != 1) { conexao.rollback(); return false; }
+                regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+                conexao.commit();
+                return true;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
         }
     }
 
     public boolean excluirObjetivo(int usuarioId, int objetivoId) throws SQLException {
-        String sql = "DELETE FROM objetivos WHERE id = ? AND usuario_id = ?";
-        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setInt(1, objetivoId);
-            comando.setInt(2, usuarioId);
-            return comando.executeUpdate() == 1;
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try (PreparedStatement comando = conexao.prepareStatement(
+                    "DELETE FROM objetivos WHERE id=? AND usuario_id=?")) {
+                comando.setInt(1, objetivoId);
+                comando.setInt(2, usuarioId);
+                if (comando.executeUpdate() != 1) { conexao.rollback(); return false; }
+                regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+                conexao.commit();
+                return true;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
         }
     }
-
     public List<Map<String, Object>> listarProgresso(int usuarioId) throws SQLException {
         String sql = "SELECT p.id, p.peso_atual, p.percentual_gordura, p.data_registro, m.braco, m.antebraco, m.cintura, m.peito, m.quadril, m.coxa, m.panturrilha "
                 + "FROM progressao p JOIN medidasC m ON m.id = p.medidasC_id WHERE p.usuario_id = ? ORDER BY p.data_registro DESC, p.id DESC";
@@ -470,8 +495,13 @@ public class DAOAreaAluno {
 
     private int inserirTreino(Connection conexao, GeradorTreinoQuestionario.TreinoGerado treino,
             String objetivo, String local, int frequencia) throws SQLException {
-        String sql = "INSERT INTO treinos (nome_treino, descricao, nivel, duracao_treino, objetivo, local_treino, frequencia_semanal) "
-                + "VALUES (?, ?, 'Personalizado', ?, ?, ?, ?)";
+        return inserirTreino(conexao, treino, objetivo, local, frequencia, "RECOMENDADO");
+    }
+
+    private int inserirTreino(Connection conexao, GeradorTreinoQuestionario.TreinoGerado treino,
+            String objetivo, String local, int frequencia, String origem) throws SQLException {
+        String sql = "INSERT INTO treinos (nome_treino, descricao, nivel, duracao_treino, objetivo, local_treino, frequencia_semanal, origem) "
+                + "VALUES (?, ?, 'Personalizado', ?, ?, ?, ?, ?)";
         try (PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             comando.setString(1, treino.nome());
             comando.setString(2, treino.descricao());
@@ -479,6 +509,7 @@ public class DAOAreaAluno {
             comando.setString(4, objetivo);
             comando.setString(5, local);
             comando.setInt(6, frequencia);
+            comando.setString(7, origem);
             comando.executeUpdate();
             try (ResultSet chaves = comando.getGeneratedKeys()) {
                 if (!chaves.next()) throw new SQLException("Não foi possível criar a sessão de treino.");
@@ -636,9 +667,10 @@ public class DAOAreaAluno {
                 Set<String> exerciciosAtivos = new HashSet<>();
                 try (PreparedStatement ativos = conexao.prepareStatement(
                         "SELECT ut.treino_id,e.nome FROM usuario_treinos ut "
+                                + "JOIN treinos t ON t.id=ut.treino_id "
                                 + "LEFT JOIN treino_exercicios te ON te.treino_id=ut.treino_id "
                                 + "LEFT JOIN exercicios e ON e.id=te.exercicio_id "
-                                + "WHERE ut.usuario_id=? AND ut.ativo=TRUE ORDER BY ut.id")) {
+                                + "WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO' ORDER BY ut.id")) {
                     ativos.setInt(1, usuarioId);
                     try (ResultSet rs = ativos.executeQuery()) {
                         Set<Integer> ids = new HashSet<>();
@@ -679,17 +711,169 @@ public class DAOAreaAluno {
     }
 
     public boolean atualizarFrequenciaSemanal(int usuarioId, int frequencia) throws SQLException {
-        if (frequencia != 2 && frequencia != 3 && frequencia != 4 && frequencia != 5) return false;
-        try (Connection conexao = consultas.abreConexao(); PreparedStatement atualizar = conexao.prepareStatement(
-                "UPDATE questionario_usuario SET frequencia_semanal=? WHERE usuario_id=?")) {
-            atualizar.setInt(1, frequencia);
-            atualizar.setInt(2, usuarioId);
-            int alteradas = atualizar.executeUpdate();
-            if (alteradas == 1) return true;
-            try (PreparedStatement verificar = conexao.prepareStatement(
-                    "SELECT 1 FROM questionario_usuario WHERE usuario_id=? LIMIT 1")) {
-                verificar.setInt(1, usuarioId);
-                try (ResultSet rs = verificar.executeQuery()) { return rs.next(); }
+        if (frequencia < 2 || frequencia > 5) return false;
+        try (Connection conexao = consultas.abreConexao()) {
+            conexao.setAutoCommit(false);
+            try {
+                boolean atualizado = regenerarTreinosDaMetaAtual(conexao, usuarioId, frequencia);
+                if (!atualizado) { conexao.rollback(); return false; }
+                conexao.commit();
+                return true;
+            } catch (SQLException | RuntimeException erro) {
+                conexao.rollback();
+                throw erro;
+            }
+        }
+    }
+
+    /**
+     * Atualiza o conjunto recomendado e a versão da agenda sem apagar treinos próprios,
+     * conclusões ou cargas já registradas.
+     */
+    private boolean regenerarTreinosDaMetaAtual(Connection conexao, int usuarioId, Integer novaFrequencia) throws SQLException {
+        String respostas;
+        String local;
+        int duracao;
+        int frequencia;
+        try (PreparedStatement perfil = conexao.prepareStatement(
+                "SELECT respostas,local_treino,duracao_preferida,frequencia_semanal "
+                        + "FROM questionario_usuario WHERE usuario_id=? FOR UPDATE")) {
+            perfil.setInt(1, usuarioId);
+            try (ResultSet rs = perfil.executeQuery()) {
+                if (!rs.next()) return false;
+                respostas = rs.getString("respostas");
+                local = rs.getString("local_treino");
+                duracao = rs.getInt("duracao_preferida");
+                frequencia = novaFrequencia == null ? rs.getInt("frequencia_semanal") : novaFrequencia;
+            }
+        }
+        if (frequencia < 2 || frequencia > 5) return false;
+
+        String objetivo = null;
+        try (PreparedStatement meta = conexao.prepareStatement(
+                "SELECT objetivo FROM objetivos WHERE usuario_id=? ORDER BY id DESC LIMIT 1")) {
+            meta.setInt(1, usuarioId);
+            try (ResultSet rs = meta.executeQuery()) { if (rs.next()) objetivo = rs.getString(1); }
+        }
+
+        if (novaFrequencia != null && (objetivo == null || objetivo.isBlank())) return false;
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        List<Integer> diasPreferidos = new ArrayList<>();
+        try (PreparedStatement agenda = conexao.prepareStatement(
+                "SELECT d.dia_semana FROM agenda_treino_semana a "
+                        + "JOIN agenda_treino_dia d ON d.agenda_id=a.id "
+                        + "WHERE a.id=(SELECT id FROM agenda_treino_semana WHERE usuario_id=? AND vigente_desde<=? "
+                        + "ORDER BY vigente_desde DESC,id DESC LIMIT 1) ORDER BY d.dia_semana")) {
+            agenda.setInt(1, usuarioId);
+            agenda.setDate(2, Date.valueOf(hoje));
+            try (ResultSet rs = agenda.executeQuery()) {
+                Set<Integer> vistos = new HashSet<>();
+                while (rs.next()) {
+                    int dia = rs.getInt(1);
+                    if (vistos.add(dia)) diasPreferidos.add(dia);
+                }
+            }
+        }
+
+        if (novaFrequencia != null) {
+            try (PreparedStatement atualizar = conexao.prepareStatement(
+                    "UPDATE questionario_usuario SET frequencia_semanal=? WHERE usuario_id=?")) {
+                atualizar.setInt(1, frequencia);
+                atualizar.setInt(2, usuarioId);
+                if (atualizar.executeUpdate() != 1) return false;
+            }
+        }
+
+        Set<String> exerciciosAnteriores = new HashSet<>();
+        try (PreparedStatement buscarExercicios = conexao.prepareStatement(
+                "SELECT DISTINCT e.nome FROM usuario_treinos ut JOIN treinos t ON t.id=ut.treino_id "
+                        + "JOIN treino_exercicios te ON te.treino_id=t.id JOIN exercicios e ON e.id=te.exercicio_id "
+                        + "WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'")) {
+            buscarExercicios.setInt(1, usuarioId);
+            try (ResultSet rs = buscarExercicios.executeQuery()) {
+                while (rs.next()) exerciciosAnteriores.add(rs.getString(1));
+            }
+        }
+        try (PreparedStatement desativar = conexao.prepareStatement(
+                "UPDATE usuario_treinos ut JOIN treinos t ON t.id=ut.treino_id "
+                        + "SET ut.ativo=FALSE WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'")) {
+            desativar.setInt(1, usuarioId);
+            desativar.executeUpdate();
+        }
+
+        List<Integer> novosTreinos = new ArrayList<>();
+        if (objetivo != null && !objetivo.isBlank()) {
+            List<GeradorTreinoQuestionario.TreinoGerado> sessoes =
+                    GeradorTreinoQuestionario.gerar(respostas, objetivo, local, duracao, frequencia, exerciciosAnteriores);
+            if (sessoes.size() < frequencia) throw new SQLException("Não foi possível gerar todas as sessões recomendadas.");
+            for (int indice = 0; indice < frequencia; indice++) {
+                GeradorTreinoQuestionario.TreinoGerado treino = sessoes.get(indice);
+                int treinoId = inserirTreino(conexao, treino, objetivo, local, frequencia, "RECOMENDADO");
+                for (GeradorTreinoQuestionario.ExercicioGerado exercicio : treino.exercicios()) {
+                    int exercicioId = obterOuCriarExercicio(conexao, exercicio.nome());
+                    try (PreparedStatement associar = conexao.prepareStatement(
+                            "INSERT INTO treino_exercicios (treino_id,exercicio_id,series,repeticoes,tempo_descanso) VALUES (?,?,?,?,?)")) {
+                        associar.setInt(1, treinoId);
+                        associar.setInt(2, exercicioId);
+                        associar.setInt(3, exercicio.series());
+                        associar.setInt(4, exercicio.repeticoes());
+                        associar.setInt(5, exercicio.descanso());
+                        associar.executeUpdate();
+                    }
+                }
+                try (PreparedStatement vincular = conexao.prepareStatement(
+                        "INSERT INTO usuario_treinos (usuario_id,treino_id,data_inicio,ativo) VALUES (?,?,?,TRUE)")) {
+                    vincular.setInt(1, usuarioId);
+                    vincular.setInt(2, treinoId);
+                    vincular.setDate(3, Date.valueOf(hoje));
+                    vincular.executeUpdate();
+                }
+                novosTreinos.add(treinoId);
+            }
+        }
+
+        List<Integer> dias = new ArrayList<>();
+        Set<Integer> diasUsados = new HashSet<>();
+        for (int dia : diasPreferidos) {
+            if (dias.size() >= novosTreinos.size()) break;
+            if (diasUsados.add(dia)) dias.add(dia);
+        }
+        for (int dia = 1; dia <= 7 && dias.size() < novosTreinos.size(); dia++) {
+            if (diasUsados.add(dia)) dias.add(dia);
+        }
+        salvarVersaoAgenda(conexao, usuarioId, frequencia, hoje, dias, novosTreinos);
+        return true;
+    }
+
+    private void salvarVersaoAgenda(Connection conexao, int usuarioId, int frequencia, LocalDate vigenteDesde,
+            List<Integer> dias, List<Integer> treinos) throws SQLException {
+        try (PreparedStatement remover = conexao.prepareStatement(
+                "DELETE FROM agenda_treino_semana WHERE usuario_id=? AND vigente_desde=?")) {
+            remover.setInt(1, usuarioId);
+            remover.setDate(2, Date.valueOf(vigenteDesde));
+            remover.executeUpdate();
+        }
+        long agendaId;
+        try (PreparedStatement criar = conexao.prepareStatement(
+                "INSERT INTO agenda_treino_semana (usuario_id,vigente_desde,frequencia_semanal) VALUES (?,?,?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+            criar.setInt(1, usuarioId);
+            criar.setDate(2, Date.valueOf(vigenteDesde));
+            criar.setInt(3, frequencia);
+            criar.executeUpdate();
+            try (ResultSet chaves = criar.getGeneratedKeys()) {
+                if (!chaves.next()) throw new SQLException("Não foi possível criar a nova programação semanal.");
+                agendaId = chaves.getLong(1);
+            }
+        }
+        for (int indice = 0; indice < treinos.size(); indice++) {
+            try (PreparedStatement inserir = conexao.prepareStatement(
+                    "INSERT INTO agenda_treino_dia (agenda_id,dia_semana,ordem_treino,treino_id) VALUES (?,?,?,?)")) {
+                inserir.setLong(1, agendaId);
+                inserir.setInt(2, dias.get(indice));
+                inserir.setInt(3, indice + 1);
+                inserir.setInt(4, treinos.get(indice));
+                inserir.executeUpdate();
             }
         }
     }
