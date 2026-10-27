@@ -12,6 +12,8 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.swing.table.DefaultTableModel;
@@ -252,6 +254,23 @@ public class DAOUsuario {
         }
     }
 
+    /** Confirma que a sessão ainda pertence a uma conta existente e informa se o questionário foi concluído. */
+    public Map<String, Object> consultarSituacaoConta(int id) throws SQLException {
+        String sql = "SELECT u.id,u.nome,u.email,(q.usuario_id IS NOT NULL) AS questionario_concluido "
+                + "FROM usuario u LEFT JOIN questionario_usuario q ON q.usuario_id=u.id WHERE u.id=?";
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, id);
+            try (ResultSet resultado = comando.executeQuery()) {
+                if (!resultado.next()) return null;
+                Map<String, Object> dados = new LinkedHashMap<>();
+                dados.put("id", resultado.getInt("id"));
+                dados.put("nome", resultado.getString("nome"));
+                dados.put("email", resultado.getString("email"));
+                dados.put("questionarioConcluido", resultado.getBoolean("questionario_concluido"));
+                return dados;
+            }
+        }
+    }
     public Usuario buscarPorId(int id) {
         String sql = "SELECT id, nome, email FROM usuario WHERE id = ?";
         try (Connection conexao = consultas.abreConexao();

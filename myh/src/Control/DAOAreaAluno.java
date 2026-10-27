@@ -678,6 +678,21 @@ public class DAOAreaAluno {
         }
     }
 
+    public boolean atualizarFrequenciaSemanal(int usuarioId, int frequencia) throws SQLException {
+        if (frequencia != 2 && frequencia != 3 && frequencia != 4 && frequencia != 5) return false;
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement atualizar = conexao.prepareStatement(
+                "UPDATE questionario_usuario SET frequencia_semanal=? WHERE usuario_id=?")) {
+            atualizar.setInt(1, frequencia);
+            atualizar.setInt(2, usuarioId);
+            int alteradas = atualizar.executeUpdate();
+            if (alteradas == 1) return true;
+            try (PreparedStatement verificar = conexao.prepareStatement(
+                    "SELECT 1 FROM questionario_usuario WHERE usuario_id=? LIMIT 1")) {
+                verificar.setInt(1, usuarioId);
+                try (ResultSet rs = verificar.executeQuery()) { return rs.next(); }
+            }
+        }
+    }
     public Map<String, Object> obterAgendaSemanal(int usuarioId) throws SQLException {
         garantirSessoesSemana(usuarioId);
         Map<String, Object> agenda = new LinkedHashMap<>();

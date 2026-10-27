@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/stylealuno.css?v=20261027-1">
+    <link rel="stylesheet" href="/stylealuno.css?v=20261027-3">
     <title>Área do Aluno - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -34,6 +34,14 @@
             <p>Veja o que vale a pena fazer hoje.</p>
         </section>
 
+        <section id="questionnaireRequired" class="questionnaire-required" aria-labelledby="questionnaireRequiredTitle" aria-live="polite" hidden>
+            <div class="questionnaire-required-copy">
+                <span class="questionnaire-required-tag">FALTA UM PASSO</span>
+                <h2 id="questionnaireRequiredTitle">Seu plano começa com você</h2>
+                <p>Responda ao questionário para receber treinos e recomendações feitos para seu objetivo, sua rotina e seu nível.</p>
+            </div>
+            <a class="questionnaire-required-action" href="/questionario.html">Responder questionário <span aria-hidden="true">→</span></a>
+        </section>
         <section class="dashboard-top" aria-label="Resumo de hoje">
             <article class="today-card">
                 <span class="today-tag">Treino de hoje</span>
@@ -99,7 +107,7 @@
                 <span><i class="legend-done"></i>Concluído</span><span><i class="legend-pending"></i>Pendente</span><span><i class="legend-rest"></i>Descanso</span><span><i class="legend-future"></i>Futuro</span><span><i class="legend-unplanned"></i>Sem programação</span>
             </div>
             <section id="calendarDayDetail" class="calendar-day-detail" aria-live="polite"><p>Selecione um dia para ver os detalhes do treino e as cargas registradas.</p></section>
-            <footer class="calendar-dialog-actions"><button type="button" class="calendar-secondary" data-fechar-calendario>Fechar</button><button type="button" class="calendar-primary" id="editarAgenda">Organizar minha semana</button></footer>
+            <footer class="calendar-dialog-actions"><button type="button" class="calendar-secondary" id="mudarFrequencia">Mudar frequência dos treinos</button><button type="button" class="calendar-secondary" data-fechar-calendario>Fechar</button><button type="button" class="calendar-primary" id="editarAgenda">Organizar minha semana</button></footer>
         </div>
     </dialog>
 
@@ -116,6 +124,22 @@
         </form>
     </dialog>
 
+    <dialog id="frequencyDialog" class="calendar-dialog frequency-dialog" aria-labelledby="frequencyTitle">
+        <form id="frequencyForm" class="calendar-dialog-content">
+            <header class="calendar-dialog-heading">
+                <div><span class="calendar-eyebrow">SUA ROTINA</span><h2 id="frequencyTitle">Quantos dias por semana quer treinar?</h2><p>Escolha a frequência; em seguida, você poderá reorganizar os dias e os treinos.</p></div>
+                <button type="button" class="calendar-close" data-fechar-frequencia aria-label="Fechar frequência">×</button>
+            </header>
+            <fieldset class="frequency-options" aria-label="Frequência de treinos por semana">
+                <label><input type="radio" name="frequencia" value="2"><span><strong>2 dias</strong><small>por semana</small></span></label>
+                <label><input type="radio" name="frequencia" value="3"><span><strong>3 dias</strong><small>por semana</small></span></label>
+                <label><input type="radio" name="frequencia" value="4"><span><strong>4 dias</strong><small>por semana</small></span></label>
+                <label><input type="radio" name="frequencia" value="5"><span><strong>5 dias</strong><small>por semana</small></span></label>
+            </fieldset>
+            <p id="frequencyMessage" class="calendar-message" aria-live="polite"></p>
+            <footer class="calendar-dialog-actions"><button type="button" class="calendar-secondary" data-fechar-frequencia>Cancelar</button><button type="submit" class="calendar-primary">Continuar</button></footer>
+        </form>
+    </dialog>
     <script>
         const formatarPeso = valor => valor == null ? "—" : Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " kg";
         const nomesDias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -123,6 +147,7 @@
         let periodoCalendario = new Date(hojeLocal.getFullYear(), hojeLocal.getMonth(), 1);
         let agendaAtual = null;
         let calendarioAtual = null;
+        let retornarCalendarioDepoisAgenda = false;
 
         function chaveDataLocal(data) {
             return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
@@ -133,9 +158,16 @@
 
         async function carregarPainel() {
             const sessaoResposta = await fetch("/api/sessao");
-            if (!sessaoResposta.ok) { location.href = "/login.html"; return; }
+            if (sessaoResposta.status === 401) { location.href = "/login.html"; return; }
+            if (!sessaoResposta.ok) throw new Error("Não foi possível validar sua sessão. Tente atualizar a página.");
             const usuario = await sessaoResposta.json();
             document.getElementById("titulo").textContent = `Olá, ${usuario.nome}! 👋`;
+            if (usuario.questionarioConcluido !== true) {
+                document.body.classList.add("questionnaire-pending");
+                document.getElementById("questionnaireRequired").hidden = false;
+                document.querySelector(".dashboard-welcome p").textContent = "Complete seu perfil para liberar seus treinos personalizados.";
+                return;
+            }
             const [resumoResposta, treinosResposta, conclusoesResposta, agendaResposta] = await Promise.all([
                 fetch("/api/painel/resumo"), fetch("/api/treinos"), fetch("/api/treinos/conclusoes-semana"), fetch("/api/agenda")
             ]);
@@ -259,9 +291,10 @@
         function renderizarCamposAgenda() {
             const contenedor = document.getElementById("agendaDaysFields"), frequencia = Number(agendaAtual?.frequencia || 0);
             const treinos = agendaAtual?.treinos || [], atuais = new Map((agendaAtual?.dias || []).map(item => [Number(item.diaSemana), Number(item.treinoId)]));
-            document.getElementById("agendaInstructions").textContent = `Seu questionário indica ${frequencia} ${frequencia === 1 ? "treino por semana" : "treinos por semana"}. Escolha esses dias e associe uma sessão diferente a cada um.`;
+            const diasIniciais = new Set([...atuais.keys()].sort((a, b) => a - b).slice(0, frequencia));
+            document.getElementById("agendaInstructions").textContent = `Sua frequência é de ${frequencia} ${frequencia === 1 ? "dia" : "dias"} por semana. Escolha os dias e associe uma sessão diferente a cada um.`;
             contenedor.innerHTML = nomesDias.map((nome, indice) => {
-                const dia = indice + 1, marcado = atuais.has(dia) || (!agendaAtual?.configurada && indice < frequencia);
+                const dia = indice + 1, marcado = diasIniciais.has(dia) || (!agendaAtual?.configurada && indice < frequencia);
                 const treinoSelecionado = atuais.get(dia) || Number(treinos[indice]?.id || treinos[0]?.id || 0);
                 const opcoes = treinos.map(treino => `<option value="${Number(treino.id)}" ${Number(treino.id) === treinoSelecionado ? "selected" : ""}>${escaparHTML(treino.nome)}</option>`).join("");
                 return `<label class="agenda-day-row"><input type="checkbox" name="diaSemana" value="${dia}" ${marcado ? "checked" : ""}><span class="agenda-day-name">${nome}</span><select name="treinoDia" data-dia="${dia}" ${marcado ? "" : "disabled"} aria-label="Treino de ${nome}">${opcoes}</select></label>`;
@@ -290,13 +323,48 @@
                 document.getElementById("agendaDialog").showModal();
             } catch (erro) { alert(erro.message); }
         }
+        function abrirFrequencia() {
+            const frequencia = Number(agendaAtual?.frequencia || 2);
+            const opcao = document.querySelector(`#frequencyForm input[name="frequencia"][value="${frequencia}"]`);
+            if (opcao) opcao.checked = true;
+            document.getElementById("frequencyMessage").textContent = "A quantidade de treinos será atualizada e você poderá reorganizar os dias logo em seguida.";
+            document.getElementById("frequencyMessage").classList.remove("is-error");
+            document.getElementById("frequencyDialog").showModal();
+        }
+        document.getElementById("mudarFrequencia").addEventListener("click", abrirFrequencia);
+        document.querySelectorAll("[data-fechar-frequencia]").forEach(botao => botao.addEventListener("click", () => document.getElementById("frequencyDialog").close()));
+        document.getElementById("frequencyForm").addEventListener("submit", async evento => {
+            evento.preventDefault();
+            const frequencia = Number(new FormData(evento.currentTarget).get("frequencia"));
+            const botao = evento.currentTarget.querySelector('[type="submit"]');
+            const mensagem = document.getElementById("frequencyMessage");
+            if (![2, 3, 4, 5].includes(frequencia)) { mensagem.textContent = "Escolha entre 2 e 5 dias por semana."; mensagem.classList.add("is-error"); return; }
+            botao.disabled = true; mensagem.textContent = "Atualizando frequência e preparando suas sessões…"; mensagem.classList.remove("is-error");
+            try {
+                const resposta = await fetch("/api/agenda/frequencia", { method: "PUT", body: new URLSearchParams({ frequencia: String(frequencia) }) });
+                const retorno = await resposta.json();
+                if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível atualizar a frequência.");
+                agendaAtual = retorno.agenda;
+                document.getElementById("frequencyDialog").close();
+                retornarCalendarioDepoisAgenda = true;
+                await abrirAgenda();
+            } catch (erro) { mensagem.textContent = erro.message; mensagem.classList.add("is-error"); }
+            finally { botao.disabled = false; }
+        });
         document.getElementById("comecarTreino").addEventListener("click", evento => { if (evento.currentTarget.dataset.abrirAgenda === "true") { evento.preventDefault(); abrirAgenda(); } });
         document.getElementById("weekCard").addEventListener("click", abrirCalendario);
         document.getElementById("weekCard").addEventListener("keydown", evento => { if (evento.key === "Enter" || evento.key === " ") { evento.preventDefault(); abrirCalendario(); } });
         document.getElementById("mesAnterior").addEventListener("click", () => { periodoCalendario = new Date(periodoCalendario.getFullYear(), periodoCalendario.getMonth() - 1, 1); carregarCalendario().catch(console.error); });
         document.getElementById("mesSeguinte").addEventListener("click", () => { periodoCalendario = new Date(periodoCalendario.getFullYear(), periodoCalendario.getMonth() + 1, 1); carregarCalendario().catch(console.error); });
-        document.getElementById("editarAgenda").addEventListener("click", abrirAgenda);
+        document.getElementById("editarAgenda").addEventListener("click", () => { retornarCalendarioDepoisAgenda = true; abrirAgenda(); });
         document.querySelectorAll("[data-fechar-calendario]").forEach(botao => botao.addEventListener("click", () => document.getElementById("calendarDialog").close()));
+        function voltarCalendarioAposAgenda() {
+            if (!retornarCalendarioDepoisAgenda) return;
+            retornarCalendarioDepoisAgenda = false;
+            document.getElementById("calendarDialog").showModal();
+            carregarCalendario(chaveDataLocal(hojeLocal)).catch(console.error);
+        }
+        document.getElementById("agendaDialog").addEventListener("close", voltarCalendarioAposAgenda);
         document.querySelectorAll("[data-fechar-agenda]").forEach(botao => botao.addEventListener("click", () => document.getElementById("agendaDialog").close()));
         document.getElementById("agendaForm").addEventListener("submit", async evento => {
             evento.preventDefault();
@@ -310,6 +378,7 @@
                 const resposta = await fetch("/api/agenda", { method: "PUT", body: parametros });
                 const retorno = await resposta.json(); if (!resposta.ok) throw new Error(retorno.mensagem || "Não foi possível salvar a programação.");
                 agendaAtual = await (await fetch("/api/agenda")).json();
+                retornarCalendarioDepoisAgenda = false;
                 document.getElementById("agendaDialog").close();
                 periodoCalendario = new Date(hojeLocal.getFullYear(), hojeLocal.getMonth(), 1);
                 document.getElementById("calendarDialog").showModal();

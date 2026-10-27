@@ -65,25 +65,26 @@ public class LoginController {
 
     @GetMapping("/api/sessao")
     public ResponseEntity<Map<String, Object>> consultarSessao(HttpSession sessao) {
-        Object usuarioId = sessao.getAttribute("usuarioId");
-        if (usuarioId == null) {
+        Object valorId = sessao.getAttribute("usuarioId");
+        if (!(valorId instanceof Integer usuarioId)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("sucesso", false, "mensagem", "Nenhum usuario autenticado."));
         }
-        Object email = sessao.getAttribute("usuarioEmail");
-        if (email == null) {
-            return ResponseEntity.ok(Map.of(
-                    "sucesso", true,
-                    "id", usuarioId,
-                    "nome", sessao.getAttribute("usuarioNome")));
+        try {
+            Map<String, Object> conta = usuarios.consultarSituacaoConta(usuarioId);
+            if (conta == null) {
+                sessao.invalidate();
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("sucesso", false, "mensagem", "Esta conta não está mais cadastrada."));
+            }
+            conta.put("sucesso", true);
+            return ResponseEntity.ok(conta);
+        } catch (SQLException erro) {
+            System.err.println("Erro ao validar a sessão do usuário: " + erro.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("sucesso", false, "mensagem", "Não foi possível validar sua sessão."));
         }
-        return ResponseEntity.ok(Map.of(
-                "sucesso", true,
-                "id", usuarioId,
-                "nome", sessao.getAttribute("usuarioNome"),
-                "email", email));
     }
-
     @PostMapping("/api/logout")
     public Map<String, Object> logout(HttpSession sessao) {
         sessao.invalidate();

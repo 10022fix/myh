@@ -59,6 +59,56 @@ public class AreaAlunoController {
             return Map.of("mensagem", "Sua programação semanal foi salva.");
         });
     }
+    @PutMapping("/api/agenda/frequencia")
+    public ResponseEntity<?> alterarFrequenciaSemanal(@RequestParam int frequencia, HttpSession sessao) {
+        if (frequencia != 2 && frequencia != 3 && frequencia != 4 && frequencia != 5) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Escolha 2, 3, 4 ou 5 dias por semana, como no questionário."));
+        }
+        return executar(sessao, id -> {
+            Map<String, Object> anterior = areaAluno.obterAgendaSemanal(id);
+            if (!areaAluno.atualizarFrequenciaSemanal(id, frequencia)) {
+                return ResponseEntity.conflict().body(Map.of("mensagem", "Não foi possível atualizar a frequência do questionário."));
+            }
+            Map<String, Object> atualizado = areaAluno.obterAgendaSemanal(id);
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> treinosDisponiveis = (List<Map<String, Object>>) atualizado.get("treinos");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> diasAnteriores = (List<Map<String, Object>>) anterior.get("dias");
+            java.util.Set<Integer> idsAtivos = new java.util.HashSet<>();
+            for (Map<String, Object> treino : treinosDisponiveis) idsAtivos.add(((Number) treino.get("id")).intValue());
+            diasAnteriores.sort(java.util.Comparator.comparingInt(dia -> ((Number) dia.get("diaSemana")).intValue()));
+            List<Integer> diasEscolhidos = new java.util.ArrayList<>();
+            List<Integer> treinosEscolhidos = new java.util.ArrayList<>();
+            java.util.Set<Integer> diasUsados = new java.util.HashSet<>();
+            java.util.Set<Integer> treinosUsados = new java.util.HashSet<>();
+            if (Boolean.TRUE.equals(anterior.get("configurada"))) {
+                for (Map<String, Object> dia : diasAnteriores) {
+                    int diaSemana = ((Number) dia.get("diaSemana")).intValue();
+                    int treinoId = ((Number) dia.get("treinoId")).intValue();
+                    if (diasEscolhidos.size() >= frequencia) break;
+                    if (idsAtivos.contains(treinoId) && diasUsados.add(diaSemana) && treinosUsados.add(treinoId)) {
+                        diasEscolhidos.add(diaSemana);
+                        treinosEscolhidos.add(treinoId);
+                    }
+                }
+            }
+            for (int diaSemana = 1; diaSemana <= 7 && diasEscolhidos.size() < frequencia; diaSemana++) {
+                if (diasUsados.add(diaSemana)) diasEscolhidos.add(diaSemana);
+            }
+            for (Map<String, Object> treino : treinosDisponiveis) {
+                if (treinosEscolhidos.size() >= frequencia) break;
+                int treinoId = ((Number) treino.get("id")).intValue();
+                if (treinosUsados.add(treinoId)) treinosEscolhidos.add(treinoId);
+            }
+            LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+            if (diasEscolhidos.size() != frequencia || treinosEscolhidos.size() != frequencia
+                    || !areaAluno.salvarAgendaSemanal(id, diasEscolhidos, treinosEscolhidos, hoje)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "A frequência foi atualizada, mas não foi possível reorganizar as sessões. Abra novamente sua semana para ajustar os dias."));
+            }
+            Map<String, Object> agenda = areaAluno.obterAgendaSemanal(id);
+            return Map.of("mensagem", "Frequência atualizada. Confira os dias e as sessões da sua semana.", "agenda", agenda);
+        });
+    }
     @GetMapping("/api/agenda/calendario")
     public ResponseEntity<?> calendarioTreinos(@RequestParam int ano, @RequestParam int mes, HttpSession sessao) {
         final YearMonth periodo;
