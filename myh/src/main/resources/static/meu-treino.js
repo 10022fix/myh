@@ -185,7 +185,7 @@
         const tituloAcao = acaoRecomendacao.tipo === "substituir" ? "Substituir este treino" : "Adicionar ao meu plano";
         recomendacoesDialogo.innerHTML = `<div class="recommendations-content">
             <div class="recommendations-heading"><div><span class="sample-tag">SUGESTÕES PERSONALIZADAS</span><h2 id="recommendationsTitle">Escolha um treino</h2><p>Opções montadas pelo site com base nas respostas do seu questionário.</p></div>
-                <div class="recommendations-heading-actions">${acaoRecomendacao.tipo === "adicionar" ? `<button type="button" class="manual-workout-trigger" data-montar-personalizado>Escolher exercícios</button><button type="button" class="manual-workout-trigger" data-criar-do-meu-jeito>Criar do meu jeito</button>` : ""}<button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div></div>
+                <div class="recommendations-heading-actions">${acaoRecomendacao.tipo === "adicionar" ? `<button type="button" class="manual-workout-trigger" data-montar-personalizado>Montar treino personalizado</button><button type="button" class="manual-workout-trigger" data-criar-do-meu-jeito>Criar do meu jeito</button>` : ""}<button type="button" class="exercise-guide-close" data-close-recommendations aria-label="Fechar">×</button></div></div>
             <div class="recommendation-list">${treinos.map((treino, indice) => `<article class="recommendation-card">
                 <h3>${escapar(treino.nome || `Treino ${indice + 1}`)}</h3>
                 <p>${escapar(treino.descricao || "Treino ajustado ao seu perfil")} · ${Number(treino.duracao) || 0} min · ${(treino.exercicios || []).length} exercícios</p>
