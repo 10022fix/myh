@@ -33,25 +33,103 @@ body.recovery-page {
 
 .recovery-page * { font-family: inherit; }
 
-.recovery-header { position: fixed; z-index: 5; top: 16px; right: 20px; }
-.recovery-header .navbar { display: flex; align-items: center; }
-.recovery-header .theme-toggle {
-    width: 44px;
-    height: 44px;
-    padding: 0;
+.home-page {
+    --ui-bg: #f6f8f5;
+    --ui-surface: #fff;
+    --ui-surface-2: #eaf1ec;
+    --ui-text: #17261e;
+    --ui-muted: #4f655a;
+    --ui-border: #d5e0d8;
+    --ui-primary: #2f7d4f;
+    --ui-primary-hover: #1e6b43;
+    --ui-on-primary: #fff;
+}
+:root[data-theme="dark"] .home-page {
+    --ui-bg: #0c1511;
+    --ui-surface: #14211a;
+    --ui-surface-2: #1b2b22;
+    --ui-text: #e8f3ec;
+    --ui-muted: #9db5a7;
+    --ui-border: #25382d;
+    --ui-primary: #7fe0a0;
+    --ui-primary-hover: #a0efad;
+    --ui-on-primary: #0c1511;
+}
+
+.home-page .home-header {
+    position: fixed;
+    z-index: 20;
+    top: 0;
+    right: 0;
+    left: 0;
+    border-bottom: 1px solid var(--ui-border);
+    background: color-mix(in srgb, var(--ui-bg) 90%, transparent);
+    backdrop-filter: blur(12px);
+}
+.home-page nav.home-nav {
+    width: 100%;
+    max-width: 1040px;
+    height: 64px;
+    min-height: 64px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+.home-brand {
+    order: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: auto;
+    color: var(--ui-text);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    text-decoration: none;
+    text-transform: none;
+}
+.home-brand img { display: block; width: 40px; height: 26px; object-fit: contain; mix-blend-mode: multiply; }
+:root[data-theme="dark"] .home-brand img { mix-blend-mode: screen; }
+.home-page nav.home-nav .theme-toggle { order: 1; width: 44px; height: 44px; margin: 0 10px !important; border-color: var(--ui-border); background: var(--ui-surface); color: var(--ui-text); }
+.home-page .home-login {
+    order: 2;
+    min-height: 40px;
+    padding: 0 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--recovery-border);
-    border-radius: 50%;
-    color: var(--recovery-text);
-    background: var(--recovery-card);
-    cursor: pointer;
-    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    border: 1px solid var(--ui-border);
+    border-radius: 14px;
+    color: var(--ui-text);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
 }
-.recovery-header .theme-toggle svg { display: block; width: 20px; height: 20px; }
-.recovery-header .theme-toggle:hover { border-color: var(--recovery-accent); transform: translateY(-1px); }
-.recovery-header .theme-toggle:focus-visible { outline: 2px solid var(--recovery-accent); outline-offset: 3px; }
+.home-page .home-login:hover { border-color: var(--ui-primary); background: var(--ui-surface-2); }
+.home-page nav.home-nav .btn-aluno {
+    order: 3;
+    min-height: 40px;
+    margin: 0 0 0 10px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    color: var(--ui-on-primary);
+    background: var(--ui-primary);
+    box-shadow: none;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.home-page nav.home-nav .btn-aluno:hover { background: var(--ui-primary-hover); }
 
 .recovery-card {
     width: min(100%, 520px);
@@ -88,8 +166,12 @@ body.recovery-page {
 
 @media (max-width: 480px) {
     body.recovery-page { padding: 18px 12px; }
-    .recovery-header { top: 12px; right: 12px; }
-    .recovery-header .theme-toggle { width: 40px; height: 40px; }
+    .home-page nav.home-nav { padding-right: 16px; padding-left: 16px; }
+    .home-page nav.home-nav .theme-toggle { width: 40px; height: 40px; margin: 0 8px !important; }
+    .home-brand { gap: 7px; font-size: 13px; }
+    .home-brand img { width: 34px; }
+    .home-page .home-login { min-height: 38px; padding: 0 12px; font-size: 13px; }
+    .home-page nav.home-nav .btn-aluno { min-height: 38px; margin-left: 6px; padding: 0 11px; font-size: 13px; }
     .recovery-card { padding: 28px 20px 24px; border-radius: 20px; }
     .recovery-brand { margin-bottom: 19px; }
     .recovery-brand img { height: 76px; }
@@ -97,5 +179,5 @@ body.recovery-page {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .recovery-header .theme-toggle, .back-to-login { transition: none; }
+    .home-page nav.home-nav .theme-toggle, .back-to-login { transition: none; }
 }

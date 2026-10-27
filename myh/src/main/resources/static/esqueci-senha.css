@@ -110,6 +110,43 @@ body.recovery-page {
 .recovery-card .campo { display: grid; gap: 8px; }
 .recovery-card label { color: var(--recovery-text); font-size: 14px; font-weight: 700; }
 
+.reset-card { width: min(100%, 520px); }
+.reset-card form { gap: 16px; }
+.reset-card .campo-senha { position: relative; width: 100%; }
+.reset-card .campo-senha input { padding-right: 58px; }
+.reset-card .alternar-senha {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    width: 40px;
+    height: 38px;
+    padding: 6px;
+    display: grid;
+    place-items: center;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 10px;
+    color: var(--recovery-accent);
+    background: transparent;
+    cursor: pointer;
+}
+.reset-card .alternar-senha svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.reset-card .alternar-senha .risco-olho { opacity: 1; transition: opacity .15s ease; }
+.reset-card .alternar-senha.senha-visivel .risco-olho { opacity: 0; }
+.reset-card .alternar-senha:focus-visible { outline: 2px solid var(--recovery-accent); outline-offset: 2px; }
+
+.password-strength { margin-top: 2px; }
+.password-strength-bars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.password-strength-bars i { height: 5px; border-radius: 99px; background: var(--recovery-border); transition: background-color .16s ease; }
+.password-strength-text { margin: 7px 0 0; color: var(--recovery-muted); font-size: 12px; line-height: 1.45; }
+.password-strength[data-strength="1"] .password-strength-bars i.is-active { background: #e57373; }
+.password-strength[data-strength="2"] .password-strength-bars i.is-active { background: #f0aa55; }
+.password-strength[data-strength="3"] .password-strength-bars i.is-active { background: #c4d96a; }
+.password-strength[data-strength="4"] .password-strength-bars i.is-active { background: var(--recovery-accent); }
+.password-match { min-height: 17px; margin: -3px 0 0; color: var(--recovery-muted); font-size: 12px; }
+.password-match[data-match="true"] { color: var(--recovery-accent); }
+.password-match[data-match="false"] { color: #e57373; }
+
 .recovery-card input {
     width: 100%;
     min-height: 48px;
@@ -180,5 +217,5 @@ body.recovery-page {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .recovery-header .theme-toggle, .recovery-card input, .recovery-submit, .back-to-login { transition: none; }
+    .recovery-header .theme-toggle, .recovery-card input, .recovery-submit, .back-to-login, .password-strength-bars i, .reset-card .alternar-senha .risco-olho { transition: none; }
 }
