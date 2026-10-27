@@ -43,6 +43,7 @@
         <section class="recovery-step reset-content" id="stepNovaSenha" aria-labelledby="tituloNovaSenha" hidden>
             <h1 id="tituloNovaSenha">Confirmação aprovada</h1>
             <p class="recovery-description">Seu e-mail foi confirmado. Agora crie uma nova senha para sua conta.</p>
+            <p id="mensagemAprovada" class="recovery-message" aria-live="polite">Confirmação aprovada. Defina sua nova senha aqui.</p>
             <form id="formNovaSenha">
                 <div class="campo">
                     <label for="novaSenha">Nova senha:</label>
@@ -104,8 +105,66 @@
             const etapaConcluido = etapas[4];
             const token = new URLSearchParams(location.hash.slice(1)).get("token") || "";
             const linkLoginGlobal = document.querySelector(".recovery-global-login");
+            let pollingEstado = null;
+            let redirecionando = false;
+            let formularioSenhaLiberado = false;
+
+            function concluirRedefinicao(dados = {}) {
+                if (redirecionando) return;
+                redirecionando = true;
+                clearInterval(pollingEstado);
+                try { sessionStorage.removeItem("myhSenhaAguardandoConfirmacao"); } catch (_) {}
+                mostrarEtapa(etapaConcluido);
+                linkLoginGlobal.hidden = true;
+                document.getElementById("tituloConcluido").textContent = "Senha trocada com sucesso!";
+                document.getElementById("mensagemConcluida").textContent = dados.mensagem || "Bem-vindo! Estamos levando você para a área do aluno.";
+                const destino = dados.redirecionar || "/areadoaluno.html";
+                document.getElementById("linkAreaAluno").href = destino;
+                window.setTimeout(() => location.assign(destino), 2200);
+            }
+
+            async function verificarEstadoRedefinicao() {
+                try {
+                    const resposta = await fetch("/api/senha/estado-redefinicao", {
+                        cache: "no-store",
+                        credentials: "same-origin"
+                    });
+                    if (!resposta.ok) return;
+                    const estado = await resposta.json();
+                    if (estado.estado === "concluida") {
+                        clearInterval(pollingEstado);
+                        concluirRedefinicao(estado);
+                    } else if (estado.estado === "confirmada") {
+                        try { sessionStorage.setItem("myhSenhaAguardandoConfirmacao", "1"); } catch (_) {}
+                        if (!formularioSenhaLiberado) {
+                            formularioSenhaLiberado = true;
+                            mostrarEtapa(etapaNovaSenha);
+                            linkLoginGlobal.hidden = true;
+                            document.getElementById("mensagemAprovada").textContent = "Confirmação aprovada. Defina sua nova senha nesta página.";
+                            document.getElementById("novaSenha").focus();
+                        }
+                    } else if (estado.estado === "expirada") {
+                        clearInterval(pollingEstado);
+                        formularioSenhaLiberado = false;
+                        try { sessionStorage.removeItem("myhSenhaAguardandoConfirmacao"); } catch (_) {}
+                        mostrarEtapa(etapaInvalido);
+                        linkLoginGlobal.hidden = false;
+                    }
+                } catch (_) {
+                    // Mantém a etapa de espera e tenta novamente enquanto a página estiver aberta.
+                }
+            }
+
+            function iniciarAcompanhamento() {
+                clearInterval(pollingEstado);
+                verificarEstadoRedefinicao();
+                pollingEstado = window.setInterval(verificarEstadoRedefinicao, 2500);
+            }
 
             document.querySelectorAll("[data-voltar-solicitacao]").forEach(botao => botao.addEventListener("click", () => {
+                clearInterval(pollingEstado);
+                formularioSenhaLiberado = false;
+                try { sessionStorage.removeItem("myhSenhaAguardandoConfirmacao"); } catch (_) {}
                 history.replaceState(null, "", location.pathname);
                 document.getElementById("formRecuperacao").reset();
                 mostrarEtapa(etapaSolicitar);
@@ -132,9 +191,12 @@
                         mensagem.textContent = dados.mensagem || "Não foi possível solicitar o link. Tente novamente.";
                         return;
                     }
+                    formularioSenhaLiberado = false;
+                    try { sessionStorage.setItem("myhSenhaAguardandoConfirmacao", "1"); } catch (_) {}
                     mostrarEtapa(etapaAguardando);
                     linkLoginGlobal.hidden = false;
                     document.getElementById("mensagemAguardando").textContent = dados.mensagem || "Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.";
+                    iniciarAcompanhamento();
                 } catch (_) {
                     mensagem.textContent = "Falha de conexão. Tente novamente.";
                 } finally {
@@ -171,13 +233,7 @@
                     }
                     form.reset();
                     history.replaceState(null, "", location.pathname);
-                    mostrarEtapa(etapaConcluido);
-                    linkLoginGlobal.hidden = true;
-                    document.getElementById("tituloConcluido").textContent = "Senha trocada com sucesso!";
-                    document.getElementById("mensagemConcluida").textContent = dados.mensagem || "Bem-vindo! Estamos levando você para a área do aluno.";
-                    const destino = dados.redirecionar || "/areadoaluno.html";
-                    document.getElementById("linkAreaAluno").href = destino;
-                    window.setTimeout(() => location.assign(destino), 2200);
+                    concluirRedefinicao(dados);
                 } catch (_) {
                     mensagem.textContent = "Falha de conexão. Tente novamente.";
                 } finally {
@@ -187,7 +243,15 @@
             });
 
             if (!token) {
-                mostrarEtapa(etapaSolicitar);
+                let aguardandoSalvo = false;
+                try { aguardandoSalvo = sessionStorage.getItem("myhSenhaAguardandoConfirmacao") === "1"; } catch (_) {}
+                if (aguardandoSalvo) {
+                    mostrarEtapa(etapaAguardando);
+                    linkLoginGlobal.hidden = false;
+                    iniciarAcompanhamento();
+                } else {
+                    mostrarEtapa(etapaSolicitar);
+                }
                 return;
             }
             mostrarEtapa(etapaAguardando);
@@ -208,6 +272,9 @@
                 }
                 mostrarEtapa(etapaNovaSenha);
                 linkLoginGlobal.hidden = true;
+                formularioSenhaLiberado = true;
+                document.getElementById("mensagemAprovada").textContent = dados.mensagem || "Confirmação aprovada. Defina sua nova senha nesta página.";
+                iniciarAcompanhamento();
                 document.getElementById("novaSenha").focus();
             }).catch(() => {
                 document.getElementById("tituloAguardando").textContent = "Não foi possível confirmar";

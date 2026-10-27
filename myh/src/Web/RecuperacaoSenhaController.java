@@ -3,6 +3,7 @@ package Web;
 import Control.DAOUsuario;
 import Model.Usuario;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 public class RecuperacaoSenhaController {
@@ -46,7 +48,11 @@ public class RecuperacaoSenhaController {
     }
 
     @PostMapping("/api/senha/esqueci")
-    public ResponseEntity<Map<String, String>> solicitar(@RequestParam String email) {
+    public ResponseEntity<Map<String, String>> solicitar(@RequestParam String email,
+            HttpServletRequest requisicao) {
+        HttpSession sessao = requisicao.getSession(true);
+        sessao.removeAttribute("senhaRedefinicaoTokenHash");
+        sessao.removeAttribute("senhaRedefinicaoConcluida");
         String emailNormalizado = email == null ? "" : email.trim().toLowerCase();
         if (!EMAIL.matcher(emailNormalizado).matches()) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe um e-mail válido."));
@@ -80,16 +86,21 @@ public class RecuperacaoSenhaController {
     }
 
     @PostMapping("/api/senha/validar-token")
-    public ResponseEntity<Map<String, Object>> validarToken(@RequestParam(required = false) String token) {
+    public ResponseEntity<Map<String, Object>> validarToken(@RequestParam(required = false) String token,
+            HttpServletRequest requisicao) {
         if (token == null || token.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("sucesso", false,
                     "mensagem", "O link de redefinição é inválido ou expirou."));
         }
         try {
-            if (!usuarios.tokenRedefinicaoValido(hashToken(token))) {
+            String tokenHash = hashToken(token);
+            if (!usuarios.tokenRedefinicaoValido(tokenHash)) {
                 return ResponseEntity.badRequest().body(Map.of("sucesso", false,
                         "mensagem", "O link de redefinição é inválido ou expirou."));
             }
+            HttpSession sessao = requisicao.getSession(true);
+            sessao.setAttribute("senhaRedefinicaoTokenHash", tokenHash);
+            sessao.removeAttribute("senhaRedefinicaoConcluida");
             return ResponseEntity.ok(Map.of("sucesso", true,
                     "mensagem", "Confirmação aprovada. Agora crie uma nova senha."));
         } catch (Exception e) {
@@ -99,11 +110,49 @@ public class RecuperacaoSenhaController {
         }
     }
 
+    /** Permite que a aba que está aguardando o e-mail avance quando o link for aprovado. */
+    @GetMapping("/api/senha/estado-redefinicao")
+    public Map<String, String> estadoRedefinicao(HttpServletRequest requisicao) {
+        HttpSession sessao = requisicao.getSession(false);
+        if (sessao == null) return Map.of("estado", "aguardando");
+
+        if (Boolean.TRUE.equals(sessao.getAttribute("senhaRedefinicaoConcluida"))) {
+            String nome = String.valueOf(sessao.getAttribute("usuarioNome"));
+            return Map.of("estado", "concluida",
+                    "mensagem", "Senha trocada com sucesso. Bem-vindo, " + nome + "! Estamos levando você para a área do aluno.",
+                    "redirecionar", "/areadoaluno.html");
+        }
+
+        Object tokenHash = sessao.getAttribute("senhaRedefinicaoTokenHash");
+        if (!(tokenHash instanceof String hash) || hash.isBlank()) {
+            return Map.of("estado", "aguardando");
+        }
+        try {
+            if (usuarios.tokenRedefinicaoValido(hash)) return Map.of("estado", "confirmada");
+            sessao.removeAttribute("senhaRedefinicaoTokenHash");
+            return Map.of("estado", "expirada");
+        } catch (Exception e) {
+            System.err.println("Falha ao consultar estado da redefinição de senha: " + e.getClass().getSimpleName());
+            return Map.of("estado", "aguardando");
+        }
+    }
+
     @PostMapping("/api/senha/redefinir")
-    public ResponseEntity<Map<String, String>> redefinir(@RequestParam String token,
+    public ResponseEntity<Map<String, String>> redefinir(@RequestParam(required = false) String token,
             @RequestParam String novaSenha, @RequestParam String confirmarSenha,
             HttpServletRequest requisicao) {
-        if (token == null || token.isBlank()) {
+        String tokenHash = null;
+        try {
+            if (token != null && !token.isBlank()) tokenHash = hashToken(token);
+            else {
+                HttpSession sessao = requisicao.getSession(false);
+                Object hashPendente = sessao == null ? null : sessao.getAttribute("senhaRedefinicaoTokenHash");
+                if (hashPendente instanceof String hash) tokenHash = hash;
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "O link de redefinição é inválido ou expirou."));
+        }
+        if (tokenHash == null || tokenHash.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "O link de redefinição é inválido ou expirou."));
         }
         if (novaSenha == null || novaSenha.length() < 8 || novaSenha.length() > 128) {
@@ -113,11 +162,13 @@ public class RecuperacaoSenhaController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "As senhas não são iguais."));
         }
         try {
-            Usuario usuario = usuarios.redefinirSenha(hashToken(token), novaSenha);
+            Usuario usuario = usuarios.redefinirSenha(tokenHash, novaSenha);
             if (usuario == null) {
                 return ResponseEntity.badRequest().body(Map.of("mensagem", "O link de redefinição é inválido ou expirou."));
             }
             LoginController.iniciarSessao(requisicao, usuario);
+            HttpSession sessao = requisicao.getSession(false);
+            if (sessao != null) sessao.setAttribute("senhaRedefinicaoConcluida", true);
             return ResponseEntity.ok(Map.of(
                     "mensagem", "Senha trocada com sucesso. Bem-vindo, " + usuario.getNome() + "! Estamos levando você para a área do aluno.",
                     "redirecionar", "/areadoaluno.html"));
