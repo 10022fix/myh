@@ -67,7 +67,7 @@ public class AreaAlunoController {
         return executar(sessao, id -> {
             Map<String, Object> anterior = areaAluno.obterAgendaSemanal(id);
             if (!areaAluno.atualizarFrequenciaSemanal(id, frequencia)) {
-                return ResponseEntity.conflict().body(Map.of("mensagem", "Não foi possível atualizar a frequência do questionário."));
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "Não foi possível atualizar a frequência do questionário."));
             }
             Map<String, Object> atualizado = areaAluno.obterAgendaSemanal(id);
             @SuppressWarnings("unchecked")
