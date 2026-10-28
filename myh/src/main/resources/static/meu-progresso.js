@@ -176,6 +176,14 @@
     function escaparHTML(valor) {
         return String(valor ?? "").replace(/[&<>"']/g, caractere => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[caractere]));
     }
+    function nomeExibicaoTreino(nome) {
+        const texto = String(nome ?? "").trim();
+        const diaAntigo = texto.match(/^Dia\s+(\d+)(.*)$/i);
+        if (diaAntigo) return `Treino ${diaAntigo[1]}${diaAntigo[2]}`;
+        const letraAntiga = texto.match(/^Treino\s+([AB])(?=\s|$)(.*)$/i);
+        if (letraAntiga) return `Treino ${letraAntiga[1].toUpperCase() === "A" ? 1 : 2}${letraAntiga[2]}`;
+        return texto || "Treino";
+    }
     async function carregarOpcoesCarga() {
         treinoCarga.disabled = true;
         exercicioCarga.disabled = true;
@@ -187,7 +195,7 @@
             const opcoes = await resposta.json();
             if (!resposta.ok) throw new Error(opcoes.mensagem || "Não foi possível localizar treinos nessa data.");
             treinoCarga.innerHTML = opcoes.length
-                ? '<option value="">Selecione um treino</option>' + opcoes.map(treino => `<option value="${Number(treino.treinoId)}">${escaparHTML(treino.treino)}</option>`).join("")
+                ? '<option value="">Selecione um treino</option>' + opcoes.map(treino => `<option value="${Number(treino.treinoId)}">${escaparHTML(nomeExibicaoTreino(treino.treino))}</option>`).join("")
                 : '<option value="">Nenhum treino nessa data</option>';
             treinoCarga.disabled = opcoes.length === 0;
             treinoCarga.dataset.opcoes = JSON.stringify(opcoes);
@@ -215,7 +223,7 @@
             const cargas = await resposta.json();
             if (!resposta.ok) throw new Error(cargas.mensagem || "Não foi possível carregar as cargas.");
             historicoCargas.innerHTML = cargas.length ? cargas.map(item => `<article class="load-history-entry">
-                <div><strong>${escaparHTML(item.exercicio)}</strong><span>${escaparHTML(item.treino)} · ${formatarData(item.data)}</span></div>
+                <div><strong>${escaparHTML(item.exercicio)}</strong><span>${escaparHTML(nomeExibicaoTreino(item.treino))} · ${formatarData(item.data)}</span></div>
                 <div class="load-history-value">${formatarPeso(item.cargaKg)}${item.series ? `<small>${Number(item.series)} séries${item.repeticoes ? ` × ${Number(item.repeticoes)} reps` : ""}</small>` : ""}</div>
                 <button type="button" class="history-delete" data-excluir-carga="${Number(item.id)}">Excluir</button>
             </article>`).join("") : '<p class="progress-help">Nenhuma carga registrada neste mês.</p>';
