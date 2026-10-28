@@ -64,8 +64,9 @@
                     try {
                         const emailConfirmado = (localStorage.getItem("myhSignupEmailConfirmed") || "").trim().toLowerCase();
                         if (emailConfirmado === emailPendente) {
-                            concluirCadastro();
-                            return;
+                            titulo.textContent = "Confirmação aprovada";
+                            descricao.textContent = "Sua confirmação foi recebida. Estamos preparando seu acesso ao questionário.";
+                            mensagem.textContent = "Confirmação aprovada. Validando seu acesso…";
                         }
                     } catch (_) {}
                     try {
@@ -76,7 +77,7 @@
 
                         concluirCadastro();
                     } catch (_) {
-                        // A tela continua aguardando e tenta novamente quando voltar a ficar visível.
+                        // A tela continua aguardando a sessão e tenta novamente quando voltar a ficar visível.
                     }
                 };
                 const intervalo = setInterval(verificarSessao, 2500);
