@@ -187,16 +187,33 @@ async function salvarFormulario(evento) {
     }
     atualizarLimitesPesoMeta();
     if (!$('formulario').reportValidity()) return;
-    const resposta = await fetch(id ? `/api/objetivos/${id}` : '/api/objetivos', {
-        method: id ? 'PUT' : 'POST',
-        body: new URLSearchParams(new FormData(evento.currentTarget))
-    });
-    const dados = await resposta.json();
-    $('mensagem').textContent = dados.mensagem || (resposta.ok ? 'Meta salva.' : 'Não foi possível salvar a meta.');
-    $('mensagem').classList.toggle('erro', !resposta.ok);
-    if (resposta.ok) {
-        fecharFormulario();
-        await carregar();
+    const formulario = evento.currentTarget;
+    const botaoSalvar = formulario.querySelector('button[type="submit"]');
+    botaoSalvar.disabled = true;
+    formulario.setAttribute('aria-busy', 'true');
+    $('mensagem').classList.remove('erro');
+    $('mensagem').classList.add('carregando');
+    $('mensagem').textContent = 'Carregando... salvando sua meta e atualizando seu plano de treino.';
+    try {
+        const resposta = await fetch(id ? `/api/objetivos/${id}` : '/api/objetivos', {
+            method: id ? 'PUT' : 'POST',
+            body: new URLSearchParams(new FormData(formulario))
+        });
+        const dados = await resposta.json().catch(() => ({}));
+        $('mensagem').classList.remove('carregando');
+        $('mensagem').textContent = dados.mensagem || (resposta.ok ? 'Meta salva.' : 'Não foi possível salvar a meta.');
+        $('mensagem').classList.toggle('erro', !resposta.ok);
+        if (resposta.ok) {
+            fecharFormulario();
+            await carregar();
+        }
+    } catch (_) {
+        $('mensagem').classList.remove('carregando');
+        $('mensagem').textContent = 'Não foi possível conectar ao servidor. Tente novamente.';
+        $('mensagem').classList.add('erro');
+    } finally {
+        botaoSalvar.disabled = false;
+        formulario.removeAttribute('aria-busy');
     }
 }
 

@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meus-objetivos.css?v=20261028-2">
+    <link rel="stylesheet" href="/meus-objetivos.css?v=20261028-3">
     <title>Minhas metas - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -44,11 +44,11 @@
                     <div class="campo campo-largo"><label for="dataMeta">Data desejada (opcional)</label><input id="dataMeta" name="dataMeta" type="date"></div>
                 </div>
                 <div class="acoes-formulario"><button type="submit">Salvar meta</button><button id="cancelarEdicao" class="botao-secundario" type="button">Cancelar</button></div>
-                <p id="mensagem" class="mensagem" aria-live="polite"></p>
+                <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
             </form>
         </section>
     </main>
-    <script src="/meus-objetivos.js?v=20261028-2"></script>
+    <script src="/meus-objetivos.js?v=20261028-3"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
 </body>
 </html>

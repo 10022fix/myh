@@ -121,14 +121,19 @@
                 concluidosHoje = new Set(conclusoes.filter(item => item.data === hojeLocal).map(item => Number(item.treinoId)));
             }
             const treinosDisponiveis = await resposta.json();
+            // Mostra todo o plano semanal (Dia 1, Dia 2, etc.). Só libera
+            // marcação/conclusão para a sessão agendada para hoje.
+            const ordemAgenda = new Map((agendaAtual?.dias || []).map(item => [Number(item.treinoId), Number(item.ordem)]));
             const treinos = agendaAtual?.configurada
-                ? (treinoDeHojeId ? treinosDisponiveis.filter(treino => Number(treino.id) === treinoDeHojeId) : [])
+                ? treinosDisponiveis.slice().sort((a, b) => {
+                    const ordemA = ordemAgenda.get(Number(a.id)) ?? Number.MAX_SAFE_INTEGER;
+                    const ordemB = ordemAgenda.get(Number(b.id)) ?? Number.MAX_SAFE_INTEGER;
+                    return ordemA - ordemB || String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR");
+                })
                 : treinosDisponiveis;
             lista.innerHTML = treinos.length
                 ? treinos.map(renderizarTreino).join("")
-                : agendaAtual?.configurada && !treinoDeHojeId
-                    ? `<section class="empty-state"><h2>Hoje é dia de descanso</h2><p>Seu próximo treino aparece aqui no dia programado. Você pode alterar seus dias no calendário da área do aluno.</p><a class="training-action" href="/areadoaluno.html">Abrir minha semana</a></section>`
-                    : `<section class="empty-state"><h2>Nenhum treino encontrado</h2><p>Experimente buscar outro termo ou aguarde a liberação de um treino pelo profissional.</p></section>`;
+                : `<section class="empty-state"><h2>Nenhum treino encontrado</h2><p>Experimente buscar outro termo ou aguarde a liberação de um treino pelo profissional.</p></section>`;
         } catch (_) {
             lista.innerHTML = '<section class="empty-state"><h2>Falha de conexão.</h2><p>Não foi possível falar com o servidor. Atualize a página para tentar novamente.</p></section>';
         }

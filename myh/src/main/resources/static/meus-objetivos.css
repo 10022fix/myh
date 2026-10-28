@@ -65,6 +65,10 @@
 .dashboard--detail .acoes-formulario .botao-secundario:hover{background:var(--page-surface-2)!important}
 .dashboard--detail .campo-largo{grid-column:1/-1}
 .dashboard--detail .ajuda-peso-meta{margin-top:0;color:var(--page-muted);font-size:11px;line-height:1.45}
+.dashboard--detail .mensagem.carregando{display:flex;align-items:center;gap:9px;color:var(--page-muted)}
+.dashboard--detail .mensagem.carregando::before{width:14px;height:14px;flex:0 0 14px;border:2px solid color-mix(in srgb,var(--page-accent) 30%,transparent);border-top-color:var(--page-accent);border-radius:50%;content:"";animation:meta-loading-spin .75s linear infinite}
+.dashboard--detail .acoes-formulario button:disabled{cursor:wait;opacity:.7}
+@keyframes meta-loading-spin{to{transform:rotate(360deg)}}
 :root[data-theme="light"] .dashboard-page .dashboard--detail .objetivo-card{border-color:var(--page-border)!important;background:var(--page-surface)!important;color:var(--page-text)!important;box-shadow:0 8px 24px rgba(32,54,42,.05)!important}
 :root[data-theme="light"] .dashboard-page .dashboard--detail .objetivo-card h2,:root[data-theme="light"] .dashboard-page .dashboard--detail .objetivo-card .destaque{color:var(--page-text)!important}
 :root[data-theme="light"] .dashboard-page .dashboard--detail .objetivo-card .destaque,:root[data-theme="light"] .dashboard-page .dashboard--detail .objetivo-card .legenda-progresso{color:var(--page-muted)!important}
