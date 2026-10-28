@@ -914,3 +914,19 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
     .questionario-page nav.home-nav .btn-aluno { min-height: 36px; padding: 0 10px; font-size: 12px; }
 }
 
+/* Mantém as letras pretas sobre o destaque verde durante o hover. */
+.questionario-page .opcao:hover,
+.questionario-page .opcao-card:hover,
+.questionario-page .opcao-img:hover,
+.questionario-page .sexo-altura-opcao:hover { color: #000 !important; }
+.questionario-page .opcao:hover .opcao-label,
+.questionario-page .opcao:hover .opcao-desc,
+.questionario-page .opcao-card:hover .opcao-card-texto h3,
+.questionario-page .opcao-card:hover .opcao-card-texto p,
+.questionario-page .opcao-img:hover .img-legenda,
+.questionario-page .opcao.selecionada:hover .opcao-label,
+.questionario-page .opcao.selecionada:hover .opcao-desc,
+.questionario-page .opcao-card.selecionada:hover .opcao-card-texto h3,
+.questionario-page .opcao-card.selecionada:hover .opcao-card-texto p,
+.questionario-page .opcao-img.selecionada:hover .img-legenda { color: #000 !important; -webkit-text-fill-color: #000 !important; }
+
