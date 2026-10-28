@@ -6,6 +6,9 @@ const PERGUNTAS = [
         opcoes: [
             { valor: "ganhar_musculo", label: "Ganhar músculo", icone: "💪" },
             { valor: "perder_peso", label: "Perder peso e gordura", icone: "🔥" },
+            { valor: "condicionamento", label: "Melhorar meu condicionamento", icone: "🏃" },
+            { valor: "definicao", label: "Definir meu corpo", icone: "✨" },
+            { valor: "manter_peso", label: "Manter meu peso", icone: "⚖️" },
             { valor: "saude", label: "Ter mais saúde e disposição", icone: "🌿" },
         ],
     },
@@ -84,7 +87,7 @@ function elegivel(pergunta) {
     return !pergunta.mostrarSe || pergunta.mostrarSe(respostas);
 }
 
-// Limita o peso-alvo conforme a meta. Em saúde, mantém a escolha perto do peso atual.
+// Limita o peso-alvo conforme o objetivo informado.
 function calcularLimitesPesoAlvo(objetivo, pesoAtualKg, minimoGeral = 1, maximoGeral = 400) {
     const peso = Number(pesoAtualKg);
     if (!Number.isFinite(peso)) return { min: minimoGeral, max: maximoGeral };
@@ -101,13 +104,29 @@ function calcularLimitesPesoAlvo(objetivo, pesoAtualKg, minimoGeral = 1, maximoG
             max: Math.max(minimoPesoKg, Math.floor((peso - 0.1) * 10) / 10)
         };
     }
-    if (objetivo === "saude") {
+    if (objetivo === "manter_peso") {
+        return {
+            min: Math.max(25, Math.round(peso * 0.95 * 10) / 10),
+            max: Math.min(maximoGeral, Math.round(peso * 1.05 * 10) / 10)
+        };
+    }
+    if (["saude", "condicionamento", "definicao"].includes(objetivo)) {
         return {
             min: Math.max(25, Math.round(peso * 0.9 * 10) / 10),
             max: Math.min(maximoGeral, Math.round(peso * 1.1 * 10) / 10)
         };
     }
     return { min: minimoGeral, max: maximoGeral };
+}
+
+function textoFaixaPesoAlvo(objetivo, faixa) {
+    if (objetivo === "ganhar_musculo") return `Para ganhar músculo, escolha entre ${faixa.min} e ${faixa.max} kg (até 20% acima do peso atual).`;
+    if (objetivo === "perder_peso") return `Para emagrecer, escolha entre ${faixa.min} e ${faixa.max} kg (até 20% abaixo do peso atual).`;
+    if (objetivo === "manter_peso") return `Para manter o peso, escolha uma meta próxima do peso atual (faixa de até 5%: ${faixa.min}–${faixa.max} kg).`;
+    if (objetivo === "condicionamento") return `Para melhorar o condicionamento, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${faixa.min}–${faixa.max} kg).`;
+    if (objetivo === "definicao") return `Para definição, escolha uma meta dentro da faixa de até 10% do peso atual: ${faixa.min}–${faixa.max} kg.`;
+    if (objetivo === "saude") return `Para cuidar da saúde, escolha uma meta próxima do peso atual (faixa de até 10%: ${faixa.min}–${faixa.max} kg).`;
+    return `Para este objetivo, escolha uma meta próxima do peso atual (faixa de até 10%: ${faixa.min}–${faixa.max} kg).`;
 }
 
 // Retorna somente as perguntas que podem aparecer para o usuário.
@@ -366,6 +385,7 @@ function renderNumero(pergunta) {
     const objetivo = respostas.objetivo;
     const ganharMusculo = objetivo === "ganhar_musculo";
     const perderPeso = objetivo === "perder_peso";
+    const manterPeso = objetivo === "manter_peso";
     const limitesIniciaisKg = calcularLimitesPesoAlvo(objetivo, pesoInicial, pergunta.min, pergunta.max);
     const minimo = limiteMinimoNaUnidade(limitesIniciaisKg.min);
     const maximo = limiteMaximoNaUnidade(limitesIniciaisKg.max);
@@ -384,11 +404,7 @@ function renderNumero(pergunta) {
         </div>
         <div class="valor-peso"><span id="valorPesoNum">${valorInicial}</span><span>${unidadePeso}</span></div>
         <input type="range" class="slider-peso" id="sliderPeso" min="${minimo}" max="${maximo}" step="0.1" value="${valorInicial}" aria-label="Peso-alvo, de acordo com seu objetivo">
-        <p class="aviso-peso" id="avisoPeso">${ganharMusculo
-            ? `Para ganhar músculo, escolha entre ${limitesIniciaisKg.min} e ${limitesIniciaisKg.max} kg (até 20% acima do peso atual).`
-            : perderPeso
-                ? `Para emagrecer, escolha entre ${limitesIniciaisKg.min} e ${limitesIniciaisKg.max} kg (até 20% abaixo do peso atual).`
-                : `Para saúde e disposição, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${limitesIniciaisKg.min}–${limitesIniciaisKg.max} kg).`}</p>
+        <p class="aviso-peso" id="avisoPeso">${textoFaixaPesoAlvo(objetivo, limitesIniciaisKg)}</p>
         <p class="erro-peso" id="erroPeso" role="alert"></p>
         <button type="button" class="btn-continuar" id="btnContinuarNumero">Continuar</button>
     `;
@@ -410,11 +426,7 @@ function renderNumero(pergunta) {
         const novoValor = manterPesoAlvo ? paraUnidade(metaAnteriorKg, unidadePeso) : paraUnidade(sugeridoKg, unidadePeso);
         inputRange.value = String(Math.min(novoMaximo, Math.max(novoMinimo, arredondar(novoValor))));
         valorTexto.textContent = inputRange.value;
-        wrap.querySelector("#avisoPeso").textContent = ganharMusculo
-            ? `Para ganhar músculo, escolha entre ${limitesKg.min} e ${limitesKg.max} kg (até 20% acima do peso atual).`
-            : perderPeso
-                ? `Para emagrecer, escolha entre ${limitesKg.min} e ${limitesKg.max} kg (até 20% abaixo do peso atual).`
-                : `Para saúde e disposição, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${limitesKg.min}–${limitesKg.max} kg).`;
+        wrap.querySelector("#avisoPeso").textContent = textoFaixaPesoAlvo(objetivo, limitesKg);
     };
 
     inputRange.addEventListener("input", () => { valorTexto.textContent = inputRange.value; });
@@ -451,7 +463,9 @@ function renderNumero(pergunta) {
                 ? `Para perder peso, escolha uma meta entre ${limitesMetaKg.min} e ${limitesMetaKg.max} kg.`
                 : ganharMusculo
                     ? `Para ganhar músculo, escolha uma meta entre ${limitesMetaKg.min} e ${limitesMetaKg.max} kg.`
-                    : "Para saúde e disposição, escolha uma meta dentro da faixa indicada.";
+                    : manterPeso
+                        ? `Para manter o peso, escolha uma meta entre ${limitesMetaKg.min} e ${limitesMetaKg.max} kg.`
+                        : `Escolha uma meta entre ${limitesMetaKg.min} e ${limitesMetaKg.max} kg para este objetivo.`;
             return;
         }
         respostas.dados_pessoais = { ...(respostas.dados_pessoais || {}), pesoInicial: atualKg };

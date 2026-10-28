@@ -158,6 +158,7 @@ public final class GeradorTreinoQuestionario {
     }
 
     private static String chaveObjetivo(String objetivo) {
+        if ("Manter peso".equalsIgnoreCase(objetivo) || "manter_peso".equalsIgnoreCase(objetivo)) return "manter_peso";
         if ("Ganhar Massa".equalsIgnoreCase(objetivo)) return "ganhar_musculo";
         if ("Emagrecer".equalsIgnoreCase(objetivo)) return "perder_peso";
         if ("Condicionamento".equalsIgnoreCase(objetivo)) return "condicionamento";
@@ -201,7 +202,7 @@ public final class GeradorTreinoQuestionario {
         Collections.shuffle(sessao);
 
         if ("perder_peso".equals(contexto.objetivo) || "condicionamento".equals(contexto.objetivo)
-                || "definicao".equals(contexto.objetivo)) {
+                || "definicao".equals(contexto.objetivo) || "manter_peso".equals(contexto.objetivo)) {
             sessao.add(ExercicioGerado.tempo(cardio(contexto, usados), minutosCardio(contexto.duracao)));
         }
         return sessao;
@@ -220,8 +221,10 @@ public final class GeradorTreinoQuestionario {
         List<ExercicioCatalogo> diferentesDoPlano = candidatos.stream()
                 .filter(exercicio -> !contexto.exerciciosAtivos.contains(exercicio.nome))
                 .toList();
-        if (diferentesDoPlano.isEmpty()) return;
-        candidatos = diferentesDoPlano;
+        // Prefere variar em relação ao plano ativo, mas usa exercícios já presentes
+        // quando o filtro deixaria a nova sessão incompleta (por exemplo, em casa ou
+        // com várias regiões sensíveis).
+        if (!diferentesDoPlano.isEmpty()) candidatos = diferentesDoPlano;
 
         List<ExercicioCatalogo> priorizados = candidatos.stream()
                 .filter(e -> contexto.prioridades.contains(e.grupo))
@@ -304,6 +307,8 @@ public final class GeradorTreinoQuestionario {
             foco = "Foco em condicionamento físico, com exercícios de força e complemento aeróbico.";
         } else if ("definicao".equals(contexto.objetivo)) {
             foco = "Foco em definição e composição corporal, com volume e ritmo ajustados ao nível informado.";
+        } else if ("manter_peso".equals(contexto.objetivo)) {
+            foco = "Foco em manter o peso com força equilibrada e complemento aeróbico moderado.";
         } else if ("saude".equals(contexto.objetivo)) {
             foco = "Foco em saúde geral, força funcional e movimentos controlados.";
         } else {

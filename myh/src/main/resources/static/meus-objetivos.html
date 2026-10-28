@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meus-objetivos.css?v=20261027-6">
+    <link rel="stylesheet" href="/meus-objetivos.css?v=20261028-2">
     <title>Minhas metas - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -39,8 +39,8 @@
             <form id="formulario" class="formulario oculto">
                 <h2 id="tituloFormulario">Nova meta</h2>
                 <div class="campos">
-                    <div class="campo"><label for="objetivo">Objetivo</label><select id="objetivo" name="objetivo" required><option value="">Selecione</option><option>Emagrecer</option><option>Ganhar Massa</option><option>Condicionamento</option><option>Definicao</option><option>Saude</option></select></div>
-                    <div class="campo"><label for="pesoMeta">Peso-meta (kg)</label><input id="pesoMeta" name="pesoMeta" type="number" min="1" step="0.1"></div>
+                    <div class="campo"><label for="objetivo">Objetivo</label><select id="objetivo" name="objetivo" required><option value="">Selecione</option><option value="Emagrecer">Emagrecer</option><option value="Ganhar Massa">Ganhar massa</option><option value="Condicionamento">Condicionamento</option><option value="Definicao">Definição</option><option value="Manter peso">Manter meu peso</option><option value="Saúde e disposição">Manter-me saudável</option></select></div>
+                    <div class="campo"><label for="pesoMeta">Peso-meta (kg)</label><input id="pesoMeta" name="pesoMeta" type="number" min="25" max="400" step="0.1"><small id="ajudaPesoMeta" class="ajuda-peso-meta">A faixa permitida será calculada com base no objetivo e no seu peso atual.</small></div>
                     <div class="campo campo-largo"><label for="dataMeta">Data desejada (opcional)</label><input id="dataMeta" name="dataMeta" type="date"></div>
                 </div>
                 <div class="acoes-formulario"><button type="submit">Salvar meta</button><button id="cancelarEdicao" class="botao-secundario" type="button">Cancelar</button></div>
@@ -48,7 +48,7 @@
             </form>
         </section>
     </main>
-    <script src="/meus-objetivos.js"></script>
+    <script src="/meus-objetivos.js?v=20261028-2"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
 </body>
 </html>

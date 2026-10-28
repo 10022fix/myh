@@ -251,10 +251,14 @@ public class AreaAlunoController {
         if (meta == null && dataMeta != null && !dataMeta.isBlank() || !objetivoValido(objetivo) || !numeroEntre(pesoMeta, 25, 400)) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe objetivo, peso e data válidos."));
         }
-        return executar(sessao, id -> areaAluno.cadastrarObjetivo(id, objetivo, pesoMeta, meta)
-                ? Map.of("mensagem", "Meta cadastrada. O plano foi ajustado ao objetivo e ao seu perfil.")
-                : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                        "mensagem", "Você já possui uma meta. Altere ou exclua a meta atual antes de cadastrar outra.")));
+        return executar(sessao, id -> {
+            ResponseEntity<?> erroFaixa = validarFaixaPesoMeta(id, objetivo, pesoMeta);
+            if (erroFaixa != null) return erroFaixa;
+            return areaAluno.cadastrarObjetivo(id, objetivo, pesoMeta, meta)
+                    ? Map.of("mensagem", "Meta cadastrada. O plano foi ajustado ao objetivo e ao seu perfil.")
+                    : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                            "mensagem", "Você já possui uma meta. Altere ou exclua a meta atual antes de cadastrar outra."));
+        });
     }
 
     @PutMapping("/api/objetivos/{objetivoId}")
@@ -266,8 +270,16 @@ public class AreaAlunoController {
                 || (meta != null && meta.isBefore(LocalDate.now()))) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe objetivo, peso e data válidos."));
         }
-        return executar(sessao, id -> areaAluno.atualizarObjetivo(id, objetivoId, objetivo, pesoMeta, meta)
-                ? Map.of("mensagem", "Meta atualizada. Se você mudou o objetivo, novos treinos foram gerados; se mudou apenas o peso, os exercícios foram mantidos e a intensidade ajustada.") : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Meta não encontrada.")));
+        return executar(sessao, id -> {
+            ResponseEntity<?> erroFaixa = validarFaixaPesoMeta(id, objetivo, pesoMeta);
+            if (erroFaixa != null) return erroFaixa;
+            if (!areaAluno.atualizarObjetivo(id, objetivoId, objetivo, pesoMeta, meta)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Meta não encontrada."));
+            }
+            // Descarta sugestões abertas antes da mudança para que sejam calculadas com a meta atual.
+            sessao.removeAttribute("recomendacoesTreino");
+            return Map.of("mensagem", "Meta atualizada. Ao mudar o objetivo, seus treinos ativos são substituídos por um plano completo baseado nas respostas do questionário, e as recomendações são atualizadas ao abrir a área Treino. Se mudou apenas o peso, seus exercícios são mantidos e a intensidade é ajustada.");
+        });
     }
 
     @DeleteMapping("/api/objetivos/{objetivoId}")
@@ -333,8 +345,20 @@ public class AreaAlunoController {
             return null;
         }
     }
-    private boolean objetivoValido(String objetivo) { return List.of("Emagrecer", "Ganhar Massa", "Condicionamento", "Definicao", "Saude").contains(objetivo); }
+    private boolean objetivoValido(String objetivo) {
+        return List.of("Emagrecer", "Ganhar Massa", "Condicionamento", "Definicao", "Definição",
+                "Manter peso", "Saude", "Saúde", "Saúde e disposição").contains(objetivo);
+    }
     private boolean numeroEntre(Float valor, float minimo, float maximo) { return valor == null || (Float.isFinite(valor) && valor >= minimo && valor <= maximo); }
+    private ResponseEntity<?> validarFaixaPesoMeta(int usuarioId, String objetivo, Float pesoMeta) throws SQLException {
+        if (pesoMeta == null) return null;
+        Object atual = areaAluno.resumoPainel(usuarioId).get("pesoAtual");
+        if (!(atual instanceof Number pesoAtual)
+                || !QuestionarioController.pesoMetaValido(objetivo, pesoAtual.floatValue(), pesoMeta)) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "O peso-meta precisa respeitar a faixa permitida para este objetivo e seu peso atual."));
+        }
+        return null;
+    }
     private ResponseEntity<?> executar(HttpSession sessao, Consulta consulta) {
         Object usuario = sessao.getAttribute("usuarioId");
         if (!(usuario instanceof Integer)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensagem", "Faca login para continuar."));

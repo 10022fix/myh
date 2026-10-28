@@ -426,8 +426,14 @@ public class DAOAreaAluno {
             regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
             return;
         }
-        if (anterior == null || !categoriaObjetivo(anterior.objetivo()).equals(categoriaObjetivo(atual.objetivo()))) {
+        if (anterior == null) {
             regenerarTreinosDaMetaAtual(conexao, usuarioId, null);
+            return;
+        }
+        if (!categoriaObjetivo(anterior.objetivo()).equals(categoriaObjetivo(atual.objetivo()))) {
+            if (!regenerarTreinosDaMetaAtual(conexao, usuarioId, null, true)) {
+                throw new SQLException("Não foi possível gerar um novo plano com base no questionário.");
+            }
             return;
         }
         boolean mudouPesoAlvo = atual.pesoMeta() != null
@@ -439,8 +445,14 @@ public class DAOAreaAluno {
 
     private String categoriaObjetivo(String objetivo) {
         if (objetivo == null) return "";
-        return Normalizer.normalize(objetivo.trim().toLowerCase(java.util.Locale.ROOT), Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
+        String chave = Normalizer.normalize(objetivo.trim().toLowerCase(java.util.Locale.ROOT), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").replace('_', ' ');
+        return switch (chave) {
+            case "saude", "saude e disposicao" -> "saude";
+            case "manter meu peso", "manter peso" -> "manter_peso";
+            case "definicao" -> "definicao";
+            default -> chave;
+        };
     }
 
     /** Mantém os exercícios e sobe o volume em um passo, com limite de 4 séries e 15 repetições. */
@@ -511,6 +523,15 @@ public class DAOAreaAluno {
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
             try {
+                // Usa a mesma trava do cadastro de meta para impedir duplicidade entre
+                // a finalização do questionário e o formulário Minhas Metas.
+                try (PreparedStatement bloquearUsuario = conexao.prepareStatement(
+                        "SELECT id FROM usuario WHERE id=? FOR UPDATE")) {
+                    bloquearUsuario.setInt(1, usuarioId);
+                    try (ResultSet usuario = bloquearUsuario.executeQuery()) {
+                        if (!usuario.next()) throw new SQLException("Usuário não encontrado.");
+                    }
+                }
                 try (PreparedStatement perfil = conexao.prepareStatement(perfilSql);
                      PreparedStatement meta = conexao.prepareStatement(objetivoSql);
                      PreparedStatement dados = conexao.prepareStatement(
@@ -836,6 +857,12 @@ public class DAOAreaAluno {
      * conclusões ou cargas já registradas.
      */
     private boolean regenerarTreinosDaMetaAtual(Connection conexao, int usuarioId, Integer novaFrequencia) throws SQLException {
+        return regenerarTreinosDaMetaAtual(conexao, usuarioId, novaFrequencia, false);
+    }
+
+    /** Ao trocar de objetivo, troca o conjunto ativo inteiro e começa a geração sem excluir exercícios antigos. */
+    private boolean regenerarTreinosDaMetaAtual(Connection conexao, int usuarioId, Integer novaFrequencia,
+            boolean substituirTodosOsTreinosAtivos) throws SQLException {
         String respostas;
         String local;
         int duracao;
@@ -890,18 +917,22 @@ public class DAOAreaAluno {
         }
 
         Set<String> exerciciosAnteriores = new HashSet<>();
-        try (PreparedStatement buscarExercicios = conexao.prepareStatement(
-                "SELECT DISTINCT e.nome FROM usuario_treinos ut JOIN treinos t ON t.id=ut.treino_id "
-                        + "JOIN treino_exercicios te ON te.treino_id=t.id JOIN exercicios e ON e.id=te.exercicio_id "
-                        + "WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'")) {
-            buscarExercicios.setInt(1, usuarioId);
-            try (ResultSet rs = buscarExercicios.executeQuery()) {
-                while (rs.next()) exerciciosAnteriores.add(rs.getString(1));
+        if (!substituirTodosOsTreinosAtivos) {
+            try (PreparedStatement buscarExercicios = conexao.prepareStatement(
+                    "SELECT DISTINCT e.nome FROM usuario_treinos ut JOIN treinos t ON t.id=ut.treino_id "
+                            + "JOIN treino_exercicios te ON te.treino_id=t.id JOIN exercicios e ON e.id=te.exercicio_id "
+                            + "WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'")) {
+                buscarExercicios.setInt(1, usuarioId);
+                try (ResultSet rs = buscarExercicios.executeQuery()) {
+                    while (rs.next()) exerciciosAnteriores.add(rs.getString(1));
+                }
             }
         }
-        try (PreparedStatement desativar = conexao.prepareStatement(
-                "UPDATE usuario_treinos ut JOIN treinos t ON t.id=ut.treino_id "
-                        + "SET ut.ativo=FALSE WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'")) {
+        String desativarSql = substituirTodosOsTreinosAtivos
+                ? "UPDATE usuario_treinos SET ativo=FALSE WHERE usuario_id=? AND ativo=TRUE"
+                : "UPDATE usuario_treinos ut JOIN treinos t ON t.id=ut.treino_id "
+                        + "SET ut.ativo=FALSE WHERE ut.usuario_id=? AND ut.ativo=TRUE AND t.origem='RECOMENDADO'";
+        try (PreparedStatement desativar = conexao.prepareStatement(desativarSql)) {
             desativar.setInt(1, usuarioId);
             desativar.executeUpdate();
         }
