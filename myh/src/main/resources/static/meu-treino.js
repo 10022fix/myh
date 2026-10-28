@@ -24,14 +24,24 @@
         return `${treinoId}:${indice}:${nome}`;
     }
 
+    function nomeExibicaoTreino(treino, agendaItem) {
+        const nome = String(treino.nome || "").trim();
+        // Compatibilidade com treinos que já estavam salvos com o padrão antigo.
+        const diaAntigo = nome.match(/^Dia\s+(\d+)(.*)$/i);
+        if (diaAntigo) return `Treino ${diaAntigo[1]}${diaAntigo[2]}`;
+        const letraAntiga = nome.match(/^Treino\s+([AB])(?=\s|$)(.*)$/i);
+        if (letraAntiga) return `Treino ${letraAntiga[1].toUpperCase() === "A" ? 1 : 2}${letraAntiga[2]}`;
+        return nome || `Treino ${Number(agendaItem?.ordem) || 1}`;
+    }
+
     function renderizarTreino(treino, indiceTreino) {
         const exercicios = Array.isArray(treino.exercicios) ? treino.exercicios : [];
         const duracao = Number(treino.duracao);
-        const titulo = escapar(treino.nome || `Treino ${indiceTreino + 1}`);
         const treinoId = Number(treino.id);
         const concluidoHoje = concluidosHoje.has(treinoId);
         const podeTreinarHoje = !agendaAtual?.configurada || treinoDeHojeId === treinoId;
         const agendaItem = agendaAtual?.dias?.find(item => Number(item.treinoId) === treinoId);
+        const titulo = escapar(nomeExibicaoTreino(treino, agendaItem) || `Treino ${indiceTreino + 1}`);
         const detalhes = exercicios.map((exercicio, indice) => {
             const chave = chaveExercicio(treino, exercicio, indice);
             const idCheckbox = `exercicio-${indiceTreino}-${indice}`;

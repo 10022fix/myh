@@ -117,9 +117,7 @@ public final class GeradorTreinoQuestionario {
         for (int indice = 0; indice < quantidadeSessoes; indice++) {
             Set<String> usados = indice < 2 ? usadosNasPrimeirasSessoes : new HashSet<>();
             List<ExercicioGerado> exercicios = montarSessao(contexto, usados, indice % 2 == 1);
-            String nome = quantidadeSessoes == 2
-                    ? (indice == 0 ? "Treino A" : "Treino B") + identificacaoGenero
-                    : "Dia " + (indice + 1) + identificacaoGenero;
+            String nome = "Treino " + (indice + 1) + identificacaoGenero;
             sessoes.add(new TreinoGerado(nome, descricao, duracao, exercicios));
         }
         return List.copyOf(sessoes);
