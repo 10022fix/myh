@@ -75,7 +75,7 @@
 .dashboard-page .dashboard-nav { width: 100%; max-width: 1040px; height: 64px; min-height: 64px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
 .dashboard-page .dashboard-brand { order: 0; display: inline-flex; align-items: center; gap: 10px; margin-right: auto; color: var(--page-text); font-size: 15px; font-weight: 800; letter-spacing: -.02em; text-decoration: none; text-transform: none; white-space: nowrap; }
 .dashboard-page .dashboard-brand img { display: block; flex: 0 0 40px; width: 40px !important; height: 26px !important; object-fit: contain; mix-blend-mode: screen; filter: none; }
-:root[data-theme="light"] .dashboard-page .dashboard-brand img { mix-blend-mode: normal; filter: brightness(.55) saturate(1.15); }
+:root[data-theme="light"] .dashboard-page .dashboard-brand img { display: block !important; visibility: visible !important; opacity: 1 !important; mix-blend-mode: normal !important; filter: brightness(.42) saturate(1.2) !important; }
 .dashboard-page .dashboard-links { order: 1; display: flex; align-items: center; gap: 8px; }
 .dashboard-page .dashboard-links a { display: inline-flex; min-height: 42px; padding: 0 15px; align-items: center; border-radius: 999px; color: var(--page-muted); font-size: 14px; font-weight: 700; text-decoration: none; transition: background .18s ease, color .18s ease; }
 .dashboard-page .dashboard-links a:hover, .dashboard-page .dashboard-links a.active { color: var(--page-text); background: var(--page-surface-2); }
