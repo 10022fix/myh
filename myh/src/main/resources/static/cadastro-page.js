@@ -1,4 +1,58 @@
 (() => {
+    const formCadastro = document.getElementById("formCadastro");
+    const chaveRascunhoCadastro = "myhCadastroRascunhoTermos";
+
+    // Guarda os campos apenas durante a navegação para os documentos legais.
+    // O rascunho é apagado assim que o usuário retorna ao cadastro.
+    if (formCadastro) {
+        formCadastro.addEventListener("click", evento => {
+            const linkLegal = evento.target.closest(
+                'a[href*="termos-responsabilidade"], a[href*="politica-privacidade"]'
+            );
+            if (!linkLegal) return;
+
+            const controles = [...formCadastro.elements].filter(controle => controle.name);
+            const rascunho = controles.map((controle, indice) => ({
+                name: controle.name,
+                indice,
+                type: controle.type,
+                value: controle.value,
+                checked: controle.type === "checkbox" || controle.type === "radio"
+                    ? controle.checked
+                    : undefined
+            }));
+
+            try {
+                sessionStorage.setItem(chaveRascunhoCadastro, JSON.stringify(rascunho));
+            } catch (_) {
+                // Se o armazenamento da sessão estiver indisponível, a navegação continua normalmente.
+            }
+        });
+
+        window.addEventListener("pageshow", () => {
+            let rascunho;
+            try {
+                rascunho = JSON.parse(sessionStorage.getItem(chaveRascunhoCadastro) || "null");
+                sessionStorage.removeItem(chaveRascunhoCadastro);
+            } catch (_) {
+                return;
+            }
+            if (!Array.isArray(rascunho)) return;
+
+            const controles = [...formCadastro.elements].filter(controle => controle.name);
+            for (const item of rascunho) {
+                const controle = controles[item.indice];
+                if (!controle || controle.name !== item.name || controle.type !== item.type) continue;
+                if (controle.type === "checkbox" || controle.type === "radio") {
+                    controle.checked = Boolean(item.checked);
+                } else {
+                    controle.value = item.value;
+                }
+            }
+            campo?.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+    }
+
     const campo = document.getElementById("senha");
     const medidor = document.querySelector(".password-strength");
     const segmentos = [...document.querySelectorAll(".password-strength-bars i")];
