@@ -156,6 +156,14 @@
         function dataDoMes(data) { return new Date(data + "T12:00:00"); }
         function escaparHTML(valor) { return String(valor ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
         function rotuloData(data) { return dataDoMes(data).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); }
+        function nomeExibicaoTreino(nome) {
+            const texto = String(nome ?? "").trim();
+            const diaAntigo = texto.match(/^Dia\s+(\d+)(.*)$/i);
+            if (diaAntigo) return `Treino ${diaAntigo[1]}${diaAntigo[2]}`;
+            const letraAntiga = texto.match(/^Treino\s+([AB])(?=\s|$)(.*)$/i);
+            if (letraAntiga) return `Treino ${letraAntiga[1].toUpperCase() === "A" ? 1 : 2}${letraAntiga[2]}`;
+            return texto || "Treino";
+        }
 
         async function carregarPainel() {
             const sessaoResposta = await fetch("/api/sessao");
@@ -187,7 +195,7 @@
                     document.getElementById("comecarTreino").dataset.abrirAgenda = "true";
                 } else if (treino && diaHoje) {
                     const quantidade = Array.isArray(treino.exercicios) ? treino.exercicios.length : 0;
-                    document.getElementById("treinoHojeTitulo").textContent = treino.nome;
+                    document.getElementById("treinoHojeTitulo").textContent = nomeExibicaoTreino(treino.nome);
                     document.getElementById("treinoHojeResumo").textContent = `${treino.duracao} min · ${quantidade} exercícios`;
                     document.getElementById("comecarTreino").textContent = "Começar agora";
                     document.getElementById("comecarTreino").removeAttribute("data-abrir-agenda");
