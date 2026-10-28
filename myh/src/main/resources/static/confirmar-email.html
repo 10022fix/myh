@@ -46,21 +46,35 @@
                 try { emailPendente = (localStorage.getItem("myhPendingSignupEmail") || "").trim().toLowerCase(); } catch (_) {}
 
                 let confirmado = false;
+                const concluirCadastro = () => {
+                    if (confirmado) return;
+                    confirmado = true;
+                    try {
+                        localStorage.removeItem("myhPendingSignupEmail");
+                        localStorage.removeItem("myhSignupEmailConfirmed");
+                    } catch (_) {}
+                    titulo.textContent = "E-mail cadastrado com sucesso";
+                    descricao.textContent = "Sua conta foi confirmada. Vamos abrir o questionário para você continuar o cadastro.";
+                    mensagem.textContent = "Confirmação aprovada. Abrindo o questionário…";
+                    clearInterval(intervalo);
+                    setTimeout(() => { location.assign("/questionario.html"); }, 1400);
+                };
                 const verificarSessao = async () => {
                     if (confirmado || !emailPendente || document.visibilityState === "hidden") return;
+                    try {
+                        const emailConfirmado = (localStorage.getItem("myhSignupEmailConfirmed") || "").trim().toLowerCase();
+                        if (emailConfirmado === emailPendente) {
+                            concluirCadastro();
+                            return;
+                        }
+                    } catch (_) {}
                     try {
                         const resposta = await fetch("/api/sessao", { cache: "no-store", credentials: "same-origin" });
                         if (!resposta.ok) return;
                         const dadosSessao = await resposta.json();
                         if (!dadosSessao.sucesso || (dadosSessao.email || "").trim().toLowerCase() !== emailPendente) return;
 
-                        confirmado = true;
-                        try { localStorage.removeItem("myhPendingSignupEmail"); } catch (_) {}
-                        titulo.textContent = "E-mail cadastrado com sucesso";
-                        descricao.textContent = "Sua conta foi confirmada. Vamos abrir o questionário para você continuar o cadastro.";
-                        mensagem.textContent = "Confirmação aprovada. Abrindo o questionário…";
-                        clearInterval(intervalo);
-                        setTimeout(() => { location.assign("/questionario.html"); }, 1400);
+                        concluirCadastro();
                     } catch (_) {
                         // A tela continua aguardando e tenta novamente quando voltar a ficar visível.
                     }
@@ -92,7 +106,11 @@
                     : (dados.mensagem || "Não foi possível confirmar seu e-mail.");
                 if (resposta.ok && dados.sucesso) {
                     if (dados.email) {
-                        try { localStorage.setItem("myhPendingSignupEmail", String(dados.email).trim().toLowerCase()); } catch (_) {}
+                        try {
+                            const emailConfirmado = String(dados.email).trim().toLowerCase();
+                            localStorage.setItem("myhPendingSignupEmail", emailConfirmado);
+                            localStorage.setItem("myhSignupEmailConfirmed", emailConfirmado);
+                        } catch (_) {}
                     }
                     history.replaceState(null, "", location.pathname);
                     titulo.textContent = "Confirmação aprovada";
