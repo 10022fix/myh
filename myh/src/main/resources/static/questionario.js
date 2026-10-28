@@ -89,10 +89,17 @@ function calcularLimitesPesoAlvo(objetivo, pesoAtualKg, minimoGeral = 1, maximoG
     const peso = Number(pesoAtualKg);
     if (!Number.isFinite(peso)) return { min: minimoGeral, max: maximoGeral };
     if (objetivo === "ganhar_musculo") {
-        return { min: Math.ceil(peso * 10) / 10, max: maximoGeral };
+        return {
+            min: Math.ceil(peso * 10) / 10,
+            max: Math.min(maximoGeral, Math.round(peso * 1.2 * 10) / 10)
+        };
     }
     if (objetivo === "perder_peso") {
-        return { min: minimoGeral, max: Math.max(minimoGeral, Math.floor((peso - 0.1) * 10) / 10) };
+        const minimoPesoKg = Math.max(25, minimoGeral);
+        return {
+            min: Math.max(minimoPesoKg, Math.round(peso * 0.8 * 10) / 10),
+            max: Math.max(minimoPesoKg, Math.floor((peso - 0.1) * 10) / 10)
+        };
     }
     if (objetivo === "saude") {
         return {
@@ -378,9 +385,9 @@ function renderNumero(pergunta) {
         <div class="valor-peso"><span id="valorPesoNum">${valorInicial}</span><span>${unidadePeso}</span></div>
         <input type="range" class="slider-peso" id="sliderPeso" min="${minimo}" max="${maximo}" step="0.1" value="${valorInicial}" aria-label="Peso-alvo, de acordo com seu objetivo">
         <p class="aviso-peso" id="avisoPeso">${ganharMusculo
-            ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${pesoInicial} kg).`
+            ? `Para ganhar músculo, escolha entre ${limitesIniciaisKg.min} e ${limitesIniciaisKg.max} kg (até 20% acima do peso atual).`
             : perderPeso
-                ? `Para emagrecer, a meta precisa ser menor que seu peso atual (${pesoInicial} kg).`
+                ? `Para emagrecer, escolha entre ${limitesIniciaisKg.min} e ${limitesIniciaisKg.max} kg (até 20% abaixo do peso atual).`
                 : `Para saúde e disposição, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${limitesIniciaisKg.min}–${limitesIniciaisKg.max} kg).`}</p>
         <p class="erro-peso" id="erroPeso" role="alert"></p>
         <button type="button" class="btn-continuar" id="btnContinuarNumero">Continuar</button>
@@ -404,9 +411,9 @@ function renderNumero(pergunta) {
         inputRange.value = String(Math.min(novoMaximo, Math.max(novoMinimo, arredondar(novoValor))));
         valorTexto.textContent = inputRange.value;
         wrap.querySelector("#avisoPeso").textContent = ganharMusculo
-            ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${atualKg} kg).`
+            ? `Para ganhar músculo, escolha entre ${limitesKg.min} e ${limitesKg.max} kg (até 20% acima do peso atual).`
             : perderPeso
-                ? `Para emagrecer, a meta precisa ser menor que seu peso atual (${atualKg} kg).`
+                ? `Para emagrecer, escolha entre ${limitesKg.min} e ${limitesKg.max} kg (até 20% abaixo do peso atual).`
                 : `Para saúde e disposição, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${limitesKg.min}–${limitesKg.max} kg).`;
     };
 
@@ -431,11 +438,19 @@ function renderNumero(pergunta) {
             return;
         }
         const limitesMetaKg = calcularLimitesPesoAlvo(objetivo, atualKg, pergunta.min, pergunta.max);
+        if (perderPeso && metaKg >= atualKg) {
+            wrap.querySelector("#erroPeso").textContent = "Para perder peso, a meta precisa ser menor que seu peso atual e respeitar o mínimo de 25 kg.";
+            return;
+        }
+        if (ganharMusculo && metaKg < atualKg) {
+            wrap.querySelector("#erroPeso").textContent = "Para ganhar músculo, a meta precisa ser igual ou maior que seu peso atual.";
+            return;
+        }
         if (metaKg < limitesMetaKg.min || metaKg > limitesMetaKg.max) {
             wrap.querySelector("#erroPeso").textContent = perderPeso
-                ? "Para perder peso, a meta precisa ser menor que o peso atual."
+                ? `Para perder peso, escolha uma meta entre ${limitesMetaKg.min} e ${limitesMetaKg.max} kg.`
                 : ganharMusculo
-                    ? "Para ganhar músculo, a meta precisa ser igual ou maior que o peso atual."
+                    ? `Para ganhar músculo, escolha uma meta entre ${limitesMetaKg.min} e ${limitesMetaKg.max} kg.`
                     : "Para saúde e disposição, escolha uma meta dentro da faixa indicada.";
             return;
         }
