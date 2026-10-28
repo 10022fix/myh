@@ -485,6 +485,12 @@ a:focus-visible {
     backdrop-filter: none;
 }
 
+/* Mantém a navbar contínua com o cabeçalho em vez de uma caixa central. */
+:root[data-theme="light"] .home-page header.home-header nav.home-nav {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
 .home-brand {
     display: flex;
     align-items: center;

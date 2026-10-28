@@ -1,4 +1,6 @@
 .auth-page {
+    --auth-navbar-bg: #0c1511;
+    --auth-navbar-border: #25382d;
     --auth-bg: #0a130f;
     --auth-card: #13221a;
     --auth-field: #0a1510;
@@ -12,6 +14,8 @@
 }
 
 :root[data-theme="light"] .auth-page {
+    --auth-navbar-bg: #f6f8f5;
+    --auth-navbar-border: #d5e0d8;
     --auth-bg: #f4f8f5;
     --auth-card: #ffffff;
     --auth-field: #f6faf7;
@@ -26,8 +30,9 @@
     z-index: 10;
     top: 0;
     height: 67px;
-    border-bottom: 1px solid var(--auth-border);
-    background: var(--auth-bg);
+    border-bottom: 1px solid var(--auth-navbar-border);
+    background: color-mix(in srgb, var(--auth-navbar-bg) 90%, transparent);
+    backdrop-filter: blur(12px);
 }
 
 .auth-page header.cabecalho .navbar {
@@ -42,6 +47,13 @@
     border: 0;
     border-radius: 0;
     background: transparent;
+}
+
+/* tema.css estiliza nav.navbar globalmente; a barra de acesso usa o fundo do cabeçalho. */
+:root[data-theme="light"] .auth-page header.cabecalho nav.home-nav {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 
 .auth-page header.cabecalho .home-brand {
