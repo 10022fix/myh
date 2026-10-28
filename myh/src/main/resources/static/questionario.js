@@ -180,6 +180,15 @@ function irParaAnterior() {
         // Remove a pergunta atual do histórico.
         historico.pop();
 
+        // Ao revisitar uma pergunta de opções, recomeça sem manter a escolha anterior.
+        const perguntaRevisitada = perguntaPorId(historico[historico.length - 1]);
+        if (perguntaRevisitada && (perguntaRevisitada.tipo === "single" || perguntaRevisitada.tipo === "multi")) {
+            delete respostas[perguntaRevisitada.id];
+            if (perguntaRevisitada.id === "sexo") {
+                respostas.dados_pessoais = { ...(respostas.dados_pessoais || {}), sexo: "" };
+            }
+        }
+
         // Mostra novamente a pergunta anterior.
         render();
     }
