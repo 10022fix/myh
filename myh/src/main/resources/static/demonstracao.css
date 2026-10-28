@@ -1,4 +1,6 @@
 .demo-page {
+    --demo-nav-bg: #0c1511;
+    --demo-nav-border: #25382d;
     --demo-bg: #09130f;
     --demo-card: #13221a;
     --demo-card-soft: #1a2b21;
@@ -14,6 +16,8 @@
 }
 
 :root[data-theme="light"] .demo-page {
+    --demo-nav-bg: #f6f8f5;
+    --demo-nav-border: #d5e0d8;
     --demo-bg: #f3f7f4;
     --demo-card: #fff;
     --demo-card-soft: #edf4ef;
@@ -48,8 +52,9 @@
 
 .demo-header {
     height: 72px;
-    border-bottom: 1px solid var(--demo-border);
-    background: var(--demo-bg);
+    border-bottom: 1px solid var(--demo-nav-border);
+    background: color-mix(in srgb, var(--demo-nav-bg) 90%, transparent);
+    backdrop-filter: blur(12px);
 }
 
 .demo-nav {
@@ -59,6 +64,13 @@
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+/* tema.css aplica fundo/sombra no nav global; a demonstração usa a faixa do cabeçalho. */
+:root[data-theme="light"] .demo-page header.demo-header nav.demo-nav {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 
 .demo-brand {
