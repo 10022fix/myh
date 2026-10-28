@@ -313,10 +313,25 @@ public class DAOAreaAluno {
         return concluidos;
     }
 
-    public void cadastrarObjetivo(int usuarioId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
+    public boolean cadastrarObjetivo(int usuarioId, String objetivo, Float pesoMeta, LocalDate dataMeta) throws SQLException {
         try (Connection conexao = consultas.abreConexao()) {
             conexao.setAutoCommit(false);
             try {
+                // Serializa novas metas por usuário, inclusive quando ainda não existe uma linha em objetivos.
+                try (PreparedStatement bloquearUsuario = conexao.prepareStatement(
+                        "SELECT id FROM usuario WHERE id=? FOR UPDATE")) {
+                    bloquearUsuario.setInt(1, usuarioId);
+                    try (ResultSet usuario = bloquearUsuario.executeQuery()) {
+                        if (!usuario.next()) { conexao.rollback(); return false; }
+                    }
+                }
+                try (PreparedStatement existente = conexao.prepareStatement(
+                        "SELECT id FROM objetivos WHERE usuario_id=? LIMIT 1 FOR UPDATE")) {
+                    existente.setInt(1, usuarioId);
+                    try (ResultSet meta = existente.executeQuery()) {
+                        if (meta.next()) { conexao.rollback(); return false; }
+                    }
+                }
                 MetaObjetivo anterior = buscarMetaObjetivo(conexao, usuarioId, null);
                 try (PreparedStatement comando = conexao.prepareStatement(
                         "INSERT INTO objetivos (usuario_id, objetivo, peso_meta, data_meta) VALUES (?, ?, ?, ?)")) {
@@ -329,6 +344,7 @@ public class DAOAreaAluno {
                 MetaObjetivo atual = buscarMetaObjetivo(conexao, usuarioId, null);
                 ajustarTreinosAposMudancaMeta(conexao, usuarioId, anterior, atual);
                 conexao.commit();
+                return true;
             } catch (SQLException | RuntimeException erro) {
                 conexao.rollback();
                 throw erro;

@@ -65,12 +65,10 @@ async function carregar() {
     const resumo = resumoResposta.ok ? await resumoResposta.json() : null;
     const metaAtual = objetivos[0];
     $('vazio').classList.toggle('oculto', Boolean(metaAtual));
-    $('novo').classList.toggle('oculto', !metaAtual);
     $('objetivos').innerHTML = metaAtual ? renderizarMeta(metaAtual, resumo) : '';
 }
 
 $('abrirCadastro').onclick = mostrarFormulario;
-$('novo').onclick = () => iniciarNovaMeta();
 $('cancelarEdicao').onclick = fecharFormulario;
 $('objetivos').addEventListener('click', async evento => {
     const botao = evento.target.closest('button[data-acao]');
@@ -101,14 +99,6 @@ $('objetivos').addEventListener('click', async evento => {
         }
     }
 });
-
-function iniciarNovaMeta() {
-    metaEmEdicaoId = null;
-    $('formulario').reset();
-    $('tituloFormulario').textContent = 'Nova meta';
-    $('mensagem').textContent = '';
-    mostrarFormulario();
-}
 
 function iniciarEdicao(meta) {
     metaEmEdicaoId = Number(meta.id);

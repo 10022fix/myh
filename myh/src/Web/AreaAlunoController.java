@@ -243,7 +243,10 @@ public class AreaAlunoController {
         if (meta == null && dataMeta != null && !dataMeta.isBlank() || !objetivoValido(objetivo) || !numeroEntre(pesoMeta, 25, 400)) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Informe objetivo, peso e data válidos."));
         }
-        return executar(sessao, id -> { areaAluno.cadastrarObjetivo(id, objetivo, pesoMeta, meta); return Map.of("mensagem", "Meta cadastrada. O plano foi ajustado ao objetivo e ao seu perfil."); });
+        return executar(sessao, id -> areaAluno.cadastrarObjetivo(id, objetivo, pesoMeta, meta)
+                ? Map.of("mensagem", "Meta cadastrada. O plano foi ajustado ao objetivo e ao seu perfil.")
+                : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                        "mensagem", "Você já possui uma meta. Altere ou exclua a meta atual antes de cadastrar outra.")));
     }
 
     @PutMapping("/api/objetivos/{objetivoId}")
