@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/stylealuno.css?v=20261027-5">
+    <link rel="stylesheet" href="/stylealuno.css?v=20261028-1">
     <title>Área do Aluno - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -148,6 +148,7 @@
         let agendaAtual = null;
         let calendarioAtual = null;
         let retornarCalendarioDepoisAgenda = false;
+        let sequenciaSelecaoCalendario = 0;
 
         function chaveDataLocal(data) {
             return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
@@ -263,16 +264,53 @@
                 grade.append(botao);
             }
         }
-        function selecionarDia(data) {
+        function desenharGraficoCargas(exercicio) {
+            const pontos = (exercicio.pontos || []).filter(ponto => Number.isFinite(Number(ponto.cargaKg)));
+            if (!pontos.length) return "";
+            const valores = pontos.map(ponto => Number(ponto.cargaKg));
+            const minimo = Math.min(...valores), maximo = Math.max(...valores), amplitude = maximo - minimo || 1;
+            const pontosXY = valores.map((valor, indice) => ({
+                x: pontos.length === 1 ? 380 : 28 + 704 * indice / (pontos.length - 1),
+                y: 104 - ((valor - minimo) / amplitude) * 72,
+                valor,
+                registro: pontos[indice]
+            }));
+            const linha = pontosXY.map(ponto => `${ponto.x},${ponto.y}`).join(" ");
+            const circulos = pontosXY.map(ponto => `<circle cx="${ponto.x}" cy="${ponto.y}" r="8"><title>${formatarPeso(ponto.valor)} · ${rotuloData(ponto.registro.data)}</title></circle>`).join("");
+            const primeiro = pontos[0], ultimo = pontos[pontos.length - 1];
+            return `<article class="calendar-load-chart">
+                <div class="calendar-load-chart-heading"><strong>${escaparHTML(exercicio.exercicio)}</strong><span>${formatarPeso(ultimo.cargaKg)}</span></div>
+                <svg class="calendar-load-svg" viewBox="0 0 760 132" role="img" aria-label="Evolução da carga em ${pontos.length} ${pontos.length === 1 ? "registro" : "registros"} para ${escaparHTML(exercicio.exercicio)}"><polyline points="${linha}"></polyline>${circulos}</svg>
+                <div class="calendar-load-chart-dates"><span>${rotuloData(primeiro.data)}</span><span>${pontos.length} ${pontos.length === 1 ? "registro" : "registros"} até ${rotuloData(ultimo.data)}</span></div>
+            </article>`;
+        }
+        async function selecionarDia(data) {
+            const sequencia = ++sequenciaSelecaoCalendario;
             const registro = obterDia(data), detalhe = document.getElementById("calendarDayDetail");
             if (!registro) { detalhe.innerHTML = `<p>${escaparHTML(rotuloData(data))}: não há programação registrada para este dia.</p>`; return; }
             const nomesEstado = { concluido: "Treino concluído", pendente: "Treino pendente", hoje: "Treino programado para hoje", futuro: "Treino futuro", descanso: "Dia de descanso", "sem-plano": "Sem programação" };
             const realizado = (registro.treinosConcluidos || []).map(item => `<p class="calendar-detail-workout">Concluído: <strong>${escaparHTML(item.treino)}</strong></p>`).join("");
             const previsto = registro.treinoPrevisto ? `<p class="calendar-detail-workout">Programado: <strong>${escaparHTML(registro.treinoPrevisto.treino)}</strong></p>` : "";
             const cargas = registro.cargas?.length ? `<div class="calendar-load-list"><strong>Cargas registradas</strong>${registro.cargas.map(carga => `<p>${escaparHTML(carga.exercicio)} · ${formatarPeso(carga.cargaKg)}${carga.series ? ` · ${carga.series} séries` : ""}${carga.repeticoes ? ` × ${carga.repeticoes}` : ""}</p>`).join("")}</div>` : "<p class=\"calendar-no-load\">Nenhuma carga registrada neste dia.</p>";
-            detalhe.innerHTML = `<div class="calendar-detail-heading"><strong>${escaparHTML(rotuloData(data))}</strong><span class="status-pill status-${escaparHTML(registro.estado)}">${nomesEstado[registro.estado] || "Sem programação"}</span></div>${previsto}${realizado}${cargas}`;
+            const areaGrafico = registro.cargas?.length ? '<section class="calendar-load-charts" id="calendarLoadCharts" aria-label="Evolução das cargas por exercício"><h3>Evolução das cargas</h3><p class="calendar-load-chart-status">Carregando histórico…</p></section>' : "";
+            detalhe.innerHTML = `<div class="calendar-detail-heading"><strong>${escaparHTML(rotuloData(data))}</strong><span class="status-pill status-${escaparHTML(registro.estado)}">${nomesEstado[registro.estado] || "Sem programação"}</span></div>${previsto}${realizado}${cargas}${areaGrafico}`;
             document.querySelectorAll(".calendar-day.is-selected").forEach(item => item.classList.remove("is-selected"));
             document.querySelector(`.calendar-day[data-date="${data}"]`)?.classList.add("is-selected");
+            if (registro.cargas?.length) {
+                try {
+                    const resposta = await fetch(`/api/progresso/cargas/historico-dia?data=${encodeURIComponent(data)}`);
+                    const historicos = await resposta.json();
+                    if (!resposta.ok) throw new Error(historicos.mensagem || "Não foi possível carregar o gráfico de cargas.");
+                    if (sequencia !== sequenciaSelecaoCalendario) return;
+                    const graficos = historicos.map(desenharGraficoCargas).filter(Boolean).join("");
+                    const area = document.getElementById("calendarLoadCharts");
+                    if (area) area.innerHTML = `<h3>Evolução das cargas</h3>${graficos || '<p class="calendar-load-chart-status">Ainda não há histórico suficiente para este dia.</p>'}`;
+                } catch (erro) {
+                    if (sequencia !== sequenciaSelecaoCalendario) return;
+                    const area = document.getElementById("calendarLoadCharts");
+                    if (area) area.innerHTML = `<h3>Evolução das cargas</h3><p class="calendar-load-chart-status">${escaparHTML(erro.message || "Não foi possível carregar o gráfico de cargas.")}</p>`;
+                }
+            }
         }
         async function carregarCalendario(dataSelecionada) {
             const ano = periodoCalendario.getFullYear(), mes = periodoCalendario.getMonth() + 1;

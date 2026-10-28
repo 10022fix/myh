@@ -203,6 +203,14 @@ public class AreaAlunoController {
         catch (java.time.DateTimeException erro) { return ResponseEntity.badRequest().body(Map.of("mensagem", "Mês ou ano inválido.")); }
         return executar(sessao, id -> areaAluno.listarCargasMes(id, periodo));
     }
+    @GetMapping("/api/progresso/cargas/historico-dia")
+    public ResponseEntity<?> historicoCargasDia(@RequestParam String data, HttpSession sessao) {
+        LocalDate dia = data(data);
+        if (dia == null || dia.isAfter(LocalDate.now(ZoneId.of("America/Sao_Paulo")))) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "Escolha uma data válida, até hoje."));
+        }
+        return executar(sessao, id -> areaAluno.historicoCargasDia(id, dia));
+    }
     @GetMapping("/api/progresso/cargas/opcoes")
     public ResponseEntity<?> opcoesCarga(@RequestParam String data, HttpSession sessao) {
         LocalDate dia = data(data);

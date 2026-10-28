@@ -1210,6 +1210,39 @@ public class DAOAreaAluno {
         return new ArrayList<>(treinos.values());
     }
 
+    /** Retorna a evolução dos exercícios que têm carga no dia selecionado, limitada até esse dia. */
+    public List<Map<String, Object>> historicoCargasDia(int usuarioId, LocalDate dia) throws SQLException {
+        String sql = "SELECT c.exercicio_id,e.nome,c.treino_id,t.nome_treino,c.data_registro,c.carga_kg,c.series,c.repeticoes "
+                + "FROM cargas_exercicio c JOIN treinos t ON t.id=c.treino_id JOIN exercicios e ON e.id=c.exercicio_id "
+                + "WHERE c.usuario_id=? AND c.data_registro<=? AND c.exercicio_id IN ("
+                + "SELECT DISTINCT do_dia.exercicio_id FROM cargas_exercicio do_dia WHERE do_dia.usuario_id=? AND do_dia.data_registro=?) "
+                + "ORDER BY c.exercicio_id,c.data_registro,c.id";
+        Map<Integer, Map<String, Object>> porExercicio = new LinkedHashMap<>();
+        try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, usuarioId); comando.setDate(2, Date.valueOf(dia));
+            comando.setInt(3, usuarioId); comando.setDate(4, Date.valueOf(dia));
+            try (ResultSet rs = comando.executeQuery()) {
+                while (rs.next()) {
+                    int exercicioId = rs.getInt("exercicio_id");
+                    Map<String, Object> exercicio = porExercicio.get(exercicioId);
+                    if (exercicio == null) {
+                        Map<String, Object> novo = new LinkedHashMap<>();
+                        novo.put("exercicioId", exercicioId); novo.put("exercicio", rs.getString("nome"));
+                        novo.put("pontos", new ArrayList<Map<String, Object>>());
+                        porExercicio.put(exercicioId, novo);
+                        exercicio = novo;
+                    }
+                    Map<String, Object> ponto = new LinkedHashMap<>();
+                    ponto.put("data", rs.getDate("data_registro").toLocalDate().toString());
+                    ponto.put("cargaKg", rs.getBigDecimal("carga_kg"));
+                    ponto.put("series", rs.getObject("series")); ponto.put("repeticoes", rs.getObject("repeticoes"));
+                    ((List<Map<String, Object>>) exercicio.get("pontos")).add(ponto);
+                }
+            }
+        }
+        return new ArrayList<>(porExercicio.values());
+    }
+
     public List<Map<String, Object>> listarCargasMes(int usuarioId, YearMonth mes) throws SQLException {
         String sql = "SELECT c.id,c.treino_id,t.nome_treino,c.exercicio_id,e.nome,c.data_registro,c.carga_kg,c.series,c.repeticoes "
                 + "FROM cargas_exercicio c JOIN treinos t ON t.id=c.treino_id JOIN exercicios e ON e.id=c.exercicio_id "
