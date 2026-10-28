@@ -84,6 +84,25 @@ function elegivel(pergunta) {
     return !pergunta.mostrarSe || pergunta.mostrarSe(respostas);
 }
 
+// Limita o peso-alvo conforme a meta. Em saúde, mantém a escolha perto do peso atual.
+function calcularLimitesPesoAlvo(objetivo, pesoAtualKg, minimoGeral = 1, maximoGeral = 400) {
+    const peso = Number(pesoAtualKg);
+    if (!Number.isFinite(peso)) return { min: minimoGeral, max: maximoGeral };
+    if (objetivo === "ganhar_musculo") {
+        return { min: Math.ceil(peso * 10) / 10, max: maximoGeral };
+    }
+    if (objetivo === "perder_peso") {
+        return { min: minimoGeral, max: Math.max(minimoGeral, Math.floor((peso - 0.1) * 10) / 10) };
+    }
+    if (objetivo === "saude") {
+        return {
+            min: Math.max(25, Math.round(peso * 0.9 * 10) / 10),
+            max: Math.min(maximoGeral, Math.round(peso * 1.1 * 10) / 10)
+        };
+    }
+    return { min: minimoGeral, max: maximoGeral };
+}
+
 // Retorna somente as perguntas que podem aparecer para o usuário.
 // Perguntas condicionais que não atendem aos requisitos são ignoradas.
 function perguntasVisiveis() {
@@ -322,11 +341,18 @@ function renderNumero(pergunta) {
     const paraUnidade = (kg, unidade) => unidade === "lbs" ? kg * 2.2046226218 : kg;
     const paraKg = (valor, unidade) => unidade === "lbs" ? valor / 2.2046226218 : valor;
     const arredondar = (valor) => Math.round(valor * 10) / 10;
+    const limiteMinimoNaUnidade = (kg) => unidadePeso === "lbs"
+        ? Math.ceil(paraUnidade(kg, unidadePeso) * 10) / 10
+        : arredondar(kg);
+    const limiteMaximoNaUnidade = (kg) => unidadePeso === "lbs"
+        ? Math.floor(paraUnidade(kg, unidadePeso) * 10) / 10
+        : arredondar(kg);
     const objetivo = respostas.objetivo;
     const ganharMusculo = objetivo === "ganhar_musculo";
     const perderPeso = objetivo === "perder_peso";
-    const minimo = ganharMusculo ? Math.ceil(paraUnidade(pesoInicial, unidadePeso) * 10) / 10 : arredondar(paraUnidade(pergunta.min, unidadePeso));
-    const maximo = perderPeso ? Math.max(minimo, Math.floor((paraUnidade(pesoInicial, unidadePeso) - 0.1) * 10) / 10) : arredondar(paraUnidade(pergunta.max, unidadePeso));
+    const limitesIniciaisKg = calcularLimitesPesoAlvo(objetivo, pesoInicial, pergunta.min, pergunta.max);
+    const minimo = limiteMinimoNaUnidade(limitesIniciaisKg.min);
+    const maximo = limiteMaximoNaUnidade(limitesIniciaisKg.max);
     const padraoKg = ganharMusculo ? Math.min(400, pesoInicial + 5) : perderPeso ? Math.max(1, pesoInicial - 5) : pesoInicial;
     const valorSalvo = anterior.valor != null ? arredondar(paraUnidade(paraKg(Number(anterior.valor), anterior.unidade || "kg"), unidadePeso)) : arredondar(paraUnidade(padraoKg, unidadePeso));
     const valorInicial = Math.min(maximo, Math.max(minimo, valorSalvo));
@@ -346,7 +372,7 @@ function renderNumero(pergunta) {
             ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${pesoInicial} kg).`
             : perderPeso
                 ? `Para emagrecer, a meta precisa ser menor que seu peso atual (${pesoInicial} kg).`
-                : "Para saúde e disposição, escolha a meta de peso que deseja alcançar."}</p>
+                : `Para saúde e disposição, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${limitesIniciaisKg.min}–${limitesIniciaisKg.max} kg).`}</p>
         <p class="erro-peso" id="erroPeso" role="alert"></p>
         <button type="button" class="btn-continuar" id="btnContinuarNumero">Continuar</button>
     `;
@@ -358,8 +384,9 @@ function renderNumero(pergunta) {
     const atualizarLimites = (manterPesoAlvo = true) => {
         const atualKg = Number(inputPesoAtual.value);
         if (!Number.isFinite(atualKg) || atualKg < 25 || atualKg > 400) return;
-        const novoMinimo = ganharMusculo ? Math.ceil(paraUnidade(atualKg, unidadePeso) * 10) / 10 : arredondar(paraUnidade(pergunta.min, unidadePeso));
-        const novoMaximo = perderPeso ? Math.max(novoMinimo, Math.floor((paraUnidade(atualKg, unidadePeso) - 0.1) * 10) / 10) : arredondar(paraUnidade(pergunta.max, unidadePeso));
+        const limitesKg = calcularLimitesPesoAlvo(objetivo, atualKg, pergunta.min, pergunta.max);
+        const novoMinimo = limiteMinimoNaUnidade(limitesKg.min);
+        const novoMaximo = limiteMaximoNaUnidade(limitesKg.max);
         const metaAnteriorKg = paraKg(Number(inputRange.value), unidadePeso);
         inputRange.min = String(novoMinimo);
         inputRange.max = String(novoMaximo);
@@ -371,7 +398,7 @@ function renderNumero(pergunta) {
             ? `Para ganhar músculo, escolha uma meta igual ou maior que seu peso atual (${atualKg} kg).`
             : perderPeso
                 ? `Para emagrecer, a meta precisa ser menor que seu peso atual (${atualKg} kg).`
-                : "Para saúde e disposição, escolha a meta de peso que deseja alcançar.";
+                : `Para saúde e disposição, escolha uma meta próxima do seu peso atual (faixa de até 10%: ${limitesKg.min}–${limitesKg.max} kg).`;
     };
 
     inputRange.addEventListener("input", () => { valorTexto.textContent = inputRange.value; });
@@ -394,10 +421,13 @@ function renderNumero(pergunta) {
             inputPesoAtual.focus();
             return;
         }
-        if ((perderPeso && metaKg >= atualKg) || (ganharMusculo && metaKg < atualKg)) {
+        const limitesMetaKg = calcularLimitesPesoAlvo(objetivo, atualKg, pergunta.min, pergunta.max);
+        if (metaKg < limitesMetaKg.min || metaKg > limitesMetaKg.max) {
             wrap.querySelector("#erroPeso").textContent = perderPeso
                 ? "Para perder peso, a meta precisa ser menor que o peso atual."
-                : "Para ganhar músculo, a meta precisa ser igual ou maior que o peso atual.";
+                : ganharMusculo
+                    ? "Para ganhar músculo, a meta precisa ser igual ou maior que o peso atual."
+                    : "Para saúde e disposição, escolha uma meta dentro da faixa indicada.";
             return;
         }
         respostas.dados_pessoais = { ...(respostas.dados_pessoais || {}), pesoInicial: atualKg };
