@@ -18,6 +18,7 @@
     --progress-muted: #61766a;
     --progress-green: #4bb879;
 }
+
 .progress-page { min-height: 100vh; margin: 0; color: var(--progress-text); background: var(--progress-bg); font-family: "Plus Jakarta Sans", Arial, sans-serif; }
 .progress-page *, .progress-page *::before, .progress-page *::after { box-sizing: border-box; font-family: "Plus Jakarta Sans", Arial, sans-serif; }
 .progress-header { position: sticky; z-index: 20; top: 0; height: 54px; border-bottom: 1px solid var(--progress-border); background: var(--progress-bg); }
