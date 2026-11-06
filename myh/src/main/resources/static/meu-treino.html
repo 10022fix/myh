@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/logo-myh-m-removebg-preview.png">
-    <link rel="stylesheet" href="/meu-treino.css?v=20261105-1">
+    <link rel="stylesheet" href="/meu-treino.css?v=20261105-3">
     <title>Meu treino - Make Your Health</title>
     <script src="/tema.js"></script>
 </head>
@@ -31,7 +31,7 @@
     <main class="dashboard dashboard--detail painel">
         <section class="detail-heading cabecalho">
             <h1>Meu treino</h1>
-            <p>Marque os exercícios realizados e finalize a sessão para registrá-la no calendário. Você pode concluir qualquer treino do seu plano.</p>
+            <p>Marque os exercícios apenas no treino programado para hoje e finalize a sessão para registrá-la no calendário.</p>
         </section>
         <section class="detail-content conteudo" aria-label="Treinos disponíveis">
             <div class="training-toolbar">
@@ -57,7 +57,7 @@
             </div>
         </div>
     </dialog>
-    <script src="/meu-treino.js?v=20261105-1"></script>
+    <script src="/meu-treino.js?v=20261105-3"></script>
     <script>document.getElementById('sair').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.href = '/'; });</script>
 </body>
 </html>

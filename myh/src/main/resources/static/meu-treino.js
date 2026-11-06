@@ -12,6 +12,7 @@
     const marcados = {};
     let concluidosHoje = new Set();
     let agendaAtual = null;
+    let treinoDeHojeId = null;
 
     const escapar = valor => String(valor ?? "").replace(/[&<>"']/g, caractere => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -38,6 +39,7 @@
         const duracao = Number(treino.duracao);
         const treinoId = Number(treino.id);
         const concluidoHoje = concluidosHoje.has(treinoId);
+        const podeTreinarHoje = agendaAtual?.configurada === true && treinoDeHojeId === treinoId;
         const agendaItem = agendaAtual?.dias?.find(item => Number(item.treinoId) === treinoId);
         const titulo = escapar(nomeExibicaoTreino(treino, agendaItem) || `Treino ${indiceTreino + 1}`);
         const detalhes = exercicios.map((exercicio, indice) => {
@@ -50,7 +52,7 @@
                 : `${Number(exercicio.series) || 0} séries · ${repeticoes || 0} repetições · ${Number(exercicio.descanso) || 0}s descanso`;
             const grupo = exercicio.grupoMuscular || exercicio.grupo || exercicio.musculo || "";
             return `<div class="exercise${marcado ? " is-complete" : ""}">
-                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
+                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
                 <label class="exercise-number" for="${idCheckbox}">${String(indice + 1).padStart(2, "0")}</label>
                 <label class="exercise-copy" for="${idCheckbox}"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></label>
                 ${grupo ? `<b>${escapar(grupo)}</b>` : ""}
@@ -65,7 +67,7 @@
         const todosMarcados = total > 0 && totalConcluidos === total;
         const treinoIdCard = escapar(treino.id ?? treino.nome ?? indiceTreino);
 
-        return `<article class="training-card demo-content-card" data-training-id="${treinoIdCard}">
+        return `<article class="training-card demo-content-card" data-training-id="${treinoIdCard}" data-pode-treinar-hoje="${podeTreinarHoje}">
             <div class="section-heading">
                 <div><h2>${titulo}</h2><p>${total} ${total === 1 ? "exercício" : "exercícios"} · ${duracaoTexto}</p></div>
                 <span class="sample-tag">${agendaItem ? `Dia ${Number(agendaItem.ordem)} · ${["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][Number(agendaItem.diaSemana)]}` : nivel}</span>
@@ -75,7 +77,8 @@
                 <span style="width:${percentual}%"></span>
             </div>
             <p class="demo-feedback" data-workout-feedback>${totalConcluidos} de ${total} exercícios concluídos</p>
-            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados ? "" : "hidden"} ${concluidoHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
+            ${!podeTreinarHoje && !concluidoHoje ? `<p class="training-day-note">${agendaAtual?.configurada ? "Este treino está programado para outro dia. Hoje, só o treino do dia pode ser marcado como realizado." : "Organize sua semana na área do aluno para liberar a marcação do treino de hoje."}</p>` : ""}
+            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados && podeTreinarHoje ? "" : "hidden"} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
             <div class="training-actions">
                 <button type="button" class="training-action" data-alterar-treino="${treinoIdCard}">Alterar por recomendação</button>
                 <button type="button" class="training-action training-action--delete" data-excluir-treino="${treinoIdCard}">Excluir treino</button>
@@ -96,7 +99,7 @@
         if (feedback) feedback.textContent = `${concluidos} de ${total} exercícios concluídos`;
         const botaoFinalizar = card.querySelector("[data-finalizar-treino]");
         if (botaoFinalizar && !concluidosHoje.has(Number(card.dataset.trainingId))) {
-            botaoFinalizar.hidden = total === 0 || concluidos !== total;
+            botaoFinalizar.hidden = total === 0 || concluidos !== total || card.dataset.podeTreinarHoje !== "true";
         }
     }
 
@@ -117,6 +120,9 @@
             }
             if (agendaResposta.ok) {
                 agendaAtual = await agendaResposta.json();
+                const hoje = new Date();
+                const diaSemana = hoje.getDay() || 7;
+                treinoDeHojeId = Number(agendaAtual.dias?.find(item => Number(item.diaSemana) === diaSemana)?.treinoId) || null;
             }
             if (conclusoesResposta.ok) {
                 const conclusoes = await conclusoesResposta.json();
@@ -125,8 +131,8 @@
                 concluidosHoje = new Set(conclusoes.filter(item => item.data === hojeLocal).map(item => Number(item.treinoId)));
             }
             const treinosDisponiveis = await resposta.json();
-            // Mostra todo o plano semanal em ordem. Qualquer sessão pode ser
-            // registrada quando realizada, inclusive em um dia remanejado.
+            // Mostra todo o plano semanal em ordem, mas só habilita a sessão
+            // associada ao dia atual na agenda do usuário.
             const ordemAgenda = new Map((agendaAtual?.dias || []).map(item => [Number(item.treinoId), Number(item.ordem)]));
             const treinos = agendaAtual?.configurada
                 ? treinosDisponiveis.slice().sort((a, b) => {

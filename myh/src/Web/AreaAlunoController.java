@@ -85,7 +85,7 @@ public class AreaAlunoController {
         LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
         return executar(sessao, id -> areaAluno.registrarTreinoConcluido(id, treinoId, hoje)
                 ? Map.of("mensagem", "Treino concluído com sucesso.")
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", "Treino não encontrado no seu plano.")));
+                : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", "Só é possível concluir hoje o treino programado para hoje e que esteja ativo no seu plano.")));
     }
     @GetMapping("/api/treinos/recomendados")
     public ResponseEntity<?> recomendarTreinos(HttpSession sessao) {

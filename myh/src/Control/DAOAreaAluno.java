@@ -255,20 +255,11 @@ public class DAOAreaAluno {
         String agendaAtual = "SELECT d.treino_id FROM agenda_treino_semana a JOIN agenda_treino_dia d ON d.agenda_id=a.id "
                 + "WHERE a.id=(SELECT id FROM agenda_treino_semana WHERE usuario_id=? AND vigente_desde<=? "
                 + "ORDER BY vigente_desde DESC,id DESC LIMIT 1) AND d.dia_semana=? LIMIT 1";
-        boolean encontrouTreinoAgendado;
         try (Connection conexao = consultas.abreConexao(); PreparedStatement comando = conexao.prepareStatement(agendaAtual)) {
             comando.setInt(1, usuarioId); comando.setDate(2, Date.valueOf(dataConclusao));
             comando.setInt(3, dataConclusao.getDayOfWeek().getValue());
             try (ResultSet resultado = comando.executeQuery()) {
-                encontrouTreinoAgendado = resultado.next();
-                if (encontrouTreinoAgendado && resultado.getInt("treino_id") != treinoId) return false;
-            }
-            if (!encontrouTreinoAgendado) {
-                try (PreparedStatement existeAgenda = conexao.prepareStatement(
-                        "SELECT 1 FROM agenda_treino_semana WHERE usuario_id=? AND vigente_desde<=? LIMIT 1")) {
-                    existeAgenda.setInt(1, usuarioId); existeAgenda.setDate(2, Date.valueOf(dataConclusao));
-                    try (ResultSet agenda = existeAgenda.executeQuery()) { if (agenda.next()) return false; }
-                }
+                if (!resultado.next() || resultado.getInt("treino_id") != treinoId) return false;
             }
         }
         String verificar = "SELECT 1 FROM usuario_treinos WHERE usuario_id = ? AND treino_id = ? AND ativo = TRUE LIMIT 1";
