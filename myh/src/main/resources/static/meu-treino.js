@@ -12,7 +12,6 @@
     const marcados = {};
     let concluidosHoje = new Set();
     let agendaAtual = null;
-    let treinoDeHojeId = null;
 
     const escapar = valor => String(valor ?? "").replace(/[&<>"']/g, caractere => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -39,7 +38,6 @@
         const duracao = Number(treino.duracao);
         const treinoId = Number(treino.id);
         const concluidoHoje = concluidosHoje.has(treinoId);
-        const podeTreinarHoje = !agendaAtual?.configurada || treinoDeHojeId === treinoId;
         const agendaItem = agendaAtual?.dias?.find(item => Number(item.treinoId) === treinoId);
         const titulo = escapar(nomeExibicaoTreino(treino, agendaItem) || `Treino ${indiceTreino + 1}`);
         const detalhes = exercicios.map((exercicio, indice) => {
@@ -52,19 +50,18 @@
                 : `${Number(exercicio.series) || 0} séries · ${repeticoes || 0} repetições · ${Number(exercicio.descanso) || 0}s descanso`;
             const grupo = exercicio.grupoMuscular || exercicio.grupo || exercicio.musculo || "";
             return `<div class="exercise${marcado ? " is-complete" : ""}">
-                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
-                <span class="exercise-number">${String(indice + 1).padStart(2, "0")}</span>
+                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
+                <label class="exercise-number" for="${idCheckbox}">${String(indice + 1).padStart(2, "0")}</label>
                 <label class="exercise-copy" for="${idCheckbox}"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></label>
                 ${grupo ? `<b>${escapar(grupo)}</b>` : ""}
                 <button type="button" class="exercise-guide-button" data-exercise-guide="${escapar(exercicio.nome || "Exercício")}" data-exercise-group="${escapar(grupo)}" aria-label="Como fazer: ${escapar(exercicio.nome || "Exercício")}">Como fazer</button>
             </div>`;
         }).join("");
-        const completo = exercicios.filter((exercicio, indice) => marcados[chaveExercicio(treino, exercicio, indice)]).length;
         const total = exercicios.length;
-        const percentual = total ? Math.round(completo / total * 100) : 0;
         const duracaoTexto = Number.isFinite(duracao) && duracao > 0 ? `${duracao} min` : "Duração não informada";
         const nivel = treino.nivel ? escapar(treino.nivel) : "PLANO PERSONALIZADO";
-        const totalConcluidos = concluidoHoje ? total : completo;
+        const totalConcluidos = concluidoHoje ? total : exercicios.filter((exercicio, indice) => marcados[chaveExercicio(treino, exercicio, indice)]).length;
+        const percentual = total ? Math.round(totalConcluidos / total * 100) : 0;
         const todosMarcados = total > 0 && totalConcluidos === total;
         const treinoIdCard = escapar(treino.id ?? treino.nome ?? indiceTreino);
 
@@ -74,11 +71,11 @@
                 <span class="sample-tag">${agendaItem ? `Dia ${Number(agendaItem.ordem)} · ${["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][Number(agendaItem.diaSemana)]}` : nivel}</span>
             </div>
             <div class="exercise-list">${detalhes || `<p class="empty-exercises">Este treino ainda não tem exercícios cadastrados.</p>`}</div>
-            <div class="workout-progress" role="progressbar" aria-label="Progresso de ${titulo}" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${completo}">
+            <div class="workout-progress" role="progressbar" aria-label="Progresso de ${titulo}" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${totalConcluidos}">
                 <span style="width:${percentual}%"></span>
             </div>
             <p class="demo-feedback" data-workout-feedback>${totalConcluidos} de ${total} exercícios concluídos</p>
-            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados && podeTreinarHoje ? "" : "hidden"} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
+            <button type="button" class="finish-workout" data-finalizar-treino="${treinoIdCard}" ${todosMarcados ? "" : "hidden"} ${concluidoHoje ? "disabled" : ""}>${concluidoHoje ? "Treino concluído hoje" : "Finalizar treino"}</button>
             <div class="training-actions">
                 <button type="button" class="training-action" data-alterar-treino="${treinoIdCard}">Alterar por recomendação</button>
                 <button type="button" class="training-action training-action--delete" data-excluir-treino="${treinoIdCard}">Excluir treino</button>
@@ -120,9 +117,6 @@
             }
             if (agendaResposta.ok) {
                 agendaAtual = await agendaResposta.json();
-                const hoje = new Date();
-                const diaSemana = hoje.getDay() || 7;
-                treinoDeHojeId = Number(agendaAtual.dias?.find(item => Number(item.diaSemana) === diaSemana)?.treinoId) || null;
             }
             if (conclusoesResposta.ok) {
                 const conclusoes = await conclusoesResposta.json();
@@ -131,8 +125,8 @@
                 concluidosHoje = new Set(conclusoes.filter(item => item.data === hojeLocal).map(item => Number(item.treinoId)));
             }
             const treinosDisponiveis = await resposta.json();
-            // Mostra todo o plano semanal (Dia 1, Dia 2, etc.). Só libera
-            // marcação/conclusão para a sessão agendada para hoje.
+            // Mostra todo o plano semanal em ordem. Qualquer sessão pode ser
+            // registrada quando realizada, inclusive em um dia remanejado.
             const ordemAgenda = new Map((agendaAtual?.dias || []).map(item => [Number(item.treinoId), Number(item.ordem)]));
             const treinos = agendaAtual?.configurada
                 ? treinosDisponiveis.slice().sort((a, b) => {
