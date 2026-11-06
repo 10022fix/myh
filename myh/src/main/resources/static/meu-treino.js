@@ -51,10 +51,12 @@
                 ? "Tempo indicado no nome do exercício"
                 : `${Number(exercicio.series) || 0} séries · ${repeticoes || 0} repetições · ${Number(exercicio.descanso) || 0}s descanso`;
             const grupo = exercicio.grupoMuscular || exercicio.grupo || exercicio.musculo || "";
-            return `<div class="exercise${marcado ? " is-complete" : ""}">
-                <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
-                <label class="exercise-number" for="${idCheckbox}">${String(indice + 1).padStart(2, "0")}</label>
-                <label class="exercise-copy" for="${idCheckbox}"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></label>
+            return `<div class="exercise${marcado ? " is-complete" : ""}${!podeTreinarHoje ? " is-locked" : ""}">
+                <label class="exercise-select">
+                    <input id="${idCheckbox}" type="checkbox" data-exercise-key="${escapar(chave)}" ${marcado ? "checked" : ""} ${concluidoHoje || !podeTreinarHoje ? "disabled" : ""} aria-label="Marcar ${escapar(exercicio.nome)} como concluído">
+                    <span class="exercise-number">${String(indice + 1).padStart(2, "0")}</span>
+                    <span class="exercise-copy"><strong>${escapar(exercicio.nome || "Exercício")}</strong><small>${escapar(prescricao)}</small></span>
+                </label>
                 ${grupo ? `<b>${escapar(grupo)}</b>` : ""}
                 <button type="button" class="exercise-guide-button" data-exercise-guide="${escapar(exercicio.nome || "Exercício")}" data-exercise-group="${escapar(grupo)}" aria-label="Como fazer: ${escapar(exercicio.nome || "Exercício")}">Como fazer</button>
             </div>`;
@@ -133,12 +135,16 @@
             const treinosDisponiveis = await resposta.json();
             // Mostra todo o plano semanal em ordem, mas só habilita a sessão
             // associada ao dia atual na agenda do usuário.
-            const ordemAgenda = new Map((agendaAtual?.dias || []).map(item => [Number(item.treinoId), Number(item.ordem)]));
+            const hoje = new Date();
+            const diaSemanaHoje = hoje.getDay() || 7;
+            const diaPorTreino = new Map((agendaAtual?.dias || []).map(item => [Number(item.treinoId), Number(item.diaSemana)]));
             const treinos = agendaAtual?.configurada
                 ? treinosDisponiveis.slice().sort((a, b) => {
-                    const ordemA = ordemAgenda.get(Number(a.id)) ?? Number.MAX_SAFE_INTEGER;
-                    const ordemB = ordemAgenda.get(Number(b.id)) ?? Number.MAX_SAFE_INTEGER;
-                    return ordemA - ordemB || String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR");
+                    const diaA = diaPorTreino.get(Number(a.id));
+                    const diaB = diaPorTreino.get(Number(b.id));
+                    const distanciaA = diaA ? (diaA - diaSemanaHoje + 7) % 7 : Number.MAX_SAFE_INTEGER;
+                    const distanciaB = diaB ? (diaB - diaSemanaHoje + 7) % 7 : Number.MAX_SAFE_INTEGER;
+                    return distanciaA - distanciaB || String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR");
                 })
                 : treinosDisponiveis;
             lista.innerHTML = treinos.length

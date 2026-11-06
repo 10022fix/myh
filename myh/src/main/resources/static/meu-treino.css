@@ -112,11 +112,12 @@
 .section-heading p { margin: 0; color: var(--demo-muted); font-size: 14px; }
 .sample-tag { flex: 0 0 auto; padding: 7px 10px; border-radius: 99px; color: var(--demo-green); background: color-mix(in srgb, var(--demo-green) 12%, transparent); font-size: 11px; font-weight: 800; letter-spacing: .07em; }
 .exercise-list { margin-top: 8px; }
-.exercise { position: relative; min-height: 76px; display: grid; grid-template-columns: 22px 28px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; border-bottom: 1px solid var(--demo-border); }
-.exercise input { position: static; width: 19px; height: 19px; margin: 0; opacity: 1; accent-color: var(--demo-green); cursor: pointer; }
-.exercise input:disabled { cursor: not-allowed; }
-.exercise-number { color: var(--demo-green); font-size: 13px; font-weight: 800; cursor: pointer; }
-.exercise-copy { min-width: 0; cursor: pointer; }
+.exercise { min-height: 76px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--demo-border); }
+.exercise-select { min-width: 0; min-height: 76px; display: grid; grid-template-columns: 0 36px minmax(0, 1fr); align-items: center; gap: 12px; cursor: pointer; }
+.exercise input { grid-column: 1; grid-row: 1; width: 0; height: 0; margin: 0; opacity: 0; }
+.exercise.is-locked .exercise-select { cursor: not-allowed; }
+.exercise-number { color: var(--demo-green); font-size: 13px; font-weight: 800; }
+.exercise-copy { min-width: 0; }
 .exercise strong, .exercise small { display: block; }
 .exercise strong { color: var(--demo-text); font-size: 15px; font-weight: 700; }
 .exercise small { margin-top: 5px; color: var(--demo-muted); font-size: 13px; }
@@ -182,7 +183,8 @@
     .section-heading { gap: 9px; }
     .section-heading h2 { font-size: 18px; }
     .sample-tag { padding: 6px 8px; font-size: 9px; }
-    .exercise { min-height: 72px; grid-template-columns: 20px 25px minmax(0, 1fr) auto; gap: 8px; }
+    .exercise { min-height: 72px; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
+    .exercise-select { min-height: 72px; grid-template-columns: 0 30px minmax(0, 1fr); gap: 9px; }
     .exercise > b { display: none; }
     .exercise-guide-button { min-height: 34px; padding: 0 9px; font-size: 11px; }
     .exercise-guide-content { padding: 20px; }
@@ -222,4 +224,4 @@
 
 /* Destaque da sessão atribuída ao dia atual. */
 .training-card .section-heading .sample-tag { max-width: 46%; text-align: center; }
-.training-card .exercise input:disabled { cursor: not-allowed; opacity: .55; }
+.training-card .exercise input:disabled { cursor: not-allowed; }
