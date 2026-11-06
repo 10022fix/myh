@@ -25,6 +25,9 @@ public class ServicoEmailBrevo {
 
     public void enviar(String destinatario, String assunto, String texto) throws IOException, InterruptedException {
         if (chave.isBlank() || remetente.isBlank()) {
+            System.err.println("Brevo não configurada: BREVO_API_KEY "
+                    + (chave.isBlank() ? "ausente" : "presente") + ", MAIL_FROM "
+                    + (remetente.isBlank() ? "ausente" : "presente"));
             throw new IllegalStateException("O envio de e-mail não está configurado.");
         }
         String corpo = "{\"sender\":{\"name\":\"Make Your Health\",\"email\":" + json(remetente)
@@ -40,6 +43,7 @@ public class ServicoEmailBrevo {
         HttpResponse<String> resposta = HTTP.send(pedido,
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         if (resposta.statusCode() < 200 || resposta.statusCode() >= 300) {
+            System.err.println("Falha no envio pela Brevo: HTTP " + resposta.statusCode());
             throw new IllegalStateException("A Brevo respondeu HTTP " + resposta.statusCode());
         }
     }
